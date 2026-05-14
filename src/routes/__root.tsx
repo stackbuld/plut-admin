@@ -77,11 +77,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Plut Admin — Super Admin Dashboard" },
       { name: "description", content: "Back-office for managing gift card trades, brands, countries, denominations and exchange rates." },
       { name: "author", content: "Plut" },
-      { property: "og:title", content: "Plut Admin" },
-      { property: "og:description", content: "Back-office for gift card trades & rates." },
+      { property: "og:title", content: "Plut Admin — Super Admin Dashboard" },
+      { property: "og:description", content: "Back-office for managing gift card trades, brands, countries, denominations and exchange rates." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Plut Admin — Super Admin Dashboard" },
+      { name: "twitter:description", content: "Back-office for managing gift card trades, brands, countries, denominations and exchange rates." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fdbba998-a11b-4cab-b5b0-475ebed92bed/id-preview-8d21322c--52af4f54-1114-4c5a-a9c5-08ab731b47a9.lovable.app-1778758281964.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fdbba998-a11b-4cab-b5b0-475ebed92bed/id-preview-8d21322c--52af4f54-1114-4c5a-a9c5-08ab731b47a9.lovable.app-1778758281964.png" },
     ],
     links: [
       {
