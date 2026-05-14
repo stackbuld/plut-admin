@@ -10,11 +10,29 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TradesRouteImport } from './routes/trades'
+import { Route as DenominationsRouteImport } from './routes/denominations'
+import { Route as CountriesRouteImport } from './routes/countries'
+import { Route as BrandsRouteImport } from './routes/brands'
 import { Route as IndexRouteImport } from './routes/index'
 
 const TradesRoute = TradesRouteImport.update({
   id: '/trades',
   path: '/trades',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DenominationsRoute = DenominationsRouteImport.update({
+  id: '/denominations',
+  path: '/denominations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CountriesRoute = CountriesRouteImport.update({
+  id: '/countries',
+  path: '/countries',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrandsRoute = BrandsRouteImport.update({
+  id: '/brands',
+  path: '/brands',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -25,27 +43,39 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/brands': typeof BrandsRoute
+  '/countries': typeof CountriesRoute
+  '/denominations': typeof DenominationsRoute
   '/trades': typeof TradesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/brands': typeof BrandsRoute
+  '/countries': typeof CountriesRoute
+  '/denominations': typeof DenominationsRoute
   '/trades': typeof TradesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/brands': typeof BrandsRoute
+  '/countries': typeof CountriesRoute
+  '/denominations': typeof DenominationsRoute
   '/trades': typeof TradesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/trades'
+  fullPaths: '/' | '/brands' | '/countries' | '/denominations' | '/trades'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/trades'
-  id: '__root__' | '/' | '/trades'
+  to: '/' | '/brands' | '/countries' | '/denominations' | '/trades'
+  id: '__root__' | '/' | '/brands' | '/countries' | '/denominations' | '/trades'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BrandsRoute: typeof BrandsRoute
+  CountriesRoute: typeof CountriesRoute
+  DenominationsRoute: typeof DenominationsRoute
   TradesRoute: typeof TradesRoute
 }
 
@@ -56,6 +86,27 @@ declare module '@tanstack/react-router' {
       path: '/trades'
       fullPath: '/trades'
       preLoaderRoute: typeof TradesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/denominations': {
+      id: '/denominations'
+      path: '/denominations'
+      fullPath: '/denominations'
+      preLoaderRoute: typeof DenominationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/countries': {
+      id: '/countries'
+      path: '/countries'
+      fullPath: '/countries'
+      preLoaderRoute: typeof CountriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brands': {
+      id: '/brands'
+      path: '/brands'
+      fullPath: '/brands'
+      preLoaderRoute: typeof BrandsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -70,6 +121,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BrandsRoute: BrandsRoute,
+  CountriesRoute: CountriesRoute,
+  DenominationsRoute: DenominationsRoute,
   TradesRoute: TradesRoute,
 }
 export const routeTree = rootRouteImport
