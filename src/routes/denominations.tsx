@@ -61,7 +61,7 @@ function DenomPage() {
             <tbody>
               {filtered.map(d => (
                 <tr key={d.id} className="border-b border-border last:border-0 hover:bg-secondary/40">
-                  <td className="px-5 py-3.5 font-mono">${"".replace}{d.amount.toFixed(2)} {d.currency}</td>
+                  <td className="px-5 py-3.5 font-mono">{d.amount.toFixed(2)} {d.currency}</td>
                   <td className="px-5 py-3.5 font-medium">{d.brand}</td>
                   <td className="px-5 py-3.5 text-muted-foreground">{d.country}</td>
                   <td className="px-5 py-3.5"><StatusBadge status={d.type} /></td>
