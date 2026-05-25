@@ -430,3 +430,22 @@ export const dashboardStats = {
 };
 
 export const recentBlockedUsers = users.filter((u) => u.blocks.some((b) => b.active));
+
+// ===== FX Rates =====
+export interface FxRate {
+  id: string;
+  baseCurrency: string;
+  quoteCurrency: string;
+  rate: number;
+  source: "Manual" | "Auto";
+  validFrom: string;
+  validTo: string | null; // null = active
+}
+export const fxRates: FxRate[] = [
+  { id: "fx-1", baseCurrency: "USD", quoteCurrency: "NGN", rate: 1550.0, source: "Manual", validFrom: "01 May 2026 09:00", validTo: null },
+  { id: "fx-2", baseCurrency: "USD", quoteCurrency: "NGN", rate: 1520.0, source: "Manual", validFrom: "20 Apr 2026 14:00", validTo: "01 May 2026 09:00" },
+  { id: "fx-3", baseCurrency: "USD", quoteCurrency: "NGN", rate: 1495.0, source: "Auto", validFrom: "01 Apr 2026 00:00", validTo: "20 Apr 2026 14:00" },
+  { id: "fx-4", baseCurrency: "USD", quoteCurrency: "GHS", rate: 13.42, source: "Auto", validFrom: "01 May 2026 00:00", validTo: null },
+];
+export const activeFxRate = (quote = "NGN") =>
+  fxRates.find((f) => f.quoteCurrency === quote && f.validTo === null)?.rate ?? 1550;
