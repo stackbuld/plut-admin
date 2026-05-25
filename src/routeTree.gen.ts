@@ -9,164 +9,309 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TradesRouteImport } from './routes/trades'
-import { Route as RatesRouteImport } from './routes/rates'
-import { Route as DenominationsRouteImport } from './routes/denominations'
-import { Route as CountriesRouteImport } from './routes/countries'
-import { Route as BrandsRouteImport } from './routes/brands'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppAdminGiftcardsUsersRouteImport } from './routes/_app.admin.giftcards.users'
+import { Route as AppAdminGiftcardsTradesRouteImport } from './routes/_app.admin.giftcards.trades'
+import { Route as AppAdminGiftcardsDashboardRouteImport } from './routes/_app.admin.giftcards.dashboard'
+import { Route as AppAdminGiftcardsCatalogRouteImport } from './routes/_app.admin.giftcards.catalog'
+import { Route as AppAdminGiftcardsBrandsRouteImport } from './routes/_app.admin.giftcards.brands'
+import { Route as AppAdminGiftcardsUsersUserIdRouteImport } from './routes/_app.admin.giftcards.users.$userId'
+import { Route as AppAdminGiftcardsTradesTradeIdRouteImport } from './routes/_app.admin.giftcards.trades.$tradeId'
+import { Route as AppAdminGiftcardsBrandsBrandIdRouteImport } from './routes/_app.admin.giftcards.brands.$brandId'
 
-const TradesRoute = TradesRouteImport.update({
-  id: '/trades',
-  path: '/trades',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RatesRoute = RatesRouteImport.update({
-  id: '/rates',
-  path: '/rates',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DenominationsRoute = DenominationsRouteImport.update({
-  id: '/denominations',
-  path: '/denominations',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CountriesRoute = CountriesRouteImport.update({
-  id: '/countries',
-  path: '/countries',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BrandsRoute = BrandsRouteImport.update({
-  id: '/brands',
-  path: '/brands',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
+const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
+const AppAdminGiftcardsUsersRoute = AppAdminGiftcardsUsersRouteImport.update({
+  id: '/admin/giftcards/users',
+  path: '/admin/giftcards/users',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminGiftcardsTradesRoute = AppAdminGiftcardsTradesRouteImport.update({
+  id: '/admin/giftcards/trades',
+  path: '/admin/giftcards/trades',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminGiftcardsDashboardRoute =
+  AppAdminGiftcardsDashboardRouteImport.update({
+    id: '/admin/giftcards/dashboard',
+    path: '/admin/giftcards/dashboard',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppAdminGiftcardsCatalogRoute =
+  AppAdminGiftcardsCatalogRouteImport.update({
+    id: '/admin/giftcards/catalog',
+    path: '/admin/giftcards/catalog',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppAdminGiftcardsBrandsRoute = AppAdminGiftcardsBrandsRouteImport.update({
+  id: '/admin/giftcards/brands',
+  path: '/admin/giftcards/brands',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminGiftcardsUsersUserIdRoute =
+  AppAdminGiftcardsUsersUserIdRouteImport.update({
+    id: '/$userId',
+    path: '/$userId',
+    getParentRoute: () => AppAdminGiftcardsUsersRoute,
+  } as any)
+const AppAdminGiftcardsTradesTradeIdRoute =
+  AppAdminGiftcardsTradesTradeIdRouteImport.update({
+    id: '/$tradeId',
+    path: '/$tradeId',
+    getParentRoute: () => AppAdminGiftcardsTradesRoute,
+  } as any)
+const AppAdminGiftcardsBrandsBrandIdRoute =
+  AppAdminGiftcardsBrandsBrandIdRouteImport.update({
+    id: '/$brandId',
+    path: '/$brandId',
+    getParentRoute: () => AppAdminGiftcardsBrandsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/brands': typeof BrandsRoute
-  '/countries': typeof CountriesRoute
-  '/denominations': typeof DenominationsRoute
-  '/rates': typeof RatesRoute
-  '/trades': typeof TradesRoute
+  '/': typeof AppIndexRoute
+  '/login': typeof LoginRoute
+  '/admin/giftcards/brands': typeof AppAdminGiftcardsBrandsRouteWithChildren
+  '/admin/giftcards/catalog': typeof AppAdminGiftcardsCatalogRoute
+  '/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
+  '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
+  '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
+  '/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
+  '/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
+  '/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/brands': typeof BrandsRoute
-  '/countries': typeof CountriesRoute
-  '/denominations': typeof DenominationsRoute
-  '/rates': typeof RatesRoute
-  '/trades': typeof TradesRoute
+  '/login': typeof LoginRoute
+  '/': typeof AppIndexRoute
+  '/admin/giftcards/brands': typeof AppAdminGiftcardsBrandsRouteWithChildren
+  '/admin/giftcards/catalog': typeof AppAdminGiftcardsCatalogRoute
+  '/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
+  '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
+  '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
+  '/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
+  '/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
+  '/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/brands': typeof BrandsRoute
-  '/countries': typeof CountriesRoute
-  '/denominations': typeof DenominationsRoute
-  '/rates': typeof RatesRoute
-  '/trades': typeof TradesRoute
+  '/_app': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_app/': typeof AppIndexRoute
+  '/_app/admin/giftcards/brands': typeof AppAdminGiftcardsBrandsRouteWithChildren
+  '/_app/admin/giftcards/catalog': typeof AppAdminGiftcardsCatalogRoute
+  '/_app/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
+  '/_app/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
+  '/_app/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
+  '/_app/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
+  '/_app/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
+  '/_app/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/brands'
-    | '/countries'
-    | '/denominations'
-    | '/rates'
-    | '/trades'
+    | '/login'
+    | '/admin/giftcards/brands'
+    | '/admin/giftcards/catalog'
+    | '/admin/giftcards/dashboard'
+    | '/admin/giftcards/trades'
+    | '/admin/giftcards/users'
+    | '/admin/giftcards/brands/$brandId'
+    | '/admin/giftcards/trades/$tradeId'
+    | '/admin/giftcards/users/$userId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/brands' | '/countries' | '/denominations' | '/rates' | '/trades'
+  to:
+    | '/login'
+    | '/'
+    | '/admin/giftcards/brands'
+    | '/admin/giftcards/catalog'
+    | '/admin/giftcards/dashboard'
+    | '/admin/giftcards/trades'
+    | '/admin/giftcards/users'
+    | '/admin/giftcards/brands/$brandId'
+    | '/admin/giftcards/trades/$tradeId'
+    | '/admin/giftcards/users/$userId'
   id:
     | '__root__'
-    | '/'
-    | '/brands'
-    | '/countries'
-    | '/denominations'
-    | '/rates'
-    | '/trades'
+    | '/_app'
+    | '/login'
+    | '/_app/'
+    | '/_app/admin/giftcards/brands'
+    | '/_app/admin/giftcards/catalog'
+    | '/_app/admin/giftcards/dashboard'
+    | '/_app/admin/giftcards/trades'
+    | '/_app/admin/giftcards/users'
+    | '/_app/admin/giftcards/brands/$brandId'
+    | '/_app/admin/giftcards/trades/$tradeId'
+    | '/_app/admin/giftcards/users/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  BrandsRoute: typeof BrandsRoute
-  CountriesRoute: typeof CountriesRoute
-  DenominationsRoute: typeof DenominationsRoute
-  RatesRoute: typeof RatesRoute
-  TradesRoute: typeof TradesRoute
+  AppRoute: typeof AppRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/trades': {
-      id: '/trades'
-      path: '/trades'
-      fullPath: '/trades'
-      preLoaderRoute: typeof TradesRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/rates': {
-      id: '/rates'
-      path: '/rates'
-      fullPath: '/rates'
-      preLoaderRoute: typeof RatesRouteImport
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/denominations': {
-      id: '/denominations'
-      path: '/denominations'
-      fullPath: '/denominations'
-      preLoaderRoute: typeof DenominationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/countries': {
-      id: '/countries'
-      path: '/countries'
-      fullPath: '/countries'
-      preLoaderRoute: typeof CountriesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/brands': {
-      id: '/brands'
-      path: '/brands'
-      fullPath: '/brands'
-      preLoaderRoute: typeof BrandsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
+    '/_app/': {
+      id: '/_app/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/giftcards/users': {
+      id: '/_app/admin/giftcards/users'
+      path: '/admin/giftcards/users'
+      fullPath: '/admin/giftcards/users'
+      preLoaderRoute: typeof AppAdminGiftcardsUsersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/giftcards/trades': {
+      id: '/_app/admin/giftcards/trades'
+      path: '/admin/giftcards/trades'
+      fullPath: '/admin/giftcards/trades'
+      preLoaderRoute: typeof AppAdminGiftcardsTradesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/giftcards/dashboard': {
+      id: '/_app/admin/giftcards/dashboard'
+      path: '/admin/giftcards/dashboard'
+      fullPath: '/admin/giftcards/dashboard'
+      preLoaderRoute: typeof AppAdminGiftcardsDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/giftcards/catalog': {
+      id: '/_app/admin/giftcards/catalog'
+      path: '/admin/giftcards/catalog'
+      fullPath: '/admin/giftcards/catalog'
+      preLoaderRoute: typeof AppAdminGiftcardsCatalogRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/giftcards/brands': {
+      id: '/_app/admin/giftcards/brands'
+      path: '/admin/giftcards/brands'
+      fullPath: '/admin/giftcards/brands'
+      preLoaderRoute: typeof AppAdminGiftcardsBrandsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/giftcards/users/$userId': {
+      id: '/_app/admin/giftcards/users/$userId'
+      path: '/$userId'
+      fullPath: '/admin/giftcards/users/$userId'
+      preLoaderRoute: typeof AppAdminGiftcardsUsersUserIdRouteImport
+      parentRoute: typeof AppAdminGiftcardsUsersRoute
+    }
+    '/_app/admin/giftcards/trades/$tradeId': {
+      id: '/_app/admin/giftcards/trades/$tradeId'
+      path: '/$tradeId'
+      fullPath: '/admin/giftcards/trades/$tradeId'
+      preLoaderRoute: typeof AppAdminGiftcardsTradesTradeIdRouteImport
+      parentRoute: typeof AppAdminGiftcardsTradesRoute
+    }
+    '/_app/admin/giftcards/brands/$brandId': {
+      id: '/_app/admin/giftcards/brands/$brandId'
+      path: '/$brandId'
+      fullPath: '/admin/giftcards/brands/$brandId'
+      preLoaderRoute: typeof AppAdminGiftcardsBrandsBrandIdRouteImport
+      parentRoute: typeof AppAdminGiftcardsBrandsRoute
     }
   }
 }
 
+interface AppAdminGiftcardsBrandsRouteChildren {
+  AppAdminGiftcardsBrandsBrandIdRoute: typeof AppAdminGiftcardsBrandsBrandIdRoute
+}
+
+const AppAdminGiftcardsBrandsRouteChildren: AppAdminGiftcardsBrandsRouteChildren =
+  {
+    AppAdminGiftcardsBrandsBrandIdRoute: AppAdminGiftcardsBrandsBrandIdRoute,
+  }
+
+const AppAdminGiftcardsBrandsRouteWithChildren =
+  AppAdminGiftcardsBrandsRoute._addFileChildren(
+    AppAdminGiftcardsBrandsRouteChildren,
+  )
+
+interface AppAdminGiftcardsTradesRouteChildren {
+  AppAdminGiftcardsTradesTradeIdRoute: typeof AppAdminGiftcardsTradesTradeIdRoute
+}
+
+const AppAdminGiftcardsTradesRouteChildren: AppAdminGiftcardsTradesRouteChildren =
+  {
+    AppAdminGiftcardsTradesTradeIdRoute: AppAdminGiftcardsTradesTradeIdRoute,
+  }
+
+const AppAdminGiftcardsTradesRouteWithChildren =
+  AppAdminGiftcardsTradesRoute._addFileChildren(
+    AppAdminGiftcardsTradesRouteChildren,
+  )
+
+interface AppAdminGiftcardsUsersRouteChildren {
+  AppAdminGiftcardsUsersUserIdRoute: typeof AppAdminGiftcardsUsersUserIdRoute
+}
+
+const AppAdminGiftcardsUsersRouteChildren: AppAdminGiftcardsUsersRouteChildren =
+  {
+    AppAdminGiftcardsUsersUserIdRoute: AppAdminGiftcardsUsersUserIdRoute,
+  }
+
+const AppAdminGiftcardsUsersRouteWithChildren =
+  AppAdminGiftcardsUsersRoute._addFileChildren(
+    AppAdminGiftcardsUsersRouteChildren,
+  )
+
+interface AppRouteChildren {
+  AppIndexRoute: typeof AppIndexRoute
+  AppAdminGiftcardsBrandsRoute: typeof AppAdminGiftcardsBrandsRouteWithChildren
+  AppAdminGiftcardsCatalogRoute: typeof AppAdminGiftcardsCatalogRoute
+  AppAdminGiftcardsDashboardRoute: typeof AppAdminGiftcardsDashboardRoute
+  AppAdminGiftcardsTradesRoute: typeof AppAdminGiftcardsTradesRouteWithChildren
+  AppAdminGiftcardsUsersRoute: typeof AppAdminGiftcardsUsersRouteWithChildren
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppIndexRoute: AppIndexRoute,
+  AppAdminGiftcardsBrandsRoute: AppAdminGiftcardsBrandsRouteWithChildren,
+  AppAdminGiftcardsCatalogRoute: AppAdminGiftcardsCatalogRoute,
+  AppAdminGiftcardsDashboardRoute: AppAdminGiftcardsDashboardRoute,
+  AppAdminGiftcardsTradesRoute: AppAdminGiftcardsTradesRouteWithChildren,
+  AppAdminGiftcardsUsersRoute: AppAdminGiftcardsUsersRouteWithChildren,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  BrandsRoute: BrandsRoute,
-  CountriesRoute: CountriesRoute,
-  DenominationsRoute: DenominationsRoute,
-  RatesRoute: RatesRoute,
-  TradesRoute: TradesRoute,
+  AppRoute: AppRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
