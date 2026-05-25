@@ -1,7 +1,9 @@
 import { ArrowDownRight, ArrowUpRight, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function StatCard({ label, value, change, icon: Icon }: { label: string; value: string; change?: number; icon: LucideIcon }) {
+export function StatCard({
+  label, value, change, icon: Icon, sublabel,
+}: { label: string; value: string; change?: number; icon: LucideIcon; sublabel?: string }) {
   const positive = (change ?? 0) >= 0;
   return (
     <div className="rounded-2xl border bg-card p-6 transition-shadow hover:shadow-[var(--shadow-primary)]">
@@ -9,8 +11,12 @@ export function StatCard({ label, value, change, icon: Icon }: { label: string; 
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
           <p className="font-display mt-3 text-[32px] font-bold leading-none">{value}</p>
+          {sublabel && <p className="mt-2 text-xs text-muted-foreground">{sublabel}</p>}
           {change !== undefined && change !== 0 && (
-            <span className={cn("mt-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold", positive ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive")}>
+            <span className={cn(
+              "mt-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold",
+              positive ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive",
+            )}>
               {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
               {Math.abs(change)}% from last month
             </span>
