@@ -35,3 +35,10 @@ export const formatDateTime = (iso: string) => {
 };
 
 export const truncId = (id: string, n = 12) => (id.length <= n ? id : `${id.slice(0, n)}…`);
+
+export const currencySymbol = (code: string) => {
+  const m: Record<string, string> = {
+    USD: "$", GBP: "£", EUR: "€", AUD: "A$", CAD: "C$", JPY: "¥", BRL: "R$", NGN: "₦", GHS: "₵",
+  };
+  return m[code] ?? "";
+};
