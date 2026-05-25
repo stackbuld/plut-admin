@@ -9,154 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TradesRouteImport } from './routes/trades'
-import { Route as RatesRouteImport } from './routes/rates'
-import { Route as DenominationsRouteImport } from './routes/denominations'
-import { Route as CountriesRouteImport } from './routes/countries'
-import { Route as BrandsRouteImport } from './routes/brands'
-import { Route as IndexRouteImport } from './routes/index'
 
-const TradesRoute = TradesRouteImport.update({
-  id: '/trades',
-  path: '/trades',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RatesRoute = RatesRouteImport.update({
-  id: '/rates',
-  path: '/rates',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DenominationsRoute = DenominationsRouteImport.update({
-  id: '/denominations',
-  path: '/denominations',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CountriesRoute = CountriesRouteImport.update({
-  id: '/countries',
-  path: '/countries',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BrandsRoute = BrandsRouteImport.update({
-  id: '/brands',
-  path: '/brands',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
-export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/brands': typeof BrandsRoute
-  '/countries': typeof CountriesRoute
-  '/denominations': typeof DenominationsRoute
-  '/rates': typeof RatesRoute
-  '/trades': typeof TradesRoute
-}
-export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/brands': typeof BrandsRoute
-  '/countries': typeof CountriesRoute
-  '/denominations': typeof DenominationsRoute
-  '/rates': typeof RatesRoute
-  '/trades': typeof TradesRoute
-}
+export interface FileRoutesByFullPath {}
+export interface FileRoutesByTo {}
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/brands': typeof BrandsRoute
-  '/countries': typeof CountriesRoute
-  '/denominations': typeof DenominationsRoute
-  '/rates': typeof RatesRoute
-  '/trades': typeof TradesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/brands'
-    | '/countries'
-    | '/denominations'
-    | '/rates'
-    | '/trades'
+  fullPaths: never
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/brands' | '/countries' | '/denominations' | '/rates' | '/trades'
-  id:
-    | '__root__'
-    | '/'
-    | '/brands'
-    | '/countries'
-    | '/denominations'
-    | '/rates'
-    | '/trades'
+  to: never
+  id: '__root__'
   fileRoutesById: FileRoutesById
 }
-export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  BrandsRoute: typeof BrandsRoute
-  CountriesRoute: typeof CountriesRoute
-  DenominationsRoute: typeof DenominationsRoute
-  RatesRoute: typeof RatesRoute
-  TradesRoute: typeof TradesRoute
-}
+export interface RootRouteChildren {}
 
 declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/trades': {
-      id: '/trades'
-      path: '/trades'
-      fullPath: '/trades'
-      preLoaderRoute: typeof TradesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/rates': {
-      id: '/rates'
-      path: '/rates'
-      fullPath: '/rates'
-      preLoaderRoute: typeof RatesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/denominations': {
-      id: '/denominations'
-      path: '/denominations'
-      fullPath: '/denominations'
-      preLoaderRoute: typeof DenominationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/countries': {
-      id: '/countries'
-      path: '/countries'
-      fullPath: '/countries'
-      preLoaderRoute: typeof CountriesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/brands': {
-      id: '/brands'
-      path: '/brands'
-      fullPath: '/brands'
-      preLoaderRoute: typeof BrandsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-  }
+  interface FileRoutesByPath {}
 }
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  BrandsRoute: BrandsRoute,
-  CountriesRoute: CountriesRoute,
-  DenominationsRoute: DenominationsRoute,
-  RatesRoute: RatesRoute,
-  TradesRoute: TradesRoute,
-}
+const rootRouteChildren: RootRouteChildren = {}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
