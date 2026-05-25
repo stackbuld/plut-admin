@@ -10,7 +10,8 @@ import {
 
 import appCss from "../styles.css?url";
 import { ThemeProvider } from "@/components/theme-provider";
-import { AppShell } from "@/components/plut/AppShell";
+import { AuthProvider } from "@/lib/auth";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -123,7 +124,10 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AppShell />
+        <AuthProvider>
+          <Outlet />
+          <Toaster position="top-right" richColors />
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
