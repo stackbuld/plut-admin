@@ -1,16 +1,16 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "dark" | "light";
-const ThemeCtx = createContext<{ theme: Theme; toggle: () => void }>({ theme: "dark", toggle: () => {} });
+const ThemeCtx = createContext<{ theme: Theme; toggle: () => void }>({ theme: "light", toggle: () => {} });
+
+function readInitialTheme(): Theme {
+  if (typeof window === "undefined") return "light";
+  const stored = window.localStorage.getItem("plut-theme");
+  return stored === "dark" ? "dark" : "light";
+}
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("dark");
-
-  useEffect(() => {
-    const stored = (typeof window !== "undefined" && localStorage.getItem("plut-theme")) as Theme | null;
-    const next: Theme = stored === "light" || stored === "dark" ? stored : "dark";
-    setTheme(next);
-  }, []);
+  const [theme, setTheme] = useState<Theme>(readInitialTheme);
 
   useEffect(() => {
     const root = document.documentElement;
