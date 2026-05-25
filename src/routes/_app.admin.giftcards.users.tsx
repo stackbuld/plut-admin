@@ -73,7 +73,7 @@ function UsersLayout() {
                         <p className="font-mono text-xs text-muted-foreground">{u.id}</p>
                       </Link>
                     </td>
-                    <td className="px-6 py-3.5"><StatusBadge status={blk.type === "Permanent" ? "Rejected" : "Submitted"} dot={false}>{blk.type}</StatusBadge></td>
+                    <td className="px-6 py-3.5"><StatusBadge status={blk.type === "Permanent" ? "Rejected" : "Submitted"} dot={false} /> <span className="ml-2 text-xs text-muted-foreground">{blk.type}</span></td>
                     <td className="px-6 py-3.5 text-xs text-muted-foreground">{blk.startedAt}</td>
                     <td className="px-6 py-3.5 text-xs text-muted-foreground">{blk.expiresAt}</td>
                   </tr>
