@@ -80,6 +80,10 @@ export interface Rate {
   source: "Manual" | "Auto";
   validFrom: string;
   active: boolean;
+  // Supplier quote context (Multi-currency acquisition model)
+  acquisitionCurrency?: "CNY" | null; // CNY when Mode B; null otherwise
+  acquisitionRatePerCardDollar?: number | null; // e.g. 5.4 RMB/$1
+  supplierNgnPerDollar?: number | null; // Mode A audit-only
 }
 
 const denoms: Denomination[] = [];
@@ -103,6 +107,10 @@ function addDenom(brandId: string, countryId: string, amount: number, cardType: 
       source: "Manual",
       validFrom: "01 May 2026",
       active: true,
+      // Default seed: assume supplier quoted in NGN
+      acquisitionCurrency: null,
+      acquisitionRatePerCardDollar: null,
+      supplierNgnPerDollar: Math.round(marketRate * 1550),
     });
   }
 }
@@ -445,7 +453,28 @@ export const fxRates: FxRate[] = [
   { id: "fx-1", baseCurrency: "USD", quoteCurrency: "NGN", rate: 1550.0, source: "Manual", validFrom: "01 May 2026 09:00", validTo: null },
   { id: "fx-2", baseCurrency: "USD", quoteCurrency: "NGN", rate: 1520.0, source: "Manual", validFrom: "20 Apr 2026 14:00", validTo: "01 May 2026 09:00" },
   { id: "fx-3", baseCurrency: "USD", quoteCurrency: "NGN", rate: 1495.0, source: "Auto", validFrom: "01 Apr 2026 00:00", validTo: "20 Apr 2026 14:00" },
-  { id: "fx-4", baseCurrency: "USD", quoteCurrency: "GHS", rate: 13.42, source: "Auto", validFrom: "01 May 2026 00:00", validTo: null },
+  { id: "fx-4", baseCurrency: "USD", quoteCurrency: "GHS", rate: 16.20, source: "Manual", validFrom: "25 May 2026 14:00", validTo: null },
+  { id: "fx-5", baseCurrency: "CNY", quoteCurrency: "NGN", rate: 203.0, source: "Manual", validFrom: "27 May 2026 09:12", validTo: null },
+  { id: "fx-6", baseCurrency: "CNY", quoteCurrency: "NGN", rate: 201.5, source: "Manual", validFrom: "22 May 2026 11:00", validTo: "27 May 2026 09:12" },
+  { id: "fx-7", baseCurrency: "GHS", quoteCurrency: "NGN", rate: 95.68, source: "Manual", validFrom: "25 May 2026 14:00", validTo: null },
 ];
-export const activeFxRate = (quote = "NGN") =>
-  fxRates.find((f) => f.quoteCurrency === quote && f.validTo === null)?.rate ?? 1550;
+export const activeFxRate = (quote = "NGN", base = "USD") =>
+  fxRates.find((f) => f.baseCurrency === base && f.quoteCurrency === quote && f.validTo === null)?.rate ?? 1550;
+
+// ===== Payout Currencies =====
+export type PayoutCurrencyStatus = "Active" | "Draft" | "Inactive";
+export interface PayoutCurrency {
+  code: string;
+  name: string;
+  symbol: string;
+  status: PayoutCurrencyStatus;
+}
+export const payoutCurrencies: PayoutCurrency[] = [
+  { code: "NGN", name: "Nigerian Naira", symbol: "₦", status: "Active" },
+  { code: "GHS", name: "Ghanaian Cedi", symbol: "GH₵", status: "Active" },
+  { code: "KES", name: "Kenyan Shilling", symbol: "KSh", status: "Draft" },
+  { code: "ZAR", name: "South African Rand", symbol: "R", status: "Draft" },
+];
+
+export const activePayoutCurrencies = () =>
+  payoutCurrencies.filter((c) => c.status === "Active");
