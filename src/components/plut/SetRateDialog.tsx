@@ -207,31 +207,27 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
               ))}
             </FxGroup>
 
-            {acqCurs.length > 0 && (
-              <FxGroup label="Acquisition rates">
-                {acqCurs.map((a) => (
+            {acqCode !== "USD" && (() => {
+              const a = acqCurs.find((x) => x.code === acqCode);
+              if (!a) return null;
+              const derived = usdNgn ? getFx(a.code, "NGN") / usdNgn : 0;
+              return (
+                <FxGroup label={`Acquisition rates — ${a.code}`}>
                   <FxInline
-                    key={a.code}
                     label={`${a.code} / NGN`}
                     base={a.code} quote="NGN"
                     value={getFx(a.code, "NGN")}
                     onChange={(v) => setFxValue(a.code, "NGN", v)}
                     symbol="₦"
                   />
-                ))}
-                {acqCurs.map((a) => {
-                  const derived = usdNgn ? getFx(a.code, "NGN") / usdNgn : 0;
-                  return (
-                    <DerivedFx
-                      key={`${a.code}-usd`}
-                      label={`${a.code} / USD (derived)`}
-                      value={derived}
-                      symbol="$"
-                    />
-                  );
-                })}
-              </FxGroup>
-            )}
+                  <DerivedFx
+                    label={`${a.code} / USD (derived)`}
+                    value={derived}
+                    symbol="$"
+                  />
+                </FxGroup>
+              );
+            })()}
           </Section>
 
           {/* 3 — Acquisition Cost */}
