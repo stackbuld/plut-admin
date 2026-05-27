@@ -10,6 +10,7 @@ const styles: Record<string, string> = {
   Active: "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300",
   Paused: "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/15 dark:text-yellow-300",
   Inactive: "bg-gray-100 text-gray-700 dark:bg-gray-500/15 dark:text-gray-300",
+  Draft: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
   Physical: "bg-secondary text-secondary-foreground",
   "E-code": "bg-primary/15 text-primary",
 };
@@ -23,6 +24,7 @@ const dotColor: Record<string, string> = {
   Active: "bg-green-500",
   Paused: "bg-yellow-500",
   Inactive: "bg-gray-400",
+  Draft: "bg-amber-500",
 };
 
 export function StatusBadge({ status, className, dot = true }: { status: string; className?: string; dot?: boolean }) {
