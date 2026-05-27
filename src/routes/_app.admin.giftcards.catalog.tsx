@@ -238,8 +238,8 @@ function RatesTab() {
       return { d, r };
     })
     .filter(({ r }) => (activeOnly ? !!r : true));
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const viewFx = view === "USD" ? 1 : useActiveFxRate(view, "USD");
+  const viewFxRaw = useActiveFxRate(view, "USD");
+  const viewFx = view === "USD" ? 1 : viewFxRaw;
   const viewSym = view === "USD" ? "$" : currencySymbol(view);
   return (
     <div className="space-y-4">
