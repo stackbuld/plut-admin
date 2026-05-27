@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { brands, brandById, countries, countryById } from "@/data/mock";
+import { useCatalogStore, type RatePayload } from "@/data/store";
 import { currencySymbol } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ export function AddDenominationDialog({
   onClose: () => void;
   onCreated?: (info: { brandId: string; countryId: string; face: string; type: "Physical" | "E-code"; hasRate: boolean }) => void;
 }) {
+  const addDenominationAction = useCatalogStore((s) => s.addDenomination);
   const [bId, setBId] = useState(brandId ?? "");
   const [cId, setCId] = useState(countryId ?? "");
   const [face, setFace] = useState("");
@@ -50,6 +52,28 @@ export function AddDenominationDialog({
     if (!cId) { toast.error("Country required"); return; }
     if (!face) { toast.error("Face value required"); return; }
     if (setInitial && !parseFloat(market)) { toast.error("Market rate required for initial rate"); return; }
+    const faceNum = parseFloat(face);
+    const marketNum = setInitial ? parseFloat(market) : 0;
+    const markupNum = setInitial ? parseFloat(markup) || 0 : 0;
+    let initialRate: RatePayload | null = null;
+    if (setInitial && marketNum > 0) {
+      const cust = +(marketNum * (1 - markupNum / 100)).toFixed(4);
+      initialRate = {
+        marketRateUsd: marketNum,
+        customerRateUsd: cust,
+        markupType: "Percentage",
+        markupValue: markupNum,
+        source: "Manual",
+      };
+    }
+    addDenominationAction({
+      brandId: bId,
+      countryId: cId,
+      amount: faceNum,
+      currency: country?.currency ?? "USD",
+      cardType: type,
+      initialRate,
+    });
     toast.success(`Added ${sym}${face} ${type} for ${brand?.name} · ${country?.name}${setInitial ? " (with rate)" : ""}.`);
     onCreated?.({ brandId: bId, countryId: cId, face, type, hasRate: setInitial });
     onClose();
