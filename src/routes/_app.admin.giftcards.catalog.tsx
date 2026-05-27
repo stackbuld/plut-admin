@@ -9,11 +9,16 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { StatusBadge } from "@/components/plut/StatusBadge";
+import { brands, countries, brandById, countryById, type PayoutCurrency } from "@/data/mock";
 import {
-  brands, countries, denominations, rates, brandById, countryById, fxRates,
-  payoutCurrencies, activePayoutCurrencies, activeFxRate,
-  type PayoutCurrency,
-} from "@/data/mock";
+  useDenominations,
+  useRates,
+  useFxRatesList,
+  usePayoutCurrenciesList,
+  useActivePayoutCurrencies,
+  useActiveFxRate,
+  useCatalogStore,
+} from "@/data/store";
 import { toast } from "sonner";
 import { SetRateDialog } from "@/components/plut/SetRateDialog";
 import { AddDenominationDialog } from "@/components/plut/AddDenominationDialog";
@@ -110,6 +115,9 @@ function DenominationsTab() {
   const [addOpen, setAddOpen] = useState(false);
   const [justAdded, setJustAdded] = useState<{ label: string; denomId: string | null } | null>(null);
   const [rateFor, setRateFor] = useState<string | null>(null);
+  const denominations = useDenominations();
+  const rates = useRates();
+  const toggleDenomination = useCatalogStore((s) => s.toggleDenomination);
   const list = denominations
     .filter((d) => brand === "All" || d.brandId === brand)
     .filter((d) => country === "All" || d.countryId === country)
@@ -178,7 +186,7 @@ function DenominationsTab() {
                         <Button size="icon" variant="ghost" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => toast.success(`${d.active ? "Deactivated" : "Activated"} denomination.`)}>
+                        <DropdownMenuItem onClick={() => { toggleDenomination(d.id); toast.success(`${d.active ? "Deactivated" : "Activated"} denomination.`); }}>
                           {d.active ? "Deactivate" : "Activate"}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -197,11 +205,13 @@ function DenominationsTab() {
           if (info.hasRate) return;
           const b = brandById(info.brandId);
           const c = countryById(info.countryId);
-          // Mock: pick any existing denom without a rate so the Set Rate modal can preview the flow.
-          const fallback = denominations.find((d) => !rates.some((r) => r.denominationId === d.id && r.active));
+          // The newly-added denom is at the end of the store list with no active rate.
+          const newest = [...denominations]
+            .reverse()
+            .find((d) => d.brandId === info.brandId && d.countryId === info.countryId && !rates.some((r) => r.denominationId === d.id && r.active));
           setJustAdded({
             label: `${b?.logoEmoji ?? ""} ${b?.name} ${currencySymbol(c?.currency ?? "USD")}${info.face} ${info.type} · ${c?.code}`,
-            denomId: fallback?.id ?? null,
+            denomId: newest?.id ?? null,
           });
         }}
       />
@@ -214,7 +224,9 @@ function RatesTab() {
   const [rateFor, setRateFor] = useState<string | null>(null);
   const [historyFor, setHistoryFor] = useState<string | null>(null);
   const [brand, setBrand] = useState("All"); const [country, setCountry] = useState("All"); const [activeOnly, setActiveOnly] = useState(true);
-  const payouts = activePayoutCurrencies();
+  const denominations = useDenominations();
+  const rates = useRates();
+  const payouts = useActivePayoutCurrencies();
   const [view, setView] = useState<string>("USD"); // USD | NGN | GHS | …
   // Build rows from denominations so that denoms without an active rate still appear.
   type Row = { d: typeof denominations[number]; r: (typeof rates)[number] | null };
@@ -226,7 +238,8 @@ function RatesTab() {
       return { d, r };
     })
     .filter(({ r }) => (activeOnly ? !!r : true));
-  const viewFx = view === "USD" ? 1 : activeFxRate(view, "USD");
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const viewFx = view === "USD" ? 1 : useActiveFxRate(view, "USD");
   const viewSym = view === "USD" ? "$" : currencySymbol(view);
   return (
     <div className="space-y-4">
