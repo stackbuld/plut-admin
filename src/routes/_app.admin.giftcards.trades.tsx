@@ -53,7 +53,47 @@ function TradesLayout() {
         <span className="ml-auto text-xs text-muted-foreground">{list.length} trade{list.length === 1 ? "" : "s"}</span>
       </div>
 
-      <div className="rounded-2xl border bg-card overflow-hidden">
+      {/* Mobile card list */}
+      <div className="space-y-3 md:hidden">
+        {list.map((t) => {
+          const b = brandById(t.brandId);
+          return (
+            <Link
+              key={t.id}
+              to="/admin/giftcards/trades/$tradeId"
+              params={{ tradeId: t.id }}
+              className="block rounded-2xl border bg-card p-4 transition-colors active:bg-secondary/40"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2 font-medium">
+                  <span className="text-base leading-none">{b?.logoEmoji}</span>
+                  <span>{b?.name}</span>
+                </div>
+                <StatusBadge status={t.status} />
+              </div>
+              <div className="mt-3 flex items-end justify-between">
+                <div>
+                  <p className="font-mono text-[11px] text-muted-foreground">{truncId(t.id)}</p>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">{t.customerEmail}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-mono text-sm font-semibold">{formatNaira(t.payoutNgn)}</p>
+                  <p className="font-mono text-[11px] text-muted-foreground">${t.totalUsd}</p>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between border-t border-border pt-2 text-[11px] text-muted-foreground">
+                <span>{formatTime(t.submittedAt)}</span>
+                {t.status === "Submitted" ? <SlaIndicator deadlineIso={t.slaDeadlineAt} /> : <span>—</span>}
+              </div>
+            </Link>
+          );
+        })}
+        {list.length === 0 && (
+          <div className="rounded-2xl border bg-card px-4 py-10 text-center text-sm text-muted-foreground">No trades match these filters.</div>
+        )}
+      </div>
+
+      <div className="hidden md:block rounded-2xl border bg-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-secondary/60">
