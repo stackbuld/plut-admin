@@ -312,7 +312,7 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
               </div>
               {marketRateUsd > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5 border-t pt-2">
-                  {allPayouts.map((p) => {
+                  {allPayouts.filter((p) => previewCodes.includes(p.code)).map((p) => {
                     const fxRate = p.code === "NGN" ? usdNgn : getFx("USD", p.code);
                     if (!fxRate) return null;
                     return (
