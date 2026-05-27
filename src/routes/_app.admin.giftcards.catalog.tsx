@@ -54,7 +54,7 @@ function CountriesTab() {
         <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Add Country</Button>
       </div>
       <div className="rounded-2xl border bg-card overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
           <thead className="bg-secondary/60"><tr className="text-left">
             {["Name", "Code", "Currency", "Brands Linked"].map((h) => (
               <th key={h} className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
@@ -84,7 +84,7 @@ function CountriesTab() {
               );
             })}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -125,7 +125,7 @@ function DenominationsTab() {
         <Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add Denomination</Button>
       </div>
       <div className="rounded-2xl border bg-card overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
           <thead className="bg-secondary/60"><tr className="text-left">
             {["Brand", "Country", "Amount", "Currency", "Type", "Status", ""].map((h) => (
               <th key={h} className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
@@ -162,7 +162,7 @@ function DenominationsTab() {
               );
             })}
           </tbody>
-        </table>
+        </table></div>
       </div>
       <AddDenominationDialog open={addOpen} onClose={() => setAddOpen(false)} />
     </div>
@@ -208,7 +208,7 @@ function RatesTab() {
         </p>
       )}
       <div className="rounded-2xl border bg-card overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
           <thead className="bg-secondary/60"><tr className="text-left">
             {(view === "USD"
               ? ["Brand", "Country", "Denom", "Supplier Quote", "Mkt Rate", "Cust Rate", "Margin", "Src", "Since", ""]
@@ -266,7 +266,7 @@ function RatesTab() {
               <tr><td colSpan={10} className="px-6 py-12 text-center text-sm text-muted-foreground">No rates match these filters.</td></tr>
             )}
           </tbody>
-        </table>
+        </table></div>
         <p className="border-t border-border bg-secondary/30 px-6 py-2 text-[11px] text-muted-foreground">
           Legend: M = Manual, A = Auto · Click any row to see rate history · Supplier Quote shows the input mode used.
         </p>
@@ -293,7 +293,7 @@ function FxTab() {
         <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Set FX Rate</Button>
       </div>
       <div className="rounded-2xl border bg-card overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
           <thead className="bg-secondary/60"><tr className="text-left">
             {["Pair", "Rate", "Type", "Source", "Valid From", "Status"].map((h) => (
               <th key={h} className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
@@ -321,7 +321,7 @@ function FxTab() {
               );
             })}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -388,7 +388,7 @@ function PayoutCurrenciesTab() {
         <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Add Currency</Button>
       </div>
       <div className="rounded-2xl border bg-card overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
           <thead className="bg-secondary/60"><tr className="text-left">
             {["Code", "Name", "Symbol", "USD/FX Rate", "Status", ""].map((h) => (
               <th key={h} className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
@@ -426,7 +426,7 @@ function PayoutCurrenciesTab() {
               );
             })}
           </tbody>
-        </table>
+        </table></div>
         <p className="border-t border-border bg-amber-500/5 px-6 py-2 text-[11px] text-amber-700 dark:text-amber-400">
           ⚠ Draft currencies are hidden from the rest of the app until you set a USD/FX rate for them in the FX Rates tab.
         </p>
