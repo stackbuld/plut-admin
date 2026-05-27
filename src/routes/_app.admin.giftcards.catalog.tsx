@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_app/admin/giftcards/catalog")({
 function Catalog() {
   return (
     <Tabs defaultValue="countries" className="space-y-5">
-      <TabsList>
+      <TabsList className="w-full max-w-full overflow-x-auto whitespace-nowrap">
         <TabsTrigger value="countries">Countries</TabsTrigger>
         <TabsTrigger value="denominations">Denominations</TabsTrigger>
         <TabsTrigger value="rates">Rates</TabsTrigger>
