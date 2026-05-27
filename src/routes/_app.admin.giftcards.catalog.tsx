@@ -108,6 +108,8 @@ function CountriesTab() {
 function DenominationsTab() {
   const [brand, setBrand] = useState("All"); const [country, setCountry] = useState("All"); const [type, setType] = useState("All"); const [status, setStatus] = useState("All");
   const [addOpen, setAddOpen] = useState(false);
+  const [justAdded, setJustAdded] = useState<{ label: string; denomId: string | null } | null>(null);
+  const [rateFor, setRateFor] = useState<string | null>(null);
   const list = denominations
     .filter((d) => brand === "All" || d.brandId === brand)
     .filter((d) => country === "All" || d.countryId === country)
@@ -116,6 +118,30 @@ function DenominationsTab() {
 
   return (
     <div className="space-y-4">
+      {justAdded && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-warning/40 bg-warning/10 px-4 py-2.5 text-sm">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <span>
+              <span className="font-semibold">{justAdded.label}</span>{" "}
+              <span className="text-muted-foreground">— Rate not set.</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                if (justAdded.denomId) setRateFor(justAdded.denomId);
+                else toast.info("Open the Rates tab and click Set Rate for this denomination.");
+              }}
+            >
+              Set rate now
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setJustAdded(null)}>Dismiss</Button>
+          </div>
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         <FilterSelect value={brand} onChange={setBrand} placeholder="Brand" options={[{ v: "All", l: "All brands" }, ...brands.map((b) => ({ v: b.id, l: b.name }))]} />
         <FilterSelect value={country} onChange={setCountry} placeholder="Country" options={[{ v: "All", l: "All countries" }, ...countries.map((c) => ({ v: c.id, l: c.name }))]} />
@@ -164,7 +190,22 @@ function DenominationsTab() {
           </tbody>
         </table></div>
       </div>
-      <AddDenominationDialog open={addOpen} onClose={() => setAddOpen(false)} />
+      <AddDenominationDialog
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onCreated={(info) => {
+          if (info.hasRate) return;
+          const b = brandById(info.brandId);
+          const c = countryById(info.countryId);
+          // Mock: pick any existing denom without a rate so the Set Rate modal can preview the flow.
+          const fallback = denominations.find((d) => !rates.some((r) => r.denominationId === d.id && r.active));
+          setJustAdded({
+            label: `${b?.logoEmoji ?? ""} ${b?.name} ${currencySymbol(c?.currency ?? "USD")}${info.face} ${info.type} · ${c?.code}`,
+            denomId: fallback?.id ?? null,
+          });
+        }}
+      />
+      <SetRateDialog denomId={rateFor} onClose={() => setRateFor(null)} />
     </div>
   );
 }
