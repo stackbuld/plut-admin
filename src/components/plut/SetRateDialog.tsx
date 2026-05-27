@@ -47,7 +47,7 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
   const [fx, setFx] = useState<Record<string, number>>({});
   const fxKey = (base: string, quote: string) => `${base}_${quote}`;
   const getFx = (base: string, quote: string) =>
-    fx[fxKey(base, quote)] ?? activeFxRate(quote, base);
+    fx[fxKey(base, quote)] ?? getActiveFxRate(quote, base);
   const setFxValue = (base: string, quote: string, v: number) =>
     setFx((m) => ({ ...m, [fxKey(base, quote)]: v }));
 
