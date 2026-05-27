@@ -129,6 +129,24 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
   const plutMarginNgnPerCard = marginUsd * d.amount * usdNgn;
   const valid = marketRateUsd > 0 && customerRateUsd > 0 && customerRateUsd <= marketRateUsd;
 
+  // Switch tabs while preserving the equivalent value (derived from current customerRateUsd).
+  const switchMode = (next: CustomerMode) => {
+    if (next === custMode) return;
+    if (marketRateUsd > 0 && customerRateUsd > 0) {
+      if (next === "profit") {
+        const ngn = (marketRateUsd - customerRateUsd) * usdNgn;
+        setProfitNgn(ngn > 0 ? ngn.toFixed(0) : "");
+      } else if (next === "payout") {
+        const ngn = customerRateUsd * usdNgn;
+        setTargetNgn(ngn > 0 ? ngn.toFixed(0) : "");
+      } else {
+        const pct = (1 - customerRateUsd / marketRateUsd) * 100;
+        setMarkupPct(pct >= 0 ? pct.toFixed(2) : "");
+      }
+    }
+    setCustMode(next);
+  };
+
   const submit = async () => {
     if (!marketRateUsd) { toast.error("Enter the supplier quote"); return; }
     if (customerRateUsd <= 0) { toast.error("Customer rate must be positive"); return; }
@@ -276,9 +294,9 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
           {/* 4 — Customer Rate */}
           <Section title="Customer Rate" subtitle="Express the margin in the way that suits you.">
             <div className="grid grid-cols-3 gap-1 rounded-lg border bg-secondary/40 p-1">
-              <ModeTab active={custMode === "profit"} onClick={() => setCustMode("profit")} label="Profit Goal" sub="₦ profit / $1" />
-              <ModeTab active={custMode === "payout"} onClick={() => setCustMode("payout")} label="Target Payout" sub="₦ payout / $1" />
-              <ModeTab active={custMode === "markup"} onClick={() => setCustMode("markup")} label="Markup %" sub="% of market" />
+              <ModeTab active={custMode === "profit"} onClick={() => switchMode("profit")} label="Profit Goal" sub="₦ profit / $1" />
+              <ModeTab active={custMode === "payout"} onClick={() => switchMode("payout")} label="Target Payout" sub="₦ payout / $1" />
+              <ModeTab active={custMode === "markup"} onClick={() => switchMode("markup")} label="Markup %" sub="% of market" />
             </div>
 
             {custMode === "profit" && (
