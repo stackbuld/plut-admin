@@ -1,10 +1,11 @@
 import { useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Target, Wallet, Percent, Pencil, Check, X, Sparkles } from "lucide-react";
+import { Pencil, Check, X, Plus, Sparkles, AlertTriangle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   denominations,
   brandById,
@@ -12,12 +13,12 @@ import {
   activeRateForDenom,
   activeFxRate,
   activePayoutCurrencies,
+  acquisitionCurrencies,
 } from "@/data/mock";
 import { currencySymbol } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-type SupplierMode = "NGN" | "CNY" | "USD";
-type CustomerMode = "profit" | "payout" | "manual";
+type CustomerMode = "profit" | "payout" | "markup";
 
 export function SetRateDialog({ denomId, onClose }: { denomId: string | null; onClose: () => void }) {
   const open = denomId !== null;
@@ -26,262 +27,345 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
   const brand = d ? brandById(d.brandId) : null;
   const country = d ? countryById(d.countryId) : null;
 
-  // Live FX rates (editable inline)
-  const [usdNgn, setUsdNgn] = useState(activeFxRate("NGN", "USD"));
-  const [cnyNgn, setCnyNgn] = useState(activeFxRate("NGN", "CNY"));
-  const payoutCurs = activePayoutCurrencies();
+  const allPayouts = activePayoutCurrencies();
+  const acqCurs = acquisitionCurrencies(); // e.g. [{ code: "CNY", symbol: "¥", ... }]
 
-  // Section 1
-  const [supplierMode, setSupplierMode] = useState<SupplierMode>("NGN");
-  const [ngnInput, setNgnInput] = useState("");
-  const [cnyInput, setCnyInput] = useState("");
-  const [usdInput, setUsdInput] = useState("");
+  // --- Section 1: Acquisition currency dropdown ("USD" = direct) -------------
+  // Selected acquisition code; "USD" means "no acquisition currency / direct".
+  const [acqCode, setAcqCode] = useState<string>("USD");
+  const [supplierInput, setSupplierInput] = useState<string>("");
 
-  // Section 4
-  const [custMode, setCustMode] = useState<CustomerMode>("profit");
-  const [marginPct, setMarginPct] = useState("");
-  const [targetNgn, setTargetNgn] = useState("");
-  const [manualUsd, setManualUsd] = useState("");
+  // --- Section 2: Live FX rates (all editable; map<pair, value>) -------------
+  // Pairs keyed as `${base}_${quote}`. Loaded from active FX rates on open.
+  const [fx, setFx] = useState<Record<string, number>>({});
+  const fxKey = (base: string, quote: string) => `${base}_${quote}`;
+  const getFx = (base: string, quote: string) =>
+    fx[fxKey(base, quote)] ?? activeFxRate(quote, base);
+  const setFxValue = (base: string, quote: string, v: number) =>
+    setFx((m) => ({ ...m, [fxKey(base, quote)]: v }));
 
-  const [source, setSource] = useState<"Manual" | "Auto">("Manual");
+  const usdNgn = getFx("USD", "NGN");
+
+  // --- Section 4: customer rate inputs --------------------------------------
+  const [custMode, setCustMode] = useState<CustomerMode>("markup");
+  const [profitNgn, setProfitNgn] = useState<string>("");   // ₦ per $1 face value
+  const [targetNgn, setTargetNgn] = useState<string>("");   // ₦ payout per $1
+  const [markupPct, setMarkupPct] = useState<string>("");   // % off market
+
+  // --- Section 5: payout preview currencies (selected codes) ----------------
+  const [previewCodes, setPreviewCodes] = useState<string[]>(["NGN"]);
 
   useEffect(() => {
     if (!open) return;
-    setUsdNgn(activeFxRate("NGN", "USD"));
-    setCnyNgn(activeFxRate("NGN", "CNY"));
-    if (r) {
-      // Pre-fill based on what was stored
-      if (r.acquisitionCurrency === "CNY" && r.acquisitionRatePerCardDollar) {
-        setSupplierMode("CNY");
-        setCnyInput(String(r.acquisitionRatePerCardDollar));
-      } else if (r.supplierNgnPerDollar) {
-        setSupplierMode("NGN");
-        setNgnInput(String(r.supplierNgnPerDollar));
-      } else {
-        setSupplierMode("USD");
-        setUsdInput(String(r.marketRateUsd));
-      }
-      setCustMode("profit");
-      setMarginPct(String(r.markupValue));
-      setSource(r.source);
-    } else {
-      setSupplierMode("NGN");
-      setNgnInput(""); setCnyInput(""); setUsdInput("");
-      setCustMode("profit"); setMarginPct("8"); setTargetNgn(""); setManualUsd("");
-      setSource("Manual");
-    }
-  }, [denomId, r, open]);
+    // Seed FX map from current actives
+    const next: Record<string, number> = {};
+    next[fxKey("USD", "NGN")] = activeFxRate("NGN", "USD");
+    for (const ac of acqCurs) next[fxKey(ac.code, "NGN")] = activeFxRate("NGN", ac.code);
+    for (const p of allPayouts) if (p.code !== "NGN") next[fxKey("USD", p.code)] = activeFxRate(p.code, "USD");
+    setFx(next);
 
-  // Derive MarketRateUsd from supplier mode
+    // Seed inputs from existing rate
+    if (r) {
+      if (r.acquisitionCurrency === "CNY" && r.acquisitionRatePerCardDollar) {
+        setAcqCode("CNY");
+        setSupplierInput(String(r.acquisitionRatePerCardDollar));
+      } else if (r.supplierNgnPerDollar) {
+        // Legacy NGN mode — promote to USD direct (NGN isn't an acquisition currency)
+        setAcqCode("USD");
+        setSupplierInput(r.marketRateUsd.toFixed(4));
+      } else {
+        setAcqCode("USD");
+        setSupplierInput(String(r.marketRateUsd));
+      }
+      setCustMode("markup");
+      setMarkupPct(String(r.markupValue));
+      setProfitNgn(""); setTargetNgn("");
+    } else {
+      setAcqCode("USD");
+      setSupplierInput("");
+      setCustMode("markup"); setMarkupPct("8"); setProfitNgn(""); setTargetNgn("");
+    }
+    setPreviewCodes(["NGN"]);
+  }, [denomId, open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!d) return null;
+
+  // --- Derivations ----------------------------------------------------------
+  const supplierNum = parseFloat(supplierInput) || 0;
+  // Derive market rate (USD per $1 face value) from supplier quote
   let marketRateUsd = 0;
-  let acquisitionCostNgn = 0;
-  if (supplierMode === "NGN") {
-    acquisitionCostNgn = parseFloat(ngnInput) || 0;
-    marketRateUsd = usdNgn ? acquisitionCostNgn / usdNgn : 0;
-  } else if (supplierMode === "CNY") {
-    const cny = parseFloat(cnyInput) || 0;
-    const cnyUsd = usdNgn ? cnyNgn / usdNgn : 0;
-    marketRateUsd = cny * cnyUsd;
-    acquisitionCostNgn = cny * cnyNgn;
+  let derivationLabel = "";
+  if (acqCode === "USD") {
+    marketRateUsd = supplierNum;
+    derivationLabel = supplierNum
+      ? `$${supplierNum.toFixed(4)} per card dollar (entered directly)`
+      : "Enter the supplier quote in USD";
   } else {
-    marketRateUsd = parseFloat(usdInput) || 0;
-    acquisitionCostNgn = marketRateUsd * usdNgn;
+    const acqNgn = getFx(acqCode, "NGN");
+    const acqUsd = usdNgn ? acqNgn / usdNgn : 0; // e.g. CNY → USD
+    marketRateUsd = supplierNum * acqUsd;
+    derivationLabel = supplierNum
+      ? `${supplierNum} ${acqCode}/card$ × (${acqNgn.toLocaleString()} NGN/${acqCode} ÷ ${usdNgn.toLocaleString()} NGN/USD) = $${marketRateUsd.toFixed(4)} per card dollar`
+      : `Enter the supplier quote in ${acqCode}`;
   }
 
-  // Derive CustomerRateUsd
+  // Customer rate (USD per $1 face value) per chosen mode
   let customerRateUsd = 0;
   if (custMode === "profit") {
-    const m = parseFloat(marginPct) || 0;
-    customerRateUsd = marketRateUsd * (1 - m / 100);
+    const ngn = parseFloat(profitNgn) || 0;
+    const profitUsd = usdNgn ? ngn / usdNgn : 0;
+    customerRateUsd = marketRateUsd - profitUsd;
   } else if (custMode === "payout") {
-    const t = parseFloat(targetNgn) || 0;
-    customerRateUsd = usdNgn ? t / usdNgn : 0;
+    const ngn = parseFloat(targetNgn) || 0;
+    customerRateUsd = usdNgn ? ngn / usdNgn : 0;
   } else {
-    customerRateUsd = parseFloat(manualUsd) || 0;
+    const pct = parseFloat(markupPct) || 0;
+    customerRateUsd = marketRateUsd * (1 - pct / 100);
   }
   customerRateUsd = Math.max(0, customerRateUsd);
 
-  const marginAbs = Math.max(0, marketRateUsd - customerRateUsd);
-  const marginPctCalc = marketRateUsd ? (marginAbs / marketRateUsd) * 100 : 0;
+  const marginUsd = Math.max(0, marketRateUsd - customerRateUsd);
+  const marginPctCalc = marketRateUsd ? (marginUsd / marketRateUsd) * 100 : 0;
+  const plutMarginNgnPerCard = marginUsd * d.amount * usdNgn;
   const valid = marketRateUsd > 0 && customerRateUsd > 0 && customerRateUsd <= marketRateUsd;
 
   const submit = async () => {
     if (!marketRateUsd) { toast.error("Enter the supplier quote"); return; }
     if (customerRateUsd <= 0) { toast.error("Customer rate must be positive"); return; }
     if (customerRateUsd > marketRateUsd) { toast.error("Customer rate cannot exceed market rate"); return; }
-    await new Promise((res) => setTimeout(res, 350));
+    await new Promise((res) => setTimeout(res, 300));
     toast.success("Rate saved.", {
       description: `Mkt $${marketRateUsd.toFixed(4)} · Cust $${customerRateUsd.toFixed(4)} · ${marginPctCalc.toFixed(1)}% margin`,
     });
     onClose();
   };
 
-  if (!d) return null;
+  // Available payout currencies for the "+ Add currency" picker
+  const availableToAdd = allPayouts.filter((p) => !previewCodes.includes(p.code));
+  const supplierSymbol = acqCode === "USD" ? "$" : (acqCurs.find((a) => a.code === acqCode)?.symbol ?? acqCode);
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto p-0">
-        <DialogHeader className="border-b px-6 py-4">
-          <DialogTitle className="flex items-center gap-2 text-base">
+      <DialogContent className="max-w-xl max-h-[92vh] overflow-y-auto p-0">
+        <DialogHeader className="border-b px-5 py-3.5">
+          <DialogTitle className="flex flex-wrap items-center gap-2 text-sm font-semibold">
             {r ? "Update Rate" : "Set Rate"}
             <span className="text-muted-foreground">·</span>
-            <span className="font-normal">{brand?.logoEmoji} {brand?.name} / {country?.code} / {currencySymbol(d.currency)}{d.amount} {d.cardType}</span>
+            <span className="font-normal text-muted-foreground">{brand?.logoEmoji} {brand?.name} / {country?.code} / {currencySymbol(d.currency)}{d.amount} {d.cardType}</span>
           </DialogTitle>
-          <DialogDescription>Enter the supplier quote — we handle the FX and customer payout math.</DialogDescription>
+          <DialogDescription className="text-xs">Enter the supplier quote — we derive market rate, payouts and Plut margin.</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 px-6 py-5">
-          {/* Section 1 — Supplier Quote */}
-          <Section n="1" title="Supplier Quote" subtitle="How did the supplier express the price?">
-            <div className="grid grid-cols-3 gap-1.5 rounded-lg border bg-secondary/40 p-1">
-              <ModeTab active={supplierMode === "NGN"} onClick={() => setSupplierMode("NGN")} label="NGN / $1" sub="recommended" />
-              <ModeTab active={supplierMode === "CNY"} onClick={() => setSupplierMode("CNY")} label="CNY / $1" sub="RMB rate" />
-              <ModeTab active={supplierMode === "USD"} onClick={() => setSupplierMode("USD")} label="USD / $1" sub="direct" />
+        <div className="space-y-5 px-5 py-4">
+          {/* 1 — Supplier Quote */}
+          <Section title="Supplier Quote">
+            <div className="grid grid-cols-[140px_1fr] gap-2">
+              <Select value={acqCode} onValueChange={(v) => { setAcqCode(v); setSupplierInput(""); }}>
+                <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USD">USD — direct</SelectItem>
+                  {acqCurs.map((a) => (
+                    <SelectItem key={a.code} value={a.code}>{a.code} — {a.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">{supplierSymbol}</span>
+                <Input
+                  type="number"
+                  step={acqCode === "USD" ? "0.001" : "0.01"}
+                  value={supplierInput}
+                  onChange={(e) => setSupplierInput(e.target.value)}
+                  className="h-9 pl-7 font-mono"
+                  placeholder={acqCode === "USD" ? "0.707" : acqCode === "CNY" ? "5.4" : "0"}
+                />
+              </div>
             </div>
+            <p className="text-[11px] text-muted-foreground">
+              Supplier quote per $1 face value ({acqCode})
+              {acqCode !== "USD" && supplierNum > 0 && (
+                <span className="ml-1 inline-flex items-center gap-1 rounded bg-secondary/60 px-1.5 py-0.5 font-mono italic text-foreground">
+                  ≈ ${marketRateUsd.toFixed(4)} per card dollar
+                </span>
+              )}
+            </p>
+          </Section>
 
-            {supplierMode === "NGN" && (
-              <Field label="Naira per $1 of face value *" hint="From supplier message: e.g. “$100 = 109,620 naira” → enter 1,096.">
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">₦</span>
-                  <Input type="number" value={ngnInput} onChange={(e) => setNgnInput(e.target.value)} className="pl-7 font-mono" placeholder="1096" />
-                </div>
-              </Field>
-            )}
-            {supplierMode === "CNY" && (
-              <Field label="RMB per $1 of face value *" hint="From supplier message: e.g. “$100 = 5.4 RMB” → enter 5.4.">
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-xs text-muted-foreground">¥</span>
-                  <Input type="number" step="0.01" value={cnyInput} onChange={(e) => setCnyInput(e.target.value)} className="pl-7 font-mono" placeholder="5.4" />
-                </div>
-              </Field>
-            )}
-            {supplierMode === "USD" && (
-              <Field label="Market rate (USD per $1) *" hint="Direct USD acquisition cost per $1 of card face value.">
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">$</span>
-                  <Input type="number" step="0.001" value={usdInput} onChange={(e) => setUsdInput(e.target.value)} className="pl-7 font-mono" placeholder="0.707" />
-                </div>
-              </Field>
+          {/* 2 — Live FX Rates */}
+          <Section title="Live FX Rates" subtitle="Edit inline if the market has moved.">
+            <FxGroup label="Payout rates">
+              <FxInline label="USD / NGN" base="USD" quote="NGN" value={getFx("USD", "NGN")} onChange={(v) => setFxValue("USD", "NGN", v)} symbol="₦" />
+              {allPayouts.filter((p) => p.code !== "NGN").map((p) => (
+                <FxInline
+                  key={p.code}
+                  label={`USD / ${p.code}`}
+                  base="USD" quote={p.code}
+                  value={getFx("USD", p.code)}
+                  onChange={(v) => setFxValue("USD", p.code, v)}
+                  symbol={p.symbol}
+                />
+              ))}
+            </FxGroup>
+
+            {acqCurs.length > 0 && (
+              <FxGroup label="Acquisition rates">
+                {acqCurs.map((a) => (
+                  <FxInline
+                    key={a.code}
+                    label={`${a.code} / NGN`}
+                    base={a.code} quote="NGN"
+                    value={getFx(a.code, "NGN")}
+                    onChange={(v) => setFxValue(a.code, "NGN", v)}
+                    symbol="₦"
+                  />
+                ))}
+                {acqCurs.map((a) => {
+                  const derived = usdNgn ? getFx(a.code, "NGN") / usdNgn : 0;
+                  return (
+                    <DerivedFx
+                      key={`${a.code}-usd`}
+                      label={`${a.code} / USD (derived)`}
+                      value={derived}
+                      symbol="$"
+                    />
+                  );
+                })}
+              </FxGroup>
             )}
           </Section>
 
-          {/* Section 2 — Live FX */}
-          <Section n="2" title="Live FX Rates" subtitle="Used for all derivations below. Edit inline if the market has moved.">
-            <div className="grid grid-cols-2 gap-3">
-              <FxInline label="USD / NGN" value={usdNgn} onChange={setUsdNgn} symbol="₦" />
-              <FxInline label="CNY / NGN" value={cnyNgn} onChange={setCnyNgn} symbol="₦" disabled={supplierMode !== "CNY"} />
+          {/* 3 — Acquisition Cost */}
+          <Section title="Acquisition cost per $1 face value">
+            <div className="rounded-lg border bg-secondary/30 p-3">
+              <div className="flex items-baseline justify-between">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Market rate (stored)</span>
+                <span className="font-mono text-base font-semibold text-primary">${marketRateUsd.toFixed(4)} / $1</span>
+              </div>
+              <p className="mt-2 flex items-start gap-1.5 border-t pt-2 font-mono text-[10px] italic text-muted-foreground">
+                <Info className="mt-px h-3 w-3 shrink-0" />
+                <span>{derivationLabel}</span>
+              </p>
             </div>
           </Section>
 
-          {/* Section 3 — Acquisition Cost */}
-          <Section n="3" title="Acquisition Cost" subtitle="What Plut effectively pays per $1 of card face value.">
-            <div className="overflow-hidden rounded-lg border">
-              <table className="w-full text-sm">
-                <tbody>
-                  {payoutCurs.map((pc) => {
-                    const fx = activeFxRate(pc.code, "USD") || (pc.code === "NGN" ? usdNgn : 0);
-                    const cost = marketRateUsd * fx;
-                    return (
-                      <tr key={pc.code} className="border-b last:border-0">
-                        <td className="px-3 py-2 text-xs font-medium text-muted-foreground">In {pc.code}</td>
-                        <td className="px-3 py-2 font-mono">{pc.symbol}{fmt(cost, pc.code === "USD" ? 4 : 2)} / $1</td>
-                      </tr>
-                    );
-                  })}
-                  <tr className="bg-primary/5">
-                    <td className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-primary">Market rate (stored)</td>
-                    <td className="px-3 py-2 font-mono font-semibold text-primary">${marketRateUsd.toFixed(4)} / $1</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </Section>
-
-          {/* Section 4 — Customer Rate */}
-          <Section n="4" title="Customer Rate" subtitle="Express the margin in the way that suits you.">
-            <div className="grid grid-cols-3 gap-1.5 rounded-lg border bg-secondary/40 p-1">
-              <ModeTab active={custMode === "profit"} onClick={() => setCustMode("profit")} label="Profit Goal" icon={<Percent className="h-3 w-3" />} />
-              <ModeTab active={custMode === "payout"} onClick={() => setCustMode("payout")} label="Target Payout" icon={<Wallet className="h-3 w-3" />} />
-              <ModeTab active={custMode === "manual"} onClick={() => setCustMode("manual")} label="Manual" icon={<Target className="h-3 w-3" />} />
+          {/* 4 — Customer Rate */}
+          <Section title="Customer Rate" subtitle="Express the margin in the way that suits you.">
+            <div className="grid grid-cols-3 gap-1 rounded-lg border bg-secondary/40 p-1">
+              <ModeTab active={custMode === "profit"} onClick={() => setCustMode("profit")} label="Profit Goal" sub="₦ profit / $1" />
+              <ModeTab active={custMode === "payout"} onClick={() => setCustMode("payout")} label="Target Payout" sub="₦ payout / $1" />
+              <ModeTab active={custMode === "markup"} onClick={() => setCustMode("markup")} label="Markup %" sub="% of market" />
             </div>
 
             {custMode === "profit" && (
-              <Field label="Target margin % *" hint="Customer gets market × (1 − margin / 100). Range 0–99%.">
-                <div className="relative">
-                  <Input type="number" step="0.1" value={marginPct} onChange={(e) => setMarginPct(e.target.value)} className="pr-8 font-mono" placeholder="8.3" />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
-                </div>
+              <Field label="₦ profit Plut earns per $1 of face value *" hint={`Subtracted from market rate. Acquisition ≈ ₦${fmt(marketRateUsd * usdNgn, 0)} / $1.`}>
+                <NumberInput value={profitNgn} onChange={setProfitNgn} prefix="₦" placeholder="80" />
               </Field>
             )}
             {custMode === "payout" && (
-              <Field label="Desired NGN payout per $1 *" hint={`Must be less than acquisition cost ₦${fmt(acquisitionCostNgn, 0)} / $1.`}>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">₦</span>
-                  <Input type="number" value={targetNgn} onChange={(e) => setTargetNgn(e.target.value)} className="pl-7 font-mono" placeholder="1009" />
-                </div>
+              <Field label="₦ the customer receives per $1 of face value *" hint={`Must be less than acquisition ₦${fmt(marketRateUsd * usdNgn, 0)} / $1.`}>
+                <NumberInput value={targetNgn} onChange={setTargetNgn} prefix="₦" placeholder="1009" />
               </Field>
             )}
-            {custMode === "manual" && (
-              <Field label="Customer rate (USD per $1) *" hint={`Must be < $${marketRateUsd.toFixed(4)} (market rate).`}>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">$</span>
-                  <Input type="number" step="0.001" value={manualUsd} onChange={(e) => setManualUsd(e.target.value)} className="pl-7 font-mono" placeholder="0.650" />
-                </div>
+            {custMode === "markup" && (
+              <Field label="Markup % on acquisition cost *" hint="Customer rate = market × (1 − markup / 100).">
+                <NumberInput value={markupPct} onChange={setMarkupPct} suffix="%" step="0.1" placeholder="8.3" />
               </Field>
             )}
 
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-muted-foreground">Source</span>
-              <Select value={source} onValueChange={(v) => setSource(v as typeof source)}>
-                <SelectTrigger className="h-7 w-32 text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Manual">Manual</SelectItem>
-                  <SelectItem value="Auto">Auto</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-1.5 font-mono text-xs">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Customer rate (USD)</span>
+              <span className="italic">${customerRateUsd.toFixed(4)} / $1</span>
             </div>
           </Section>
 
-          {/* Section 5 — Summary */}
-          <Section n="5" title="Summary" subtitle="Live preview of what will be saved and what the customer will receive.">
-            <div className="rounded-xl border bg-gradient-to-br from-primary/5 via-transparent to-transparent p-4">
-              <div className="grid grid-cols-3 gap-3 border-b pb-3">
-                <SummaryStat label="Market rate" value={`$${marketRateUsd.toFixed(4)}`} sub="cost floor" />
-                <SummaryStat label="Customer rate" value={`$${customerRateUsd.toFixed(4)}`} sub="per $1" highlight />
-                <SummaryStat label="Margin" value={`${marginPctCalc.toFixed(2)}%`} sub={`$${marginAbs.toFixed(4)} / $1`} />
-              </div>
-              <p className="mt-3 mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-primary">
-                <Sparkles className="h-3 w-3" /> Customer receives for ${d.amount} card
-              </p>
-              <div className="space-y-1.5 font-mono text-xs">
-                {payoutCurs.map((pc) => {
-                  const fx = activeFxRate(pc.code, "USD") || (pc.code === "NGN" ? usdNgn : 0);
-                  const payout = d.amount * customerRateUsd * fx;
-                  const plut = d.amount * marginAbs * fx;
-                  return (
-                    <div key={pc.code} className="flex items-center justify-between rounded-md bg-card px-2.5 py-1.5">
-                      <span className="text-muted-foreground">{d.amount} × ${customerRateUsd.toFixed(4)} × {pc.symbol}{fx.toFixed(2)}</span>
-                      <span className="flex items-baseline gap-3">
-                        <span className="text-[10px] text-muted-foreground">Plut +{pc.symbol}{fmt(plut, 0)}</span>
-                        <span className="font-semibold text-foreground">{pc.symbol}{fmt(payout, 0)}</span>
-                      </span>
+          {/* 5 — Payout Preview */}
+          <Section
+            title="Payout Preview"
+            subtitle={`Customer receives for $${d.amount} ${d.cardType} card.`}
+            right={
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button size="sm" variant="ghost" className="h-7 text-xs" disabled={availableToAdd.length === 0}>
+                    <Plus className="h-3 w-3" /> Add currency
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-48 p-1">
+                  {availableToAdd.length === 0 ? (
+                    <p className="px-2 py-1.5 text-xs text-muted-foreground">All active currencies added</p>
+                  ) : availableToAdd.map((p) => (
+                    <button
+                      key={p.code}
+                      onClick={() => setPreviewCodes((arr) => [...arr, p.code])}
+                      className="flex w-full items-center justify-between rounded px-2 py-1.5 text-xs hover:bg-secondary"
+                    >
+                      <span>{p.code} — {p.name}</span><span className="font-mono">{p.symbol}</span>
+                    </button>
+                  ))}
+                </PopoverContent>
+              </Popover>
+            }
+          >
+            <div className="space-y-1.5">
+              {previewCodes.map((code) => {
+                const pc = allPayouts.find((p) => p.code === code);
+                if (!pc) return null;
+                const fxRate = code === "NGN" ? usdNgn : getFx("USD", code);
+                const missing = !fxRate;
+                const payout = d.amount * customerRateUsd * (fxRate || 0);
+                return (
+                  <div key={code} className="flex items-center justify-between rounded-md border bg-card px-3 py-2 text-sm">
+                    <div className="min-w-0">
+                      <p className="font-medium">Customer receives <span className="font-mono">{pc.symbol}{fmt(payout, 0)}</span></p>
+                      <p className="text-[10px] text-muted-foreground">per ${d.amount} card · FX {pc.symbol}{fmt(fxRate || 0, 2)}/$1</p>
+                      {missing && (
+                        <p className="mt-1 flex items-center gap-1 text-[10px] text-warning">
+                          <AlertTriangle className="h-2.5 w-2.5" /> No FX rate set for {code} — set it in the FX Rates tab
+                        </p>
+                      )}
                     </div>
-                  );
-                })}
+                    <button
+                      onClick={() => setPreviewCodes((arr) => arr.filter((c) => c !== code))}
+                      className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      aria-label={`Remove ${code}`}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+              {previewCodes.length === 0 && (
+                <p className="rounded-md border border-dashed px-3 py-3 text-center text-xs text-muted-foreground">No currencies — add one to preview the payout.</p>
+              )}
+            </div>
+          </Section>
+
+          {/* 6 — Summary */}
+          <Section title="Summary">
+            <div className="rounded-xl border bg-gradient-to-br from-primary/5 via-transparent to-transparent p-3">
+              <div className="grid grid-cols-3 gap-2 border-b pb-2">
+                <SummaryStat label="Market" value={`$${marketRateUsd.toFixed(4)}`} sub="cost floor" />
+                <SummaryStat label="Customer" value={`$${customerRateUsd.toFixed(4)}`} sub="per $1" highlight />
+                <SummaryStat label="Margin" value={`${marginPctCalc.toFixed(2)}%`} sub={`$${marginUsd.toFixed(4)} / $1`} />
+              </div>
+              <div className="mt-2.5 flex items-center justify-between rounded-md bg-primary/10 px-3 py-2 text-sm">
+                <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+                  <Sparkles className="h-3 w-3" /> Plut margin
+                </span>
+                <span className="font-mono font-semibold text-primary">
+                  ₦{fmt(plutMarginNgnPerCard, 0)} <span className="text-[10px] font-normal text-muted-foreground">per ${d.amount} card</span>
+                </span>
               </div>
             </div>
-
-            <div className="rounded-md border border-dashed bg-secondary/30 px-3 py-2 font-mono text-[10px] text-muted-foreground">
+            <p className="rounded-md border border-dashed bg-secondary/30 px-3 py-1.5 font-mono text-[10px] text-muted-foreground">
               <span className="font-semibold text-foreground">Saves: </span>
               MarketRate ${marketRateUsd.toFixed(4)}/$1 · CustomerRate ${customerRateUsd.toFixed(4)}/$1
-              {supplierMode === "NGN" && ` · SupplierQuote ₦${ngnInput || 0}/$1 (NGN mode — no acq. stored)`}
-              {supplierMode === "CNY" && ` · AcquisitionCurrency CNY · SupplierRate ${cnyInput || 0} RMB/$1`}
-              {supplierMode === "USD" && ` · direct USD — no acquisition currency stored`}
-            </div>
+              {acqCode !== "USD" && ` · AcquisitionCurrency ${acqCode} · SupplierRate ${supplierInput || 0} ${acqCode}/$1`}
+              {acqCode === "USD" && ` · direct USD (no acquisition currency)`}
+            </p>
           </Section>
         </div>
 
-        <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t bg-card/95 px-6 py-3 backdrop-blur">
+        <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t bg-card/95 px-5 py-3 backdrop-blur">
           <p className="text-xs text-muted-foreground">
             {valid ? <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><Check className="h-3 w-3" /> Ready to save</span> : <span className="flex items-center gap-1"><X className="h-3 w-3" /> Complete the form to save</span>}
           </p>
@@ -295,20 +379,33 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
   );
 }
 
-function Section({ n, title, subtitle, children }: { n: string; title: string; subtitle?: string; children: React.ReactNode }) {
+// --- Small presentational helpers ------------------------------------------
+
+function Section({ title, subtitle, right, children }: { title: string; subtitle?: string; right?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="space-y-2.5">
-      <header className="flex items-baseline gap-2">
-        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">{n}</span>
-        <h3 className="text-sm font-semibold tracking-tight">{title}</h3>
-        {subtitle && <p className="text-xs text-muted-foreground">— {subtitle}</p>}
+    <section className="space-y-2">
+      <header className="flex items-center justify-between gap-2">
+        <div>
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{title}</h3>
+          {subtitle && <p className="text-[11px] text-muted-foreground">{subtitle}</p>}
+        </div>
+        {right}
       </header>
-      <div className="space-y-3 pl-7">{children}</div>
+      <div className="space-y-2">{children}</div>
     </section>
   );
 }
 
-function ModeTab({ active, onClick, label, sub, icon }: { active: boolean; onClick: () => void; label: string; sub?: string; icon?: React.ReactNode }) {
+function FxGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <div className="grid grid-cols-2 gap-2">{children}</div>
+    </div>
+  );
+}
+
+function ModeTab({ active, onClick, label, sub }: { active: boolean; onClick: () => void; label: string; sub?: string }) {
   return (
     <button
       type="button"
@@ -318,35 +415,54 @@ function ModeTab({ active, onClick, label, sub, icon }: { active: boolean; onCli
         active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
       )}
     >
-      <span className="flex items-center gap-1">{icon}{label}</span>
+      <span>{label}</span>
       {sub && <span className="text-[9px] uppercase tracking-wider opacity-70">{sub}</span>}
     </button>
   );
 }
 
-function FxInline({ label, value, onChange, symbol, disabled }: { label: string; value: number; onChange: (n: number) => void; symbol: string; disabled?: boolean }) {
+function FxInline({ label, value, onChange, symbol }: { label: string; base: string; quote: string; value: number; onChange: (n: number) => void; symbol: string }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(value));
   useEffect(() => { setDraft(String(value)); }, [value]);
   return (
-    <div className={cn("rounded-lg border bg-secondary/30 px-3 py-2", disabled && "opacity-50")}>
+    <div className="rounded-md border bg-secondary/30 px-2.5 py-1.5">
       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
       {editing ? (
-        <div className="mt-1 flex items-center gap-1">
-          <span className="font-mono text-sm">{symbol}</span>
-          <Input type="number" step="0.01" value={draft} onChange={(e) => setDraft(e.target.value)} className="h-7 font-mono text-sm" />
-          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { const n = parseFloat(draft); if (n > 0) { onChange(n); setEditing(false); } }}>
-            <Check className="h-3.5 w-3.5" />
+        <div className="mt-0.5 flex items-center gap-1">
+          <span className="font-mono text-xs">{symbol}</span>
+          <Input type="number" step="0.01" value={draft} onChange={(e) => setDraft(e.target.value)} className="h-6 px-1.5 font-mono text-xs" />
+          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { const n = parseFloat(draft); if (n > 0) { onChange(n); setEditing(false); } }}>
+            <Check className="h-3 w-3" />
           </Button>
         </div>
       ) : (
         <div className="mt-0.5 flex items-center justify-between">
-          <p className="font-mono text-base font-semibold">{symbol}{value.toLocaleString()}</p>
-          {!disabled && (
-            <button onClick={() => setEditing(true)} className="text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" /></button>
-          )}
+          <p className="font-mono text-sm font-semibold">{symbol}{value.toLocaleString()}</p>
+          <button onClick={() => setEditing(true)} className="text-muted-foreground hover:text-foreground" aria-label={`Edit ${label}`}>
+            <Pencil className="h-3 w-3" />
+          </button>
         </div>
       )}
+    </div>
+  );
+}
+
+function DerivedFx({ label, value, symbol }: { label: string; value: number; symbol: string }) {
+  return (
+    <div className="rounded-md border border-dashed bg-secondary/20 px-2.5 py-1.5">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="mt-0.5 font-mono text-sm italic text-muted-foreground">{symbol}{value ? value.toFixed(4) : "—"}</p>
+    </div>
+  );
+}
+
+function NumberInput({ value, onChange, prefix, suffix, placeholder, step = "0.01" }: { value: string; onChange: (v: string) => void; prefix?: string; suffix?: string; placeholder?: string; step?: string }) {
+  return (
+    <div className="relative">
+      {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">{prefix}</span>}
+      <Input type="number" step={step} value={value} onChange={(e) => onChange(e.target.value)} className={cn("h-9 font-mono", prefix && "pl-7", suffix && "pr-8")} placeholder={placeholder} />
+      {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{suffix}</span>}
     </div>
   );
 }
@@ -355,7 +471,7 @@ function SummaryStat({ label, value, sub, highlight }: { label: string; value: s
   return (
     <div>
       <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className={cn("font-mono text-base font-semibold", highlight && "text-primary")}>{value}</p>
+      <p className={cn("font-mono text-sm font-semibold", highlight && "text-primary")}>{value}</p>
       {sub && <p className="text-[10px] text-muted-foreground">{sub}</p>}
     </div>
   );
@@ -363,10 +479,10 @@ function SummaryStat({ label, value, sub, highlight }: { label: string; value: s
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-1.5">
-      <label className="text-sm font-medium">{label}</label>
+    <div className="space-y-1">
+      <label className="text-xs font-medium">{label}</label>
       {children}
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {hint && <p className="text-[10px] text-muted-foreground">{hint}</p>}
     </div>
   );
 }
