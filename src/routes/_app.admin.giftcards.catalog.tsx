@@ -343,6 +343,9 @@ function FxTab() {
   const [open, setOpen] = useState(false);
   const [base, setBase] = useState<"USD" | "CNY" | "GHS">("USD"); const [quote, setQuote] = useState("NGN");
   const [rate, setRate] = useState(""); const [src, setSrc] = useState<"Manual" | "Auto">("Manual");
+  const fxRates = useFxRatesList();
+  const activePayouts = useActivePayoutCurrencies();
+  const setFxRateAction = useCatalogStore((s) => s.setFxRate);
   // Type derived from pair
   const fxType = (b: string) => (b === "USD" ? "Payout" : "Acquisition");
 
@@ -405,7 +408,7 @@ function FxTab() {
                 <Select value={quote} onValueChange={setQuote}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {activePayoutCurrencies().map((c) => (
+                    {activePayouts.map((c) => (
                       <SelectItem key={c.code} value={c.code}>{c.code} — {c.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -428,7 +431,13 @@ function FxTab() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={() => { if (!parseFloat(rate)) { toast.error("Rate required"); return; } toast.success(`FX rate set: ${base}/${quote} ${rate}`); setOpen(false); setRate(""); }}>Set FX Rate</Button>
+            <Button onClick={() => {
+              const n = parseFloat(rate);
+              if (!n) { toast.error("Rate required"); return; }
+              setFxRateAction(base, quote, n, src);
+              toast.success(`FX rate set: ${base}/${quote} ${rate}`);
+              setOpen(false); setRate("");
+            }}>Set FX Rate</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -439,6 +448,13 @@ function FxTab() {
 function PayoutCurrenciesTab() {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState(""); const [name, setName] = useState(""); const [symbol, setSymbol] = useState(""); const [initRate, setInitRate] = useState("");
+  const payoutCurrencies = usePayoutCurrenciesList();
+  const fxRates = useFxRatesList();
+  const addPayoutCurrency = useCatalogStore((s) => s.addPayoutCurrency);
+  const togglePayoutCurrency = useCatalogStore((s) => s.togglePayoutCurrency);
+  const setFxRateAction = useCatalogStore((s) => s.setFxRate);
+  const lookupFx = (q: string) =>
+    fxRates.find((f) => f.baseCurrency === "USD" && f.quoteCurrency === q && f.validTo === null)?.rate ?? 0;
 
   return (
     <div className="space-y-4">
@@ -458,7 +474,7 @@ function PayoutCurrenciesTab() {
           </tr></thead>
           <tbody>
             {payoutCurrencies.map((c: PayoutCurrency) => {
-              const fx = activeFxRate(c.code, "USD");
+              const fx = lookupFx(c.code);
               const hasRate = fx > 0 && c.code !== "USD";
               return (
                 <tr key={c.code} className="border-b border-border last:border-0 hover:bg-secondary/40">
@@ -476,10 +492,10 @@ function PayoutCurrenciesTab() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => toast.info("Opens Set FX Rate modal pre-filled.")}>Set FX Rate</DropdownMenuItem>
-                        {c.status === "Inactive" ? (
-                          <DropdownMenuItem onClick={() => toast.success(`Activated ${c.code}.`)}>Activate</DropdownMenuItem>
+                        {c.status === "Active" ? (
+                          <DropdownMenuItem onClick={() => { togglePayoutCurrency(c.code); toast.success(`Deactivated ${c.code}.`); }}>Deactivate</DropdownMenuItem>
                         ) : (
-                          <DropdownMenuItem onClick={() => toast.success(`Deactivated ${c.code}.`)}>Deactivate</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { togglePayoutCurrency(c.code); toast.success(`Activated ${c.code}.`); }}>Activate</DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -515,7 +531,10 @@ function PayoutCurrenciesTab() {
             <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
             <Button onClick={() => {
               if (!code || !name || !symbol) { toast.error("Code, name and symbol are required"); return; }
-              toast.success(`${code} added as ${initRate ? "Active" : "Draft"}.`);
+              const rateNum = parseFloat(initRate);
+              addPayoutCurrency({ code, name, symbol, status: rateNum > 0 ? "Active" : "Draft" });
+              if (rateNum > 0) setFxRateAction("USD", code, rateNum, "Manual");
+              toast.success(`${code} added as ${rateNum > 0 ? "Active" : "Draft"}.`);
               setOpen(false); setCode(""); setName(""); setSymbol(""); setInitRate("");
             }}>Add Currency</Button>
           </DialogFooter>
