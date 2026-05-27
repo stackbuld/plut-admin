@@ -4,7 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/plut/StatusBadge";
-import { brandById, countryById, denomsForBrandCountry, activeRateForDenom } from "@/data/mock";
+import { brandById, countryById } from "@/data/mock";
+import { useDenomsForBrandCountry, useActiveRateForDenom, useCatalogStore } from "@/data/store";
 import { cn } from "@/lib/utils";
 import { currencySymbol } from "@/lib/format";
 import { SetRateDialog } from "@/components/plut/SetRateDialog";
@@ -26,6 +27,7 @@ function BrandDetail() {
   const [rateFor, setRateFor] = useState<string | null>(null);
   const [addDenomCountry, setAddDenomCountry] = useState<string | null>(null);
   const [confirmPause, setConfirmPause] = useState(false);
+  const toggleDenomination = useCatalogStore((s) => s.toggleDenomination);
 
   if (!brand) return <p className="text-sm text-muted-foreground">Brand not found.</p>;
 
@@ -64,7 +66,8 @@ function BrandDetail() {
       <div className="space-y-5">
         {brand.countryIds.map((cid) => {
           const c = countryById(cid)!;
-          const denoms = denomsForBrandCountry(brand.id, cid);
+          // eslint-disable-next-line react-hooks/rules-of-hooks
+          const denoms = useDenomsForBrandCountry(brand.id, cid);
           const sym = currencySymbol(c.currency);
           return (
             <section key={cid} className="rounded-2xl border bg-card">
@@ -96,9 +99,43 @@ function BrandDetail() {
                     </tr>
                   </thead>
                   <tbody>
-                    {denoms.map((d) => {
-                      const r = activeRateForDenom(d.id);
-                      const noRate = !r;
+                    {denoms.map((d) => (
+                      <DenomRow
+                        key={d.id}
+                        d={d}
+                        sym={sym}
+                        onSetRate={() => setRateFor(d.id)}
+                        onToggle={() => { toggleDenomination(d.id); toast.success(`${d.active ? "Deactivated" : "Activated"} ${sym}${d.amount} ${d.cardType}`); }}
+                      />
+                    ))}
+                  </tbody>
+                </table></div>
+              )}
+              <CountryNoRateBanner brandId={brand.id} countryId={cid} />
+            </section>
+          );
+        })}
+      </div>
+
+      <SetRateDialog denomId={rateFor} onClose={() => setRateFor(null)} />
+      <AddDenominationDialog
+        open={addDenomCountry !== null}
+        brandId={brand.id}
+        countryId={addDenomCountry ?? undefined}
+        lockBrand
+        lockCountry
+        onClose={() => setAddDenomCountry(null)}
+      />
+      {/* trailing render handled below */}
+      {/* eslint-disable-next-line @typescript-eslint/no-unused-expressions */}
+      {null}
+    </div>
+  );
+}
+
+function DenomRow({ d, sym, onSetRate, onToggle }: { d: { id: string; amount: number; cardType: string; active: boolean }; sym: string; onSetRate: () => void; onToggle: () => void }) {
+  const r = useActiveRateForDenom(d.id);
+  const noRate = !r;
                       const markup = r ? ((r.marketRateUsd - r.customerRateUsd) / r.marketRateUsd) * 100 : null;
                       return (
                         <tr key={d.id} className={cn("border-t border-border", noRate && "bg-warning/5")}>
@@ -118,7 +155,7 @@ function BrandDetail() {
                           </td>
                           <td className="px-5 py-3 text-right">
                             <div className="inline-flex items-center gap-1">
-                              <Button size="sm" variant={noRate ? "default" : "outline"} onClick={() => setRateFor(d.id)}>
+                              <Button size="sm" variant={noRate ? "default" : "outline"} onClick={onSetRate}>
                                 {noRate ? "Set Rate" : "Update Rate"}
                               </Button>
                               <DropdownMenu>
@@ -126,7 +163,7 @@ function BrandDetail() {
                                   <Button size="icon" variant="ghost" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => toast.success(`${d.active ? "Deactivated" : "Activated"} ${sym}${d.amount} ${d.cardType}`)}>
+                                  <DropdownMenuItem onClick={onToggle}>
                                     {d.active ? "Deactivate" : "Activate"}
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -135,29 +172,19 @@ function BrandDetail() {
                           </td>
                         </tr>
                       );
-                    })}
-                  </tbody>
-                </table></div>
-              )}
-              {denoms.some((d) => !activeRateForDenom(d.id)) && (
+}
+
+function CountryNoRateBanner({ brandId, countryId }: { brandId: string; countryId: string }) {
+  const denoms = useDenomsForBrandCountry(brandId, countryId);
+  const rates = useCatalogStore((s) => s.rates);
+  const someMissing = denoms.some((d) => !rates.some((r) => r.denominationId === d.id && r.active));
+  if (!someMissing) return null;
+  return (
                 <p className="flex items-center gap-2 border-t border-border bg-warning/10 px-5 py-2 text-xs text-warning">
                   <AlertTriangle className="h-3.5 w-3.5" /> Some denominations have no active rate. Users can't trade them until a rate is set.
                 </p>
-              )}
-            </section>
-          );
-        })}
-      </div>
-
-      <SetRateDialog denomId={rateFor} onClose={() => setRateFor(null)} />
-      <AddDenominationDialog
-        open={addDenomCountry !== null}
-        brandId={brand.id}
-        countryId={addDenomCountry ?? undefined}
-        lockBrand
-        lockCountry
-        onClose={() => setAddDenomCountry(null)}
-      />
+  );
+}
 
       <AlertDialog open={confirmPause} onOpenChange={setConfirmPause}>
         <AlertDialogContent>
