@@ -6,15 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { brandById, countryById } from "@/data/mock";
 import {
-  denominations,
-  brandById,
-  countryById,
-  activeRateForDenom,
-  activeFxRate,
-  activePayoutCurrencies,
-  acquisitionCurrencies,
-} from "@/data/mock";
+  useDenominations,
+  useActiveRateForDenom,
+  useActiveFxRate,
+  useActivePayoutCurrencies,
+  useAcquisitionCurrencies,
+  useCatalogStore,
+  getActiveFxRate,
+} from "@/data/store";
 import { currencySymbol } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -22,13 +23,19 @@ type CustomerMode = "profit" | "payout" | "markup";
 
 export function SetRateDialog({ denomId, onClose }: { denomId: string | null; onClose: () => void }) {
   const open = denomId !== null;
-  const d = useMemo(() => denominations.find((x) => x.id === denomId), [denomId]);
-  const r = d ? activeRateForDenom(d.id) : null;
+  const denominations = useDenominations();
+  const d = useMemo(
+    () => denominations.find((x) => x.id === denomId),
+    [denomId, denominations],
+  );
+  const r = useActiveRateForDenom(d?.id);
   const brand = d ? brandById(d.brandId) : null;
   const country = d ? countryById(d.countryId) : null;
 
-  const allPayouts = activePayoutCurrencies();
-  const acqCurs = acquisitionCurrencies(); // e.g. [{ code: "CNY", symbol: "¥", ... }]
+  const allPayouts = useActivePayoutCurrencies();
+  const acqCurs = useAcquisitionCurrencies(); // e.g. [{ code: "CNY", symbol: "¥", ... }]
+  const setRateAction = useCatalogStore((s) => s.setRate);
+  const setFxRateAction = useCatalogStore((s) => s.setFxRate);
 
   // --- Section 1: Acquisition currency dropdown ("USD" = direct) -------------
   // Selected acquisition code; "USD" means "no acquisition currency / direct".
@@ -57,11 +64,11 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
 
   useEffect(() => {
     if (!open) return;
-    // Seed FX map from current actives
+    // Seed FX map from current actives in the store
     const next: Record<string, number> = {};
-    next[fxKey("USD", "NGN")] = activeFxRate("NGN", "USD");
-    for (const ac of acqCurs) next[fxKey(ac.code, "NGN")] = activeFxRate("NGN", ac.code);
-    for (const p of allPayouts) if (p.code !== "NGN") next[fxKey("USD", p.code)] = activeFxRate(p.code, "USD");
+    next[fxKey("USD", "NGN")] = getActiveFxRate("NGN", "USD");
+    for (const ac of acqCurs) next[fxKey(ac.code, "NGN")] = getActiveFxRate("NGN", ac.code);
+    for (const p of allPayouts) if (p.code !== "NGN") next[fxKey("USD", p.code)] = getActiveFxRate(p.code, "USD");
     setFx(next);
 
     // Seed inputs from existing rate
@@ -177,7 +184,26 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
     if (!marketRateUsd) { toast.error("Enter the supplier quote"); return; }
     if (customerRateUsd <= 0) { toast.error("Customer rate must be positive"); return; }
     if (customerRateUsd >= marketRateUsd) { toast.error("Customer rate must be below market rate — would cause a loss"); return; }
-    await new Promise((res) => setTimeout(res, 300));
+    // Persist any edited FX values back to the store first so other pages
+    // (catalog, brand detail, payout preview) reflect the same rates used here.
+    for (const [key, value] of Object.entries(fx)) {
+      const [base, quote] = key.split("_");
+      if (!base || !quote || !value) continue;
+      const current = getActiveFxRate(quote, base);
+      if (current !== value) setFxRateAction(base, quote, value, "Manual");
+    }
+    // Persist the rate itself
+    setRateAction(d!.id, {
+      marketRateUsd,
+      customerRateUsd,
+      markupType: "Percentage",
+      markupValue: Number(marginPctCalc.toFixed(4)),
+      source: "Manual",
+      acquisitionCurrency: acqCode === "CNY" ? "CNY" : null,
+      acquisitionRatePerCardDollar: acqCode !== "USD" ? supplierNum : null,
+      supplierNgnPerDollar: acqCode === "USD" ? Math.round(marketRateUsd * usdNgn) : null,
+    });
+    await new Promise((res) => setTimeout(res, 150));
     toast.success("Rate saved.", {
       description: `Mkt $${marketRateUsd.toFixed(4)} · Cust $${customerRateUsd.toFixed(4)} · ${marginPctCalc.toFixed(1)}% margin`,
     });
