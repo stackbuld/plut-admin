@@ -15,6 +15,7 @@ export function AddDenominationDialog({
   lockBrand,
   lockCountry,
   onClose,
+  onCreated,
 }: {
   open: boolean;
   brandId?: string;
@@ -22,6 +23,7 @@ export function AddDenominationDialog({
   lockBrand?: boolean;
   lockCountry?: boolean;
   onClose: () => void;
+  onCreated?: (info: { brandId: string; countryId: string; face: string; type: "Physical" | "E-code"; hasRate: boolean }) => void;
 }) {
   const [bId, setBId] = useState(brandId ?? "");
   const [cId, setCId] = useState(countryId ?? "");
@@ -49,6 +51,7 @@ export function AddDenominationDialog({
     if (!face) { toast.error("Face value required"); return; }
     if (setInitial && !parseFloat(market)) { toast.error("Market rate required for initial rate"); return; }
     toast.success(`Added ${sym}${face} ${type} for ${brand?.name} · ${country?.name}${setInitial ? " (with rate)" : ""}.`);
+    onCreated?.({ brandId: bId, countryId: cId, face, type, hasRate: setInitial });
     onClose();
   };
 

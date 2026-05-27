@@ -108,6 +108,8 @@ function CountriesTab() {
 function DenominationsTab() {
   const [brand, setBrand] = useState("All"); const [country, setCountry] = useState("All"); const [type, setType] = useState("All"); const [status, setStatus] = useState("All");
   const [addOpen, setAddOpen] = useState(false);
+  const [justAdded, setJustAdded] = useState<{ label: string; denomId: string | null } | null>(null);
+  const [rateFor, setRateFor] = useState<string | null>(null);
   const list = denominations
     .filter((d) => brand === "All" || d.brandId === brand)
     .filter((d) => country === "All" || d.countryId === country)
@@ -116,6 +118,30 @@ function DenominationsTab() {
 
   return (
     <div className="space-y-4">
+      {justAdded && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-warning/40 bg-warning/10 px-4 py-2.5 text-sm">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <span>
+              <span className="font-semibold">{justAdded.label}</span>{" "}
+              <span className="text-muted-foreground">— Rate not set.</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                if (justAdded.denomId) setRateFor(justAdded.denomId);
+                else toast.info("Open the Rates tab and click Set Rate for this denomination.");
+              }}
+            >
+              Set rate now
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setJustAdded(null)}>Dismiss</Button>
+          </div>
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         <FilterSelect value={brand} onChange={setBrand} placeholder="Brand" options={[{ v: "All", l: "All brands" }, ...brands.map((b) => ({ v: b.id, l: b.name }))]} />
         <FilterSelect value={country} onChange={setCountry} placeholder="Country" options={[{ v: "All", l: "All countries" }, ...countries.map((c) => ({ v: c.id, l: c.name }))]} />
@@ -164,7 +190,22 @@ function DenominationsTab() {
           </tbody>
         </table></div>
       </div>
-      <AddDenominationDialog open={addOpen} onClose={() => setAddOpen(false)} />
+      <AddDenominationDialog
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onCreated={(info) => {
+          if (info.hasRate) return;
+          const b = brandById(info.brandId);
+          const c = countryById(info.countryId);
+          // Mock: pick any existing denom without a rate so the Set Rate modal can preview the flow.
+          const fallback = denominations.find((d) => !rates.some((r) => r.denominationId === d.id && r.active));
+          setJustAdded({
+            label: `${b?.logoEmoji ?? ""} ${b?.name} ${currencySymbol(c?.currency ?? "USD")}${info.face} ${info.type} · ${c?.code}`,
+            denomId: fallback?.id ?? null,
+          });
+        }}
+      />
+      <SetRateDialog denomId={rateFor} onClose={() => setRateFor(null)} />
     </div>
   );
 }
@@ -175,15 +216,16 @@ function RatesTab() {
   const [brand, setBrand] = useState("All"); const [country, setCountry] = useState("All"); const [activeOnly, setActiveOnly] = useState(true);
   const payouts = activePayoutCurrencies();
   const [view, setView] = useState<string>("USD"); // USD | NGN | GHS | …
-  const list = rates
-    .filter((r) => {
-      const d = denominations.find((x) => x.id === r.denominationId);
-      if (!d) return false;
-      if (brand !== "All" && d.brandId !== brand) return false;
-      if (country !== "All" && d.countryId !== country) return false;
-      if (activeOnly && !r.active) return false;
-      return true;
-    });
+  // Build rows from denominations so that denoms without an active rate still appear.
+  type Row = { d: typeof denominations[number]; r: (typeof rates)[number] | null };
+  const list: Row[] = denominations
+    .filter((d) => brand === "All" || d.brandId === brand)
+    .filter((d) => country === "All" || d.countryId === country)
+    .map((d) => {
+      const r = rates.find((x) => x.denominationId === d.id && x.active) ?? null;
+      return { d, r };
+    })
+    .filter(({ r }) => (activeOnly ? !!r : true));
   const viewFx = view === "USD" ? 1 : activeFxRate(view, "USD");
   const viewSym = view === "USD" ? "$" : currencySymbol(view);
   return (
@@ -218,20 +260,21 @@ function RatesTab() {
             ))}
           </tr></thead>
           <tbody>
-            {list.map((r) => {
-              const d = denominations.find((x) => x.id === r.denominationId)!;
+            {list.map(({ d, r }) => {
               const b = brandById(d.brandId); const c = countryById(d.countryId);
-              const markup = ((r.marketRateUsd - r.customerRateUsd) / r.marketRateUsd) * 100;
-              const supplier = r.acquisitionCurrency === "CNY" && r.acquisitionRatePerCardDollar
+              const markup = r ? ((r.marketRateUsd - r.customerRateUsd) / r.marketRateUsd) * 100 : 0;
+              const supplier = !r
+                ? "—"
+                : r.acquisitionCurrency === "CNY" && r.acquisitionRatePerCardDollar
                 ? `${r.acquisitionRatePerCardDollar} CNY / $1`
                 : r.supplierNgnPerDollar
                   ? `₦${r.supplierNgnPerDollar.toLocaleString()} / $1`
                   : "Direct USD";
-              const cost = r.marketRateUsd * d.amount * viewFx;
-              const payout = r.customerRateUsd * d.amount * viewFx;
+              const cost = r ? r.marketRateUsd * d.amount * viewFx : 0;
+              const payout = r ? r.customerRateUsd * d.amount * viewFx : 0;
               const marginCur = cost - payout;
               return (
-                <tr key={r.id} onClick={() => setHistoryFor(d.id)} className="cursor-pointer border-b border-border last:border-0 hover:bg-secondary/40">
+                <tr key={d.id} onClick={() => r && setHistoryFor(d.id)} className={`border-b border-border last:border-0 hover:bg-secondary/40 ${r ? "cursor-pointer" : ""}`}>
                   <td className="px-6 py-3.5">
                     <Link onClick={(e) => e.stopPropagation()} to="/admin/giftcards/brands/$brandId" params={{ brandId: d.brandId }} className="hover:text-primary">
                       {b?.logoEmoji} {b?.name}
@@ -242,28 +285,34 @@ function RatesTab() {
                   <td className="px-6 py-3.5 font-mono text-xs text-muted-foreground">{supplier}</td>
                   {view === "USD" ? (
                     <>
-                      <td className="px-6 py-3.5 text-right font-mono">${r.marketRateUsd.toFixed(3)}</td>
-                      <td className="px-6 py-3.5 text-right font-mono">${r.customerRateUsd.toFixed(3)}</td>
-                      <td className="px-6 py-3.5 text-right font-mono">{markup.toFixed(1)}%</td>
-                      <td className="px-6 py-3.5 text-xs">{r.source === "Manual" ? "M" : "A"}</td>
-                      <td className="px-6 py-3.5 text-xs text-muted-foreground">{r.validFrom}</td>
+                      <td className="px-6 py-3.5 text-right font-mono">{r ? `$${r.marketRateUsd.toFixed(3)}` : <span className="text-muted-foreground">—</span>}</td>
+                      <td className="px-6 py-3.5 text-right font-mono">{r ? `$${r.customerRateUsd.toFixed(3)}` : <span className="text-muted-foreground">—</span>}</td>
+                      <td className="px-6 py-3.5 text-right font-mono">{r ? `${markup.toFixed(1)}%` : <span className="text-muted-foreground">—</span>}</td>
+                      <td className="px-6 py-3.5 text-xs">{r ? (r.source === "Manual" ? "M" : "A") : <span className="text-muted-foreground">—</span>}</td>
+                      <td className="px-6 py-3.5 text-xs text-muted-foreground">{r?.validFrom ?? "—"}</td>
                       <td className="px-6 py-3.5 text-right">
-                        <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setRateFor(r.denominationId); }}>Update</Button>
+                        <Button
+                          size="sm"
+                          variant={r ? "outline" : "default"}
+                          onClick={(e) => { e.stopPropagation(); setRateFor(d.id); }}
+                        >
+                          {r ? "Update" : "Set Rate"}
+                        </Button>
                       </td>
                     </>
                   ) : (
                     <>
-                      <td className="px-6 py-3.5 text-right font-mono">{viewSym}{cost.toLocaleString("en-NG", { maximumFractionDigits: 0 })}</td>
-                      <td className="px-6 py-3.5 text-right font-mono font-semibold">{viewSym}{payout.toLocaleString("en-NG", { maximumFractionDigits: 0 })}</td>
-                      <td className="px-6 py-3.5 text-right font-mono text-emerald-600 dark:text-emerald-400">+{viewSym}{marginCur.toLocaleString("en-NG", { maximumFractionDigits: 0 })}</td>
-                      <td className="px-6 py-3.5 text-xs">{r.source === "Manual" ? "M" : "A"}</td>
+                      <td className="px-6 py-3.5 text-right font-mono">{r ? `${viewSym}${cost.toLocaleString("en-NG", { maximumFractionDigits: 0 })}` : <span className="text-muted-foreground">—</span>}</td>
+                      <td className="px-6 py-3.5 text-right font-mono font-semibold">{r ? `${viewSym}${payout.toLocaleString("en-NG", { maximumFractionDigits: 0 })}` : <span className="text-muted-foreground">—</span>}</td>
+                      <td className="px-6 py-3.5 text-right font-mono text-emerald-600 dark:text-emerald-400">{r ? `+${viewSym}${marginCur.toLocaleString("en-NG", { maximumFractionDigits: 0 })}` : <span className="text-muted-foreground">—</span>}</td>
+                      <td className="px-6 py-3.5 text-xs">{r ? (r.source === "Manual" ? "M" : "A") : <span className="text-muted-foreground">—</span>}</td>
                     </>
                   )}
                 </tr>
               );
             })}
             {list.length === 0 && (
-              <tr><td colSpan={10} className="px-6 py-12 text-center text-sm text-muted-foreground">No rates match these filters.</td></tr>
+              <tr><td colSpan={10} className="px-6 py-12 text-center text-sm text-muted-foreground">No denominations match these filters.</td></tr>
             )}
           </tbody>
         </table></div>
