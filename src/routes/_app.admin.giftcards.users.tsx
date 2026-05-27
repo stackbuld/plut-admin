@@ -56,7 +56,7 @@ function UsersLayout() {
           <header className="border-b border-border px-6 py-4">
             <h2 className="font-display text-base font-bold">Recent Blocked Users</h2>
           </header>
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[600px] text-sm">
             <thead className="bg-secondary/60"><tr className="text-left">
               {["User", "Block Type", "Started", "Expires"].map((h) => (
                 <th key={h} className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
@@ -86,7 +86,7 @@ function UsersLayout() {
 
       <TabsContent value="blacklist" className="space-y-4">
         <div className="rounded-2xl border bg-card overflow-hidden">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[600px] text-sm">
             <thead className="bg-secondary/60"><tr className="text-left">
               {["Hash (pHash)", "Added", "By", "Reason"].map((h) => (
                 <th key={h} className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>

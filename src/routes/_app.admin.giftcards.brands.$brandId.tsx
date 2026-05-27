@@ -85,7 +85,7 @@ function BrandDetail() {
                   </Button>
                 </div>
               ) : (
-                <table className="w-full text-sm">
+                <table className="w-full min-w-[600px] text-sm">
                   <thead className="bg-secondary/40">
                     <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       <th className="px-5 py-2.5">Amount</th><th className="px-5 py-2.5">Type</th>
