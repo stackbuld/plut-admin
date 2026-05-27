@@ -392,10 +392,13 @@ function Section({ title, subtitle, right, children }: { title: string; subtitle
   );
 }
 
-function FxGroup({ label, children }: { label: string; children: React.ReactNode }) {
+function FxGroup({ label, right, children }: { label: string; right?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div>
-      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+        {right}
+      </div>
       <div className="grid grid-cols-2 gap-2">{children}</div>
     </div>
   );
@@ -417,13 +420,20 @@ function ModeTab({ active, onClick, label, sub }: { active: boolean; onClick: ()
   );
 }
 
-function FxInline({ label, value, onChange, symbol }: { label: string; base: string; quote: string; value: number; onChange: (n: number) => void; symbol: string }) {
+function FxInline({ label, value, onChange, symbol, onRemove }: { label: string; base: string; quote: string; value: number; onChange: (n: number) => void; symbol: string; onRemove?: () => void }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(value));
   useEffect(() => { setDraft(String(value)); }, [value]);
   return (
     <div className="rounded-md border bg-secondary/30 px-2.5 py-1.5">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <div className="flex items-center justify-between gap-1">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+        {onRemove && (
+          <button onClick={onRemove} className="text-muted-foreground hover:text-foreground" aria-label={`Remove ${label}`}>
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </div>
       {editing ? (
         <div className="mt-0.5 flex items-center gap-1">
           <span className="font-mono text-xs">{symbol}</span>
