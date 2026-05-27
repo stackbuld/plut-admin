@@ -193,18 +193,47 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
 
           {/* 2 — Live FX Rates */}
           <Section title="Live FX Rates" subtitle="Edit inline if the market has moved.">
-            <FxGroup label="Payout rates">
-              <FxInline label="USD / NGN" base="USD" quote="NGN" value={getFx("USD", "NGN")} onChange={(v) => setFxValue("USD", "NGN", v)} symbol="₦" />
-              {allPayouts.filter((p) => p.code !== "NGN").map((p) => (
-                <FxInline
-                  key={p.code}
-                  label={`USD / ${p.code}`}
-                  base="USD" quote={p.code}
-                  value={getFx("USD", p.code)}
-                  onChange={(v) => setFxValue("USD", p.code, v)}
-                  symbol={p.symbol}
-                />
-              ))}
+            <FxGroup
+              label="Payout rates"
+              right={
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button size="sm" variant="ghost" className="h-6 text-[11px]" disabled={availableToAdd.length === 0}>
+                      <Plus className="h-3 w-3" /> Add currency
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-48 p-1">
+                    {availableToAdd.length === 0 ? (
+                      <p className="px-2 py-1.5 text-xs text-muted-foreground">All active currencies added</p>
+                    ) : availableToAdd.map((p) => (
+                      <button
+                        key={p.code}
+                        onClick={() => setPreviewCodes((arr) => [...arr, p.code])}
+                        className="flex w-full items-center justify-between rounded px-2 py-1.5 text-xs hover:bg-secondary"
+                      >
+                        <span>{p.code} — {p.name}</span><span className="font-mono">{p.symbol}</span>
+                      </button>
+                    ))}
+                  </PopoverContent>
+                </Popover>
+              }
+            >
+              {previewCodes.map((code) => {
+                const pc = allPayouts.find((p) => p.code === code);
+                if (!pc) return null;
+                const isNgn = code === "NGN";
+                return (
+                  <FxInline
+                    key={code}
+                    label={`USD / ${code}`}
+                    base="USD" quote={code}
+                    value={isNgn ? getFx("USD", "NGN") : getFx("USD", code)}
+                    onChange={(v) => setFxValue("USD", code, v)}
+                    symbol={pc.symbol}
+                    onRemove={isNgn ? undefined : () => setPreviewCodes((arr) => arr.filter((c) => c !== code))}
+                  />
+                );
+              })}
             </FxGroup>
 
             {acqCode !== "USD" && (() => {
@@ -278,28 +307,6 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
           <Section
             title="Payout Preview"
             subtitle={`Customer receives for $${d.amount} ${d.cardType} card.`}
-            right={
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button size="sm" variant="ghost" className="h-7 text-xs" disabled={availableToAdd.length === 0}>
-                    <Plus className="h-3 w-3" /> Add currency
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent align="end" className="w-48 p-1">
-                  {availableToAdd.length === 0 ? (
-                    <p className="px-2 py-1.5 text-xs text-muted-foreground">All active currencies added</p>
-                  ) : availableToAdd.map((p) => (
-                    <button
-                      key={p.code}
-                      onClick={() => setPreviewCodes((arr) => [...arr, p.code])}
-                      className="flex w-full items-center justify-between rounded px-2 py-1.5 text-xs hover:bg-secondary"
-                    >
-                      <span>{p.code} — {p.name}</span><span className="font-mono">{p.symbol}</span>
-                    </button>
-                  ))}
-                </PopoverContent>
-              </Popover>
-            }
           >
             <div className="space-y-1.5">
               {previewCodes.map((code) => {
@@ -309,7 +316,7 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
                 const missing = !fxRate;
                 const payout = d.amount * customerRateUsd * (fxRate || 0);
                 return (
-                  <div key={code} className="flex items-center justify-between rounded-md border bg-card px-3 py-2 text-sm">
+                  <div key={code} className="rounded-md border bg-card px-3 py-2 text-sm">
                     <div className="min-w-0">
                       <p className="font-medium">Customer receives <span className="font-mono">{pc.symbol}{fmt(payout, 0)}</span></p>
                       <p className="text-[10px] text-muted-foreground">per ${d.amount} card · FX {pc.symbol}{fmt(fxRate || 0, 2)}/$1</p>
@@ -319,18 +326,11 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
                         </p>
                       )}
                     </div>
-                    <button
-                      onClick={() => setPreviewCodes((arr) => arr.filter((c) => c !== code))}
-                      className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-secondary hover:text-foreground"
-                      aria-label={`Remove ${code}`}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
                   </div>
                 );
               })}
               {previewCodes.length === 0 && (
-                <p className="rounded-md border border-dashed px-3 py-3 text-center text-xs text-muted-foreground">No currencies — add one to preview the payout.</p>
+                <p className="rounded-md border border-dashed px-3 py-3 text-center text-xs text-muted-foreground">No currencies — add one in Live FX Rates to preview the payout.</p>
               )}
             </div>
           </Section>
