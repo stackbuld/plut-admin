@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Pencil, Check, X, Plus, Sparkles, AlertTriangle, Info } from "lucide-react";
+import { Pencil, Check, X, Plus, Sparkles, AlertTriangle, Info, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -127,7 +127,11 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
   const marginUsd = Math.max(0, marketRateUsd - customerRateUsd);
   const marginPctCalc = marketRateUsd ? (marginUsd / marketRateUsd) * 100 : 0;
   const plutMarginNgnPerCard = marginUsd * d.amount * usdNgn;
-  const valid = marketRateUsd > 0 && customerRateUsd > 0 && customerRateUsd <= marketRateUsd;
+  // Loss detection — customer rate at or above market means Plut loses money.
+  const isLoss = marketRateUsd > 0 && customerRateUsd >= marketRateUsd;
+  const lossUsd = isLoss ? customerRateUsd - marketRateUsd : 0;
+  const lossNgnPerCard = lossUsd * d.amount * usdNgn;
+  const valid = marketRateUsd > 0 && customerRateUsd > 0 && customerRateUsd < marketRateUsd;
 
   // Switch tabs while preserving the equivalent value (derived from current customerRateUsd).
   const switchMode = (next: CustomerMode) => {
@@ -147,10 +151,32 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
     setCustMode(next);
   };
 
+  // Convert supplier quote to equivalent in a different acquisition currency,
+  // preserving the implied market rate (USD per $1 face value).
+  const switchAcqCurrency = (nextCode: string) => {
+    if (nextCode === acqCode) return;
+    const num = parseFloat(supplierInput);
+    if (!num || marketRateUsd <= 0) {
+      setAcqCode(nextCode);
+      setSupplierInput("");
+      return;
+    }
+    let nextVal = 0;
+    if (nextCode === "USD") {
+      nextVal = marketRateUsd; // USD/card$
+    } else {
+      const nextNgn = getFx(nextCode, "NGN");
+      const nextAcqUsd = usdNgn ? nextNgn / usdNgn : 0; // USD per 1 unit of nextCode
+      nextVal = nextAcqUsd ? marketRateUsd / nextAcqUsd : 0;
+    }
+    setAcqCode(nextCode);
+    setSupplierInput(nextVal > 0 ? nextVal.toFixed(nextCode === "USD" ? 4 : 2) : "");
+  };
+
   const submit = async () => {
     if (!marketRateUsd) { toast.error("Enter the supplier quote"); return; }
     if (customerRateUsd <= 0) { toast.error("Customer rate must be positive"); return; }
-    if (customerRateUsd > marketRateUsd) { toast.error("Customer rate cannot exceed market rate"); return; }
+    if (customerRateUsd >= marketRateUsd) { toast.error("Customer rate must be below market rate — would cause a loss"); return; }
     await new Promise((res) => setTimeout(res, 300));
     toast.success("Rate saved.", {
       description: `Mkt $${marketRateUsd.toFixed(4)} · Cust $${customerRateUsd.toFixed(4)} · ${marginPctCalc.toFixed(1)}% margin`,
@@ -178,7 +204,7 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
           {/* 1 — Supplier Quote */}
           <Section title="Supplier Quote">
             <div className="grid grid-cols-[140px_1fr] gap-2">
-              <Select value={acqCode} onValueChange={(v) => { setAcqCode(v); setSupplierInput(""); }}>
+              <Select value={acqCode} onValueChange={switchAcqCurrency}>
                 <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="USD">USD — direct</SelectItem>
@@ -188,21 +214,21 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
                 </SelectContent>
               </Select>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-foreground">{supplierSymbol}</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-foreground/70">{supplierSymbol}</span>
                 <Input
                   type="number"
                   step={acqCode === "USD" ? "0.001" : "0.01"}
                   value={supplierInput}
                   onChange={(e) => setSupplierInput(e.target.value)}
-                  className="h-9 pl-7 font-mono"
+                  className="h-9 pl-7 font-mono text-sm"
                   placeholder={acqCode === "USD" ? "0.707" : acqCode === "CNY" ? "5.4" : "0"}
                 />
               </div>
             </div>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Supplier quote per $1 face value ({acqCode})
               {acqCode !== "USD" && supplierNum > 0 && (
-                <span className="ml-1 inline-flex items-center gap-1 rounded bg-secondary/60 px-1.5 py-0.5 font-mono italic text-foreground">
+                <span className="ml-1 inline-flex items-center gap-1 rounded bg-secondary px-1.5 py-0.5 font-mono italic text-foreground">
                   ≈ ${marketRateUsd.toFixed(4)} per card dollar
                 </span>
               )}
@@ -281,10 +307,25 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
           <Section title="Acquisition cost per $1 face value">
             <div className="rounded-lg border bg-secondary/30 p-3">
               <div className="flex items-baseline justify-between">
-                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Market rate (stored)</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Market rate (stored)</span>
                 <span className="font-mono text-base font-semibold text-primary">${marketRateUsd.toFixed(4)} / $1</span>
               </div>
-              <p className="mt-2 flex items-start gap-1.5 border-t pt-2 font-mono text-[10px] italic text-muted-foreground">
+              {marketRateUsd > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5 border-t pt-2">
+                  {allPayouts.map((p) => {
+                    const fxRate = p.code === "NGN" ? usdNgn : getFx("USD", p.code);
+                    if (!fxRate) return null;
+                    return (
+                      <span key={p.code} className="inline-flex items-center gap-1 rounded bg-card px-2 py-0.5 font-mono text-xs">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{p.code}</span>
+                        <span className="font-semibold">{p.symbol}{fmt(marketRateUsd * fxRate, 2)}</span>
+                        <span className="text-[10px] text-muted-foreground">/ $1</span>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+              <p className="mt-2 flex items-start gap-1.5 border-t pt-2 font-mono text-xs italic text-muted-foreground">
                 <Info className="mt-px h-3 w-3 shrink-0" />
                 <span>{derivationLabel}</span>
               </p>
@@ -315,10 +356,22 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
               </Field>
             )}
 
-            <div className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-1.5 font-mono text-xs">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Customer rate (USD)</span>
-              <span className="italic">${customerRateUsd.toFixed(4)} / $1</span>
+            <div className={cn(
+              "flex items-center justify-between rounded-md px-3 py-1.5 font-mono text-xs",
+              isLoss ? "bg-destructive/10 border border-destructive/30" : "bg-secondary/40",
+            )}>
+              <span className={cn("text-[11px] font-semibold uppercase tracking-wider", isLoss ? "text-destructive" : "text-muted-foreground")}>Customer rate (USD)</span>
+              <span className={cn("italic", isLoss && "text-destructive font-semibold")}>${customerRateUsd.toFixed(4)} / $1</span>
             </div>
+            {isLoss && (
+              <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <div className="space-y-0.5">
+                  <p className="font-semibold">This rate would cause a loss</p>
+                  <p className="text-[11px]">Customer rate (${customerRateUsd.toFixed(4)}) is above acquisition (${marketRateUsd.toFixed(4)}). Loss ≈ ₦{fmt(lossNgnPerCard, 0)} per ${d.amount} card.</p>
+                </div>
+              </div>
+            )}
           </Section>
 
           {/* 5 — Payout Preview */}
@@ -355,22 +408,37 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
 
           {/* 6 — Summary */}
           <Section title="Summary">
-            <div className="rounded-xl border bg-gradient-to-br from-primary/5 via-transparent to-transparent p-3">
+            <div className={cn(
+              "rounded-xl border p-3",
+              isLoss ? "border-destructive/40 bg-destructive/5" : "bg-gradient-to-br from-primary/5 via-transparent to-transparent",
+            )}>
               <div className="grid grid-cols-3 gap-2 border-b pb-2">
                 <SummaryStat label="Market" value={`$${marketRateUsd.toFixed(4)}`} sub="cost floor" />
-                <SummaryStat label="Customer" value={`$${customerRateUsd.toFixed(4)}`} sub="per $1" highlight />
-                <SummaryStat label="Margin" value={`${marginPctCalc.toFixed(2)}%`} sub={`$${marginUsd.toFixed(4)} / $1`} />
+                <SummaryStat label="Customer" value={`$${customerRateUsd.toFixed(4)}`} sub="per $1" highlight={!isLoss} danger={isLoss} />
+                <SummaryStat
+                  label={isLoss ? "Loss" : "Margin"}
+                  value={isLoss ? `-${marginPctCalc ? "" : ""}${((customerRateUsd / marketRateUsd - 1) * 100).toFixed(2)}%` : `${marginPctCalc.toFixed(2)}%`}
+                  sub={isLoss ? `-$${lossUsd.toFixed(4)} / $1` : `$${marginUsd.toFixed(4)} / $1`}
+                  danger={isLoss}
+                />
               </div>
-              <div className="mt-2.5 flex items-center justify-between rounded-md bg-primary/10 px-3 py-2 text-sm">
-                <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-primary">
-                  <Sparkles className="h-3 w-3" /> Plut margin
+              <div className={cn(
+                "mt-2.5 flex items-center justify-between rounded-md px-3 py-2 text-sm",
+                isLoss ? "bg-destructive/15" : "bg-primary/10",
+              )}>
+                <span className={cn(
+                  "flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest",
+                  isLoss ? "text-destructive" : "text-primary",
+                )}>
+                  {isLoss ? <TrendingDown className="h-3 w-3" /> : <Sparkles className="h-3 w-3" />}
+                  {isLoss ? "Plut loss" : "Plut margin"}
                 </span>
-                <span className="font-mono font-semibold text-primary">
-                  ₦{fmt(plutMarginNgnPerCard, 0)} <span className="text-[10px] font-normal text-muted-foreground">per ${d.amount} card</span>
+                <span className={cn("font-mono font-semibold", isLoss ? "text-destructive" : "text-primary")}>
+                  {isLoss ? "-" : ""}₦{fmt(isLoss ? lossNgnPerCard : plutMarginNgnPerCard, 0)} <span className="text-[11px] font-normal text-muted-foreground">per ${d.amount} card</span>
                 </span>
               </div>
             </div>
-            <p className="rounded-md border border-dashed bg-secondary/30 px-3 py-1.5 font-mono text-[10px] text-muted-foreground">
+            <p className="rounded-md border border-dashed bg-secondary/30 px-3 py-1.5 font-mono text-[11px] text-muted-foreground">
               <span className="font-semibold text-foreground">Saves: </span>
               MarketRate ${marketRateUsd.toFixed(4)}/$1 · CustomerRate ${customerRateUsd.toFixed(4)}/$1
               {acqCode !== "USD" && ` · AcquisitionCurrency ${acqCode} · SupplierRate ${supplierInput || 0} ${acqCode}/$1`}
@@ -381,7 +449,13 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
 
         <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t bg-card/95 px-5 py-3 backdrop-blur">
           <p className="text-xs text-muted-foreground">
-            {valid ? <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><Check className="h-3 w-3" /> Ready to save</span> : <span className="flex items-center gap-1"><X className="h-3 w-3" /> Complete the form to save</span>}
+            {isLoss ? (
+              <span className="flex items-center gap-1 text-destructive font-medium"><AlertTriangle className="h-3 w-3" /> Loss-making rate — adjust to save</span>
+            ) : valid ? (
+              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><Check className="h-3 w-3" /> Ready to save</span>
+            ) : (
+              <span className="flex items-center gap-1"><X className="h-3 w-3" /> Complete the form to save</span>
+            )}
           </p>
           <div className="flex gap-2">
             <Button variant="ghost" onClick={onClose}>Cancel</Button>
@@ -400,8 +474,8 @@ function Section({ title, subtitle, right, children }: { title: string; subtitle
     <section className="space-y-2">
       <header className="flex items-center justify-between gap-2">
         <div>
-          <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{title}</h3>
-          {subtitle && <p className="text-[11px] text-muted-foreground">{subtitle}</p>}
+          <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground/80">{title}</h3>
+          {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
         </div>
         {right}
       </header>
@@ -414,7 +488,7 @@ function FxGroup({ label, right, children }: { label: string; right?: React.Reac
   return (
     <div>
       <div className="mb-1 flex items-center justify-between gap-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground/70">{label}</p>
         {right}
       </div>
       <div className="grid grid-cols-2 gap-2">{children}</div>
@@ -428,12 +502,12 @@ function ModeTab({ active, onClick, label, sub }: { active: boolean; onClick: ()
       type="button"
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center justify-center gap-0.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors",
+        "flex flex-col items-center justify-center gap-0.5 rounded-md px-2 py-2 text-xs font-medium transition-colors",
         active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
       )}
     >
       <span>{label}</span>
-      {sub && <span className="text-[9px] uppercase tracking-wider opacity-70">{sub}</span>}
+      {sub && <span className="text-[10px] uppercase tracking-wider opacity-80">{sub}</span>}
     </button>
   );
 }
@@ -445,7 +519,7 @@ function FxInline({ label, value, onChange, symbol, onRemove }: { label: string;
   return (
     <div className="rounded-md border bg-secondary/30 px-2.5 py-1.5">
       <div className="flex items-center justify-between gap-1">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground/70">{label}</p>
         {onRemove && (
           <button onClick={onRemove} className="text-muted-foreground hover:text-foreground" aria-label={`Remove ${label}`}>
             <X className="h-3 w-3" />
@@ -475,7 +549,7 @@ function FxInline({ label, value, onChange, symbol, onRemove }: { label: string;
 function DerivedFx({ label, value, symbol }: { label: string; value: number; symbol: string }) {
   return (
     <div className="rounded-md border border-dashed bg-secondary/20 px-2.5 py-1.5">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground/70">{label}</p>
       <p className="mt-0.5 font-mono text-sm italic text-muted-foreground">{symbol}{value ? value.toFixed(4) : "—"}</p>
     </div>
   );
@@ -491,12 +565,12 @@ function NumberInput({ value, onChange, prefix, suffix, placeholder, step = "0.0
   );
 }
 
-function SummaryStat({ label, value, sub, highlight }: { label: string; value: string; sub?: string; highlight?: boolean }) {
+function SummaryStat({ label, value, sub, highlight, danger }: { label: string; value: string; sub?: string; highlight?: boolean; danger?: boolean }) {
   return (
     <div>
-      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className={cn("font-mono text-sm font-semibold", highlight && "text-primary")}>{value}</p>
-      {sub && <p className="text-[10px] text-muted-foreground">{sub}</p>}
+      <p className={cn("text-[11px] font-semibold uppercase tracking-wider", danger ? "text-destructive" : "text-muted-foreground")}>{label}</p>
+      <p className={cn("font-mono text-sm font-semibold", highlight && "text-primary", danger && "text-destructive")}>{value}</p>
+      {sub && <p className={cn("text-[11px]", danger ? "text-destructive/80" : "text-muted-foreground")}>{sub}</p>}
     </div>
   );
 }
@@ -504,9 +578,9 @@ function SummaryStat({ label, value, sub, highlight }: { label: string; value: s
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <label className="text-xs font-medium">{label}</label>
+      <label className="text-xs font-semibold text-foreground">{label}</label>
       {children}
-      {hint && <p className="text-[10px] text-muted-foreground">{hint}</p>}
+      {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
     </div>
   );
 }
