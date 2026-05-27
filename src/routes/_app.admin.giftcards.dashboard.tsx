@@ -61,7 +61,28 @@ function Dashboard() {
         {queue.length === 0 ? (
           <div className="px-6 py-10 text-center text-sm text-success">All trades reviewed — queue is clear ✓</div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile cards */}
+          <ul className="divide-y divide-border md:hidden">
+            {queue.map((t) => {
+              const brand = brandById(t.brandId);
+              return (
+                <li key={t.id}>
+                  <Link to="/admin/giftcards/trades/$tradeId" params={{ tradeId: t.id }} className="flex items-center justify-between gap-3 px-4 py-3 active:bg-secondary/40">
+                    <div className="min-w-0">
+                      <p className="flex items-center gap-2 font-medium"><span>{brand?.logoEmoji}</span>{brand?.name}</p>
+                      <p className="font-mono text-[11px] text-muted-foreground">{truncId(t.id)} · {relativeTime(t.submittedAt)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-mono text-sm font-semibold">{formatNaira(t.payoutNgn)}</p>
+                      <div className="mt-0.5"><SlaIndicator deadlineIso={t.slaDeadlineAt} /></div>
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-secondary/60">
                 <tr className="text-left">
@@ -93,6 +114,7 @@ function Dashboard() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </section>
     </div>

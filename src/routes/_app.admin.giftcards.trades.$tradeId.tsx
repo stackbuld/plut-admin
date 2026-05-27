@@ -81,7 +81,7 @@ function TradeDetailPage() {
 
       <Panel title="Batch Items">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[600px] text-sm">
             <thead><tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               <th className="py-2 pr-4">Denom</th><th className="py-2 pr-4">Qty</th><th className="py-2 pr-4 text-right">Cust Rate (USD)</th><th className="py-2 pr-4 text-right">Payout / card</th><th className="py-2 text-right">Line NGN</th>
             </tr></thead>

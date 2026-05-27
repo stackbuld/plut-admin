@@ -64,7 +64,7 @@ function UserDetail() {
         {user.strikes.length === 0 ? (
           <p className="text-sm text-muted-foreground">No strikes recorded.</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0"><table className="w-full min-w-[600px] text-sm">
             <thead><tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               <th className="py-2 pr-4">#</th><th className="py-2 pr-4">Reason</th><th className="py-2 pr-4">Trade</th><th className="py-2 pr-4">Added</th><th className="py-2">Status</th>
             </tr></thead>
@@ -79,7 +79,7 @@ function UserDetail() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </Panel>
 
@@ -87,7 +87,7 @@ function UserDetail() {
         {user.blocks.length === 0 ? (
           <p className="text-sm text-muted-foreground">No blocks recorded.</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0"><table className="w-full min-w-[600px] text-sm">
             <thead><tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               <th className="py-2 pr-4">Type</th><th className="py-2 pr-4">Reason</th><th className="py-2 pr-4">Started</th><th className="py-2 pr-4">Expires</th><th className="py-2 text-right">Action</th>
             </tr></thead>
@@ -104,7 +104,7 @@ function UserDetail() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </Panel>
 
@@ -112,7 +112,7 @@ function UserDetail() {
         {userTrades.length === 0 ? (
           <p className="text-sm text-muted-foreground">No trades by this user.</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0"><table className="w-full min-w-[600px] text-sm">
             <thead><tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               <th className="py-2 pr-4">Trade ID</th><th className="py-2 pr-4">Brand</th><th className="py-2 pr-4">USD</th><th className="py-2 pr-4 text-right">Payout</th><th className="py-2">Status</th>
             </tr></thead>
@@ -127,7 +127,7 @@ function UserDetail() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </Panel>
 

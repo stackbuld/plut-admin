@@ -42,7 +42,37 @@ function BrandsLayout() {
         <Button onClick={() => setOpen(true)} className="ml-auto"><Plus className="h-4 w-4" /> Create Brand</Button>
       </div>
 
-      <div className="rounded-2xl border bg-card overflow-hidden">
+      {/* Mobile cards */}
+      <div className="space-y-3 md:hidden">
+        {list.map((b) => (
+          <Link
+            key={b.id}
+            to="/admin/giftcards/brands/$brandId"
+            params={{ brandId: b.id }}
+            className="flex items-center gap-3 rounded-2xl border bg-card p-4 active:bg-secondary/40"
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary text-lg">{b.logoEmoji}</span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <p className="truncate font-medium">{b.name}</p>
+                <StatusBadge status={b.active ? "Active" : "Paused"} />
+              </div>
+              <p className="font-mono text-[11px] text-muted-foreground">{b.code} · {b.countryIds.length} countries</p>
+              <div className="mt-1 flex flex-wrap items-center gap-1">
+                {b.countryIds.slice(0, 6).map((cid) => (
+                  <span key={cid} className="text-sm leading-none">{countryById(cid)?.flag}</span>
+                ))}
+                {b.countryIds.length > 6 && <span className="text-[10px] font-semibold text-muted-foreground">+{b.countryIds.length - 6}</span>}
+              </div>
+            </div>
+          </Link>
+        ))}
+        {list.length === 0 && (
+          <div className="rounded-2xl border bg-card px-4 py-10 text-center text-sm text-muted-foreground">No brands found.</div>
+        )}
+      </div>
+
+      <div className="hidden md:block rounded-2xl border bg-card overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-secondary/60">
             <tr className="text-left">

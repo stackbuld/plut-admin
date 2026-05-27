@@ -85,7 +85,7 @@ function BrandDetail() {
                   </Button>
                 </div>
               ) : (
-                <table className="w-full text-sm">
+                <div className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0"><table className="w-full min-w-[600px] text-sm">
                   <thead className="bg-secondary/40">
                     <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       <th className="px-5 py-2.5">Amount</th><th className="px-5 py-2.5">Type</th>
@@ -137,7 +137,7 @@ function BrandDetail() {
                       );
                     })}
                   </tbody>
-                </table>
+                </table></div>
               )}
               {denoms.some((d) => !activeRateForDenom(d.id)) && (
                 <p className="flex items-center gap-2 border-t border-border bg-warning/10 px-5 py-2 text-xs text-warning">
