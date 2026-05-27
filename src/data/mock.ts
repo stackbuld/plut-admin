@@ -478,3 +478,25 @@ export const payoutCurrencies: PayoutCurrency[] = [
 
 export const activePayoutCurrencies = () =>
   payoutCurrencies.filter((c) => c.status === "Active");
+
+// Acquisition currencies: non-USD bases that have an active FX rate to NGN and
+// are NOT payout currencies (e.g. CNY). Used to supply the supplier-quote
+// dropdown in the Set Rate modal.
+export const acquisitionCurrencies = (): { code: string; symbol: string; name: string }[] => {
+  const payoutCodes = new Set(payoutCurrencies.map((p) => p.code));
+  const seen = new Set<string>();
+  const list: { code: string; symbol: string; name: string }[] = [];
+  for (const fx of fxRates) {
+    if (fx.validTo !== null) continue;
+    if (fx.baseCurrency === "USD") continue;
+    if (payoutCodes.has(fx.baseCurrency)) continue;
+    if (seen.has(fx.baseCurrency)) continue;
+    seen.add(fx.baseCurrency);
+    const meta: Record<string, { symbol: string; name: string }> = {
+      CNY: { symbol: "¥", name: "Chinese Yuan (RMB)" },
+    };
+    const m = meta[fx.baseCurrency] ?? { symbol: fx.baseCurrency, name: fx.baseCurrency };
+    list.push({ code: fx.baseCurrency, symbol: m.symbol, name: m.name });
+  }
+  return list;
+};
