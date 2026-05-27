@@ -412,7 +412,7 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
               "rounded-xl border p-3",
               isLoss ? "border-destructive/40 bg-destructive/5" : "bg-gradient-to-br from-primary/5 via-transparent to-transparent",
             )}>
-              <div className="grid grid-cols-3 gap-2 border-b pb-2">
+              <div className="grid grid-cols-3 gap-2 pb-2">
                 <SummaryStat label="Market" value={`$${marketRateUsd.toFixed(4)}`} sub="cost floor" />
                 <SummaryStat label="Customer" value={`$${customerRateUsd.toFixed(4)}`} sub="per $1" highlight={!isLoss} danger={isLoss} />
                 <SummaryStat
@@ -423,15 +423,14 @@ export function SetRateDialog({ denomId, onClose }: { denomId: string | null; on
                 />
               </div>
               <div className={cn(
-                "mt-2.5 flex items-center justify-between rounded-md px-3 py-2 text-sm",
-                isLoss ? "bg-destructive/15" : "bg-primary/10",
+                "mt-1 flex items-center justify-between border-t pt-2.5 text-sm",
               )}>
                 <span className={cn(
                   "flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest",
                   isLoss ? "text-destructive" : "text-primary",
                 )}>
                   {isLoss ? <TrendingDown className="h-3 w-3" /> : <Sparkles className="h-3 w-3" />}
-                  {isLoss ? "Plut loss" : "Plut margin"}
+                  {isLoss ? "Plut loss" : "Plut earns"}
                 </span>
                 <span className={cn("font-mono font-semibold", isLoss ? "text-destructive" : "text-primary")}>
                   {isLoss ? "-" : ""}₦{fmt(isLoss ? lossNgnPerCard : plutMarginNgnPerCard, 0)} <span className="text-[11px] font-normal text-muted-foreground">per ${d.amount} card</span>
