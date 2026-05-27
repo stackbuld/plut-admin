@@ -1,6 +1,7 @@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { rates, rateHistory, denominations, brandById, countryById } from "@/data/mock";
+import { brandById, countryById } from "@/data/mock";
+import { useDenominations, useRates, useRateHistory } from "@/data/store";
 import { currencySymbol } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,9 @@ export function RateHistoryDrawer({
   onSetNew: (id: string) => void;
 }) {
   const open = denomId !== null;
+  const denominations = useDenominations();
+  const rates = useRates();
+  const rateHistory = useRateHistory();
   const d = denominations.find((x) => x.id === denomId);
   if (!d) {
     return (
