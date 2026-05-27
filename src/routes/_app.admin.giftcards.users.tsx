@@ -21,7 +21,7 @@ function UsersLayout() {
 
   return (
     <Tabs defaultValue="lookup" className="space-y-5">
-      <TabsList>
+      <TabsList className="w-full max-w-full overflow-x-auto whitespace-nowrap">
         <TabsTrigger value="lookup">User Lookup</TabsTrigger>
         <TabsTrigger value="blacklist">Image Blacklist</TabsTrigger>
       </TabsList>
