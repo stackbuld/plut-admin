@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, MoreHorizontal, AlertTriangle } from "lucide-react";
+import { Plus, MoreHorizontal, AlertTriangle, RefreshCw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { StatusBadge } from "@/components/plut/StatusBadge";
-import { brands, countries, denominations, rates, brandById, countryById, activeRateForDenom, fxRates } from "@/data/mock";
+import {
+  brands, countries, denominations, rates, brandById, countryById, fxRates,
+  payoutCurrencies, activePayoutCurrencies, activeFxRate,
+  type PayoutCurrency,
+} from "@/data/mock";
 import { toast } from "sonner";
 import { SetRateDialog } from "@/components/plut/SetRateDialog";
 import { AddDenominationDialog } from "@/components/plut/AddDenominationDialog";
+import { RateHistoryDrawer } from "@/components/plut/RateHistoryDrawer";
 import { currencySymbol } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/admin/giftcards/catalog")({
@@ -28,11 +33,13 @@ function Catalog() {
         <TabsTrigger value="denominations">Denominations</TabsTrigger>
         <TabsTrigger value="rates">Rates</TabsTrigger>
         <TabsTrigger value="fx">FX Rates</TabsTrigger>
+        <TabsTrigger value="payout">Payout Currencies</TabsTrigger>
       </TabsList>
       <TabsContent value="countries"><CountriesTab /></TabsContent>
       <TabsContent value="denominations"><DenominationsTab /></TabsContent>
       <TabsContent value="rates"><RatesTab /></TabsContent>
       <TabsContent value="fx"><FxTab /></TabsContent>
+      <TabsContent value="payout"><PayoutCurrenciesTab /></TabsContent>
     </Tabs>
   );
 }
@@ -85,12 +92,12 @@ function CountriesTab() {
           <DialogHeader><DialogTitle>Add Country</DialogTitle><DialogDescription>Register a new country with its currency.</DialogDescription></DialogHeader>
           <div className="space-y-3">
             <Field label="Country name *"><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="United States" /></Field>
-            <Field label="Country code * (ISO 3166 Alpha-3)"><Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="USA" className="font-mono" /></Field>
+            <Field label="Country code * (ISO 3166 Alpha-2)"><Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="US" maxLength={2} className="font-mono" /></Field>
             <Field label="Currency code * (ISO 4217)"><Input value={cur} onChange={(e) => setCur(e.target.value.toUpperCase())} placeholder="USD" className="font-mono" /></Field>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={() => { toast.success(`Country ${name} added.`); setOpen(false); }}>Add Country</Button>
+            <Button onClick={() => { if (!name || !code || !cur) { toast.error("All fields required"); return; } toast.success(`Country ${name} added.`); setOpen(false); setName(""); setCode(""); setCur(""); }}>Add Country</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -99,12 +106,13 @@ function CountriesTab() {
 }
 
 function DenominationsTab() {
-  const [brand, setBrand] = useState("All"); const [country, setCountry] = useState("All"); const [type, setType] = useState("All");
+  const [brand, setBrand] = useState("All"); const [country, setCountry] = useState("All"); const [type, setType] = useState("All"); const [status, setStatus] = useState("All");
   const [addOpen, setAddOpen] = useState(false);
   const list = denominations
     .filter((d) => brand === "All" || d.brandId === brand)
     .filter((d) => country === "All" || d.countryId === country)
-    .filter((d) => type === "All" || d.cardType === type);
+    .filter((d) => type === "All" || d.cardType === type)
+    .filter((d) => status === "All" || (status === "Active" ? d.active : !d.active));
 
   return (
     <div className="space-y-4">
@@ -112,6 +120,7 @@ function DenominationsTab() {
         <FilterSelect value={brand} onChange={setBrand} placeholder="Brand" options={[{ v: "All", l: "All brands" }, ...brands.map((b) => ({ v: b.id, l: b.name }))]} />
         <FilterSelect value={country} onChange={setCountry} placeholder="Country" options={[{ v: "All", l: "All countries" }, ...countries.map((c) => ({ v: c.id, l: c.name }))]} />
         <FilterSelect value={type} onChange={setType} placeholder="Type" options={[{ v: "All", l: "All types" }, { v: "Physical", l: "Physical" }, { v: "E-code", l: "E-code" }]} />
+        <FilterSelect value={status} onChange={setStatus} placeholder="Status" options={[{ v: "All", l: "All statuses" }, { v: "Active", l: "Active" }, { v: "Inactive", l: "Inactive" }]} />
         <span className="ml-auto text-xs text-muted-foreground">{list.length} denomination{list.length === 1 ? "" : "s"}</span>
         <Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add Denomination</Button>
       </div>
