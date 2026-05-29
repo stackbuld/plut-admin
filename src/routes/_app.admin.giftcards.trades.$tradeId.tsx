@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Check, X, Image as ImageIcon, AlertTriangle, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Check, X, Image as ImageIcon, AlertTriangle, ChevronRight, Clock } from "lucide-react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -11,6 +11,9 @@ import { SlaIndicator } from "@/components/plut/SlaIndicator";
 import { tradeById, REJECT_REASONS, brandById, type RejectReason } from "@/data/mock";
 import { formatNaira, formatDateTime, formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+type LineItemStatus = "Pending" | "Approved" | "Rejected";
+const LINE_STATUSES: LineItemStatus[] = ["Pending", "Approved", "Rejected"];
 
 export const Route = createFileRoute("/_app/admin/giftcards/trades/$tradeId")({
   head: () => ({ meta: [{ title: "Trade Detail — Plut Admin" }] }),
@@ -26,6 +29,11 @@ function TradeDetailPage() {
   const [openReject, setOpenReject] = useState(false);
   const [openLightbox, setOpenLightbox] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const initialLineStatuses = useMemo<LineItemStatus[]>(
+    () => (trade ? trade.lineItems.map(() => "Pending") : []),
+    [trade],
+  );
+  const [lineStatuses, setLineStatuses] = useState<LineItemStatus[]>(initialLineStatuses);
 
   if (!trade) {
     return (
@@ -83,7 +91,7 @@ function TradeDetailPage() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[600px] text-sm">
             <thead><tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              <th className="py-2 pr-4">Denom</th><th className="py-2 pr-4">Qty</th><th className="py-2 pr-4 text-right">Cust Rate (USD)</th><th className="py-2 pr-4 text-right">Payout / card</th><th className="py-2 text-right">Line NGN</th>
+              <th className="py-2 pr-4">Denom</th><th className="py-2 pr-4">Qty</th><th className="py-2 pr-4 text-right">Cust Rate (USD)</th><th className="py-2 pr-4 text-right">Payout / card</th><th className="py-2 pr-4 text-right">Line NGN</th><th className="py-2 pl-4 text-right">Status</th>
             </tr></thead>
             <tbody>
               {trade.lineItems.map((li, i) => (
@@ -92,15 +100,28 @@ function TradeDetailPage() {
                   <td className="py-3 pr-4">{li.qty}</td>
                   <td className="py-3 pr-4 text-right font-mono">${li.customerRateUsd.toFixed(4)}</td>
                   <td className="py-3 pr-4 text-right font-mono">{formatNaira(li.payoutPerCardNgn)}</td>
-                  <td className="py-3 text-right font-mono font-semibold">{formatNaira(li.lineNgn)}</td>
+                  <td className="py-3 pr-4 text-right font-mono font-semibold">{formatNaira(li.lineNgn)}</td>
+                  <td className="py-3 pl-4 text-right">
+                    <LineItemStatusSelect
+                      value={lineStatuses[i] ?? "Pending"}
+                      onChange={(next) => {
+                        setLineStatuses((prev) => {
+                          const copy = [...prev];
+                          copy[i] = next;
+                          return copy;
+                        });
+                        toast.success(`Line ${i + 1} marked ${next}`);
+                      }}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t border-border"><td colSpan={4} className="py-2 text-right text-xs text-muted-foreground">Gross NGN</td><td className="py-2 text-right font-mono">{formatNaira(trade.grossNgn)}</td></tr>
-              <tr><td colSpan={4} className="py-1 text-right text-xs text-muted-foreground">Fee (2%)</td><td className="py-1 text-right font-mono text-muted-foreground">{formatNaira(trade.feeNgn)}</td></tr>
-              <tr><td colSpan={4} className="py-1 text-right text-xs text-muted-foreground">Compensation</td><td className="py-1 text-right font-mono text-muted-foreground">{formatNaira(trade.compNgn)}</td></tr>
-              <tr className="border-t border-border"><td colSpan={4} className="py-2 text-right text-sm font-semibold">Payout NGN</td><td className="py-2 text-right font-mono text-lg font-bold">{formatNaira(trade.payoutNgn)}</td></tr>
+              <tr className="border-t border-border"><td colSpan={4} className="py-2 text-right text-xs text-muted-foreground">Gross NGN</td><td className="py-2 text-right font-mono">{formatNaira(trade.grossNgn)}</td><td /></tr>
+              <tr><td colSpan={4} className="py-1 text-right text-xs text-muted-foreground">Fee (2%)</td><td className="py-1 text-right font-mono text-muted-foreground">{formatNaira(trade.feeNgn)}</td><td /></tr>
+              <tr><td colSpan={4} className="py-1 text-right text-xs text-muted-foreground">Compensation</td><td className="py-1 text-right font-mono text-muted-foreground">{formatNaira(trade.compNgn)}</td><td /></tr>
+              <tr className="border-t border-border"><td colSpan={4} className="py-2 text-right text-sm font-semibold">Payout NGN</td><td className="py-2 text-right font-mono text-lg font-bold">{formatNaira(trade.payoutNgn)}</td><td /></tr>
             </tfoot>
           </table>
         </div>
@@ -240,6 +261,28 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
       <span className="text-muted-foreground">{label}</span>
       <span className="text-right">{children}</span>
     </div>
+  );
+}
+
+function LineItemStatusSelect({ value, onChange }: { value: LineItemStatus; onChange: (next: LineItemStatus) => void }) {
+  const styles: Record<LineItemStatus, string> = {
+    Pending: "border-warning/40 bg-warning/10 text-warning",
+    Approved: "border-green-500/40 bg-green-500/10 text-green-600 dark:text-green-400",
+    Rejected: "border-destructive/40 bg-destructive/10 text-destructive",
+  };
+  const Icon = value === "Approved" ? Check : value === "Rejected" ? X : Clock;
+  return (
+    <Select value={value} onValueChange={(v) => onChange(v as LineItemStatus)}>
+      <SelectTrigger className={cn("h-8 w-[130px] gap-1.5 text-xs font-semibold", styles[value])}>
+        <Icon className="h-3.5 w-3.5" />
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {LINE_STATUSES.map((s) => (
+          <SelectItem key={s} value={s}>{s}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
