@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { beginLogin } from "@/lib/zitadel";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -11,7 +12,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const { session, signIn, ready } = useAuth();
+  const { session, ready } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,10 +31,7 @@ function LoginPage() {
       return;
     }
     setLoading(true);
-    // Simulate handoff to ZidaTel SSO
-    await new Promise((r) => setTimeout(r, 1100));
-    signIn(trimmed);
-    navigate({ to: "/admin/giftcards/dashboard", replace: true });
+    await beginLogin(trimmed);
   };
 
   return (

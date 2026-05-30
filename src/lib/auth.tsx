@@ -1,49 +1,67 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { buildLogoutUrl } from "./zitadel";
 
-type Session = { email: string; name: string; role: string } | null;
+export type Session = {
+  accessToken: string;
+  idToken: string;
+  userId: string;
+  email: string;
+  name: string;
+  role: string;
+} | null;
+
+const SESSION_KEY = "plut-session";
 
 const AuthCtx = createContext<{
   session: Session;
-  signIn: (email: string) => void;
+  setSession: (s: Session) => void;
   signOut: () => void;
   ready: boolean;
-}>({ session: null, signIn: () => {}, signOut: () => {}, ready: false });
+}>({ session: null, setSession: () => {}, signOut: () => {}, ready: false });
 
-const KEY = "plut-session";
-
-function deriveName(email: string) {
-  const handle = email.split("@")[0] ?? "Admin";
-  return handle
-    .split(/[._-]/)
-    .filter(Boolean)
-    .map((p) => p[0].toUpperCase() + p.slice(1))
-    .join(" ") || "Admin";
-}
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session>(null);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSessionState] = useState<Session>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) setSession(JSON.parse(raw));
-    } catch {}
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.accessToken) {
+          setSessionState(parsed);
+        } else {
+          // Clear stale session from old auth format
+          localStorage.removeItem(SESSION_KEY);
+        }
+      }
+    } catch {
+      localStorage.removeItem(SESSION_KEY);
+    }
     setReady(true);
   }, []);
 
-  const signIn = (email: string) => {
-    const next = { email, name: deriveName(email), role: "Super Admin" };
-    localStorage.setItem(KEY, JSON.stringify(next));
-    setSession(next);
+  const setSession = (s: Session) => {
+    if (s) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    } else {
+      localStorage.removeItem(SESSION_KEY);
+    }
+    setSessionState(s);
   };
 
   const signOut = () => {
-    localStorage.removeItem(KEY);
-    setSession(null);
+    const idToken = session?.idToken;
+    localStorage.removeItem(SESSION_KEY);
+    setSessionState(null);
+    window.location.href = buildLogoutUrl(idToken);
   };
 
-  return <AuthCtx.Provider value={{ session, signIn, signOut, ready }}>{children}</AuthCtx.Provider>;
+  return (
+    <AuthCtx.Provider value={{ session, setSession, signOut, ready }}>
+      {children}
+    </AuthCtx.Provider>
+  );
 }
 
 export const useAuth = () => useContext(AuthCtx);

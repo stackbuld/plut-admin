@@ -4,28 +4,32 @@ import {
   ArrowLeftRight, Users, BookOpen, Wallet, Bitcoin,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
 import { useAuth } from "@/lib/auth";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { pendingTradesCount } from "@/data/mock";
+import { tradeQueries } from "@/api";
+
+function usePendingCount() {
+  const { data } = useQuery(tradeQueries.list({ Status: "Submitted", PageSize: 1 }));
+  return data?.totalCount ?? 0;
+}
 
 type NavItem = { to: string; label: string; icon: typeof LayoutGrid; badge?: number; matchPrefix?: string };
 
-const GIFTCARD_NAV: NavItem[] = [
-  { to: "/admin/giftcards/dashboard", label: "Dashboard", icon: LayoutGrid },
-  { to: "/admin/giftcards/trades", label: "Trades", icon: ArrowLeftRight, badge: pendingTradesCount, matchPrefix: "/admin/giftcards/trades" },
-  { to: "/admin/giftcards/brands", label: "Brands", icon: Gift, matchPrefix: "/admin/giftcards/brands" },
-  { to: "/admin/giftcards/catalog", label: "Catalog", icon: BookOpen },
-  { to: "/admin/giftcards/users", label: "Users", icon: Users, matchPrefix: "/admin/giftcards/users" },
-];
+function useGiftcardNav(): NavItem[] {
+  const pending = usePendingCount();
+  return [
+    { to: "/admin/giftcards/dashboard", label: "Dashboard", icon: LayoutGrid },
+    { to: "/admin/giftcards/trades", label: "Trades", icon: ArrowLeftRight, badge: pending || undefined, matchPrefix: "/admin/giftcards/trades" },
+    { to: "/admin/giftcards/brands", label: "Brands", icon: Gift, matchPrefix: "/admin/giftcards/brands" },
+    { to: "/admin/giftcards/catalog", label: "Catalog", icon: BookOpen },
+    { to: "/admin/giftcards/users", label: "Users", icon: Users, matchPrefix: "/admin/giftcards/users" },
+  ];
+}
 
 type Product = { id: string; label: string; icon: typeof Coins; items?: NavItem[]; comingSoon?: boolean };
-const PRODUCTS: Product[] = [
-  { id: "giftcards", label: "Giftcards", icon: Gift, items: GIFTCARD_NAV },
-  { id: "vas", label: "VAS", icon: Wallet, comingSoon: true },
-  { id: "crypto", label: "Crypto", icon: Bitcoin, comingSoon: true },
-];
 
 function Logo() {
   return (
@@ -118,13 +122,19 @@ function SidebarFooter() {
 }
 
 function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+  const giftcardNav = useGiftcardNav();
+  const products: Product[] = [
+    { id: "giftcards", label: "Giftcards", icon: Gift, items: giftcardNav },
+    { id: "vas", label: "VAS", icon: Wallet, comingSoon: true },
+    { id: "crypto", label: "Crypto", icon: Bitcoin, comingSoon: true },
+  ];
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center px-5">
         <Logo />
       </div>
       <div className="flex flex-1 flex-col gap-4 px-3 overflow-y-auto pb-2">
-        {PRODUCTS.map((p) => <ProductSection key={p.id} product={p} pathname={pathname} onNavigate={onNavigate} />)}
+        {products.map((p) => <ProductSection key={p.id} product={p} pathname={pathname} onNavigate={onNavigate} />)}
       </div>
       <SidebarFooter />
     </div>
@@ -144,6 +154,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { theme, toggle } = useTheme();
   const { session } = useAuth();
+  const pendingCount = usePendingCount();
   const [mobileOpen, setMobileOpen] = useState(false);
   const title = deriveTitle(pathname);
   const initials = (session?.name ?? "AD").split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
@@ -175,9 +186,9 @@ export function AppShell({ children }: { children?: ReactNode }) {
           </button>
           <button className="relative grid h-9 w-9 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground">
             <Bell className="h-4 w-4" />
-            {pendingTradesCount > 0 && (
+            {pendingCount > 0 && (
               <span className="absolute right-1 top-1 grid h-4 min-w-4 px-1 place-items-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                {pendingTradesCount}
+                {pendingCount}
               </span>
             )}
           </button>

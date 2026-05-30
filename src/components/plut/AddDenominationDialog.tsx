@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { brands, brandById, countries, countryById } from "@/data/mock";
-import { useCatalogStore, type RatePayload } from "@/data/store";
-import { currencySymbol } from "@/lib/format";
+import { brandQueries, countryQueries, createDenomination, createRate, queryKeys, type CardType } from "@/api";
 import { cn } from "@/lib/utils";
 
 export function AddDenominationDialog({
@@ -15,69 +14,86 @@ export function AddDenominationDialog({
   countryId,
   lockBrand,
   lockCountry,
+  brandName,
+  countryName,
+  countryCode,
+  currencyCode,
   onClose,
-  onCreated,
 }: {
   open: boolean;
   brandId?: string;
   countryId?: string;
   lockBrand?: boolean;
   lockCountry?: boolean;
+  brandName?: string;
+  countryName?: string;
+  countryCode?: string;
+  currencyCode?: string;
   onClose: () => void;
-  onCreated?: (info: { brandId: string; countryId: string; face: string; type: "Physical" | "E-code"; hasRate: boolean }) => void;
 }) {
-  const addDenominationAction = useCatalogStore((s) => s.addDenomination);
+  const qc = useQueryClient();
+
+  // Only fetch lists when dropdowns are needed
+  const { data: brands } = useQuery({ ...brandQueries.list(), enabled: open && !lockBrand });
+  const { data: countries } = useQuery({ ...countryQueries.list(), enabled: open && !lockCountry });
+
   const [bId, setBId] = useState(brandId ?? "");
   const [cId, setCId] = useState(countryId ?? "");
   const [face, setFace] = useState("");
-  const [type, setType] = useState<"Physical" | "E-code">("Physical");
+  const [cardType, setCardType] = useState<CardType>("Physical");
   const [setInitial, setSetInitial] = useState(false);
   const [market, setMarket] = useState("");
   const [markup, setMarkup] = useState("1.2");
 
   useEffect(() => {
     if (open) {
-      setBId(brandId ?? "");
-      setCId(countryId ?? "");
-      setFace(""); setType("Physical"); setSetInitial(false); setMarket(""); setMarkup("1.2");
+      setBId(brandId ?? ""); setCId(countryId ?? "");
+      setFace(""); setCardType("Physical"); setSetInitial(false); setMarket(""); setMarkup("1.2");
     }
   }, [open, brandId, countryId]);
 
-  const brand = brandById(bId);
-  const country = cId ? countryById(cId) : null;
-  const sym = currencySymbol(country?.currency ?? "USD");
+  const resolvedCurrency = currencyCode
+    ?? countries?.find((c) => c.id === cId)?.currencyCode
+    ?? "USD";
 
-  const submit = () => {
-    if (!bId) { toast.error("Brand required"); return; }
-    if (!cId) { toast.error("Country required"); return; }
-    if (!face) { toast.error("Face value required"); return; }
-    if (setInitial && !parseFloat(market)) { toast.error("Market rate required for initial rate"); return; }
-    const faceNum = parseFloat(face);
-    const marketNum = setInitial ? parseFloat(market) : 0;
-    const markupNum = setInitial ? parseFloat(markup) || 0 : 0;
-    let initialRate: RatePayload | null = null;
-    if (setInitial && marketNum > 0) {
-      const cust = +(marketNum * (1 - markupNum / 100)).toFixed(4);
-      initialRate = {
-        marketRateUsd: marketNum,
-        customerRateUsd: cust,
-        markupType: "Percentage",
-        markupValue: markupNum,
-        source: "Manual",
-      };
-    }
-    addDenominationAction({
-      brandId: bId,
-      countryId: cId,
-      amount: faceNum,
-      currency: country?.currency ?? "USD",
-      cardType: type,
-      initialRate,
-    });
-    toast.success(`Added ${sym}${face} ${type} for ${brand?.name} · ${country?.name}${setInitial ? " (with rate)" : ""}.`);
-    onCreated?.({ brandId: bId, countryId: cId, face, type, hasRate: setInitial });
-    onClose();
-  };
+  const resolvedBrandName = brandName ?? brands?.find((b) => b.id === bId)?.name ?? bId;
+  const resolvedCountryName = countryName ?? countries?.find((c) => c.id === cId)?.name ?? cId;
+  const resolvedCountryCode = countryCode ?? countries?.find((c) => c.id === cId)?.code ?? "";
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!bId || !cId || !face) throw new Error("Fill all required fields");
+      const faceNum = parseFloat(face);
+      if (!faceNum) throw new Error("Face value must be a number");
+
+      const { id: denomId } = await createDenomination({
+        brandId: bId,
+        countryId: cId,
+        value: faceNum,
+        cardType,
+      });
+
+      if (setInitial) {
+        const marketNum = parseFloat(market);
+        if (!marketNum) throw new Error("Market rate required for initial rate");
+        const markupNum = parseFloat(markup) || 0;
+        await createRate({
+          denominationId: denomId,
+          marketRateUsd: marketNum,
+          markupType: "Percentage",
+          markupValue: markupNum,
+          source: "Admin",
+        });
+      }
+    },
+    onSuccess: () => {
+      toast.success(`Added ${resolvedCurrency} ${face} ${cardType} for ${resolvedBrandName} · ${resolvedCountryName}${setInitial ? " (with rate)" : ""}.`);
+      qc.invalidateQueries({ queryKey: queryKeys.brands.all() });
+      qc.invalidateQueries({ queryKey: queryKeys.denominations.all() });
+      onClose();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -85,8 +101,8 @@ export function AddDenominationDialog({
         <DialogHeader>
           <DialogTitle>Add Denomination</DialogTitle>
           <DialogDescription>
-            {lockBrand && brand && lockCountry && country
-              ? `${brand.name} · ${country.name} (${country.code} · ${country.currency})`
+            {lockBrand && lockCountry && brandName && countryName
+              ? `${brandName} · ${countryName} (${resolvedCountryCode} · ${resolvedCurrency})`
               : "Register a new card denomination."}
           </DialogDescription>
         </DialogHeader>
@@ -94,47 +110,49 @@ export function AddDenominationDialog({
         <div className="space-y-3">
           <Field label="Brand *">
             {lockBrand ? (
-              <div className="rounded-md border bg-secondary/40 px-3 py-2 text-sm">{brand?.logoEmoji} {brand?.name} <span className="text-muted-foreground font-mono text-xs">({brand?.code})</span></div>
+              <div className="rounded-md border bg-secondary/40 px-3 py-2 text-sm">{resolvedBrandName}</div>
             ) : (
               <Select value={bId} onValueChange={setBId}>
                 <SelectTrigger><SelectValue placeholder="Choose brand" /></SelectTrigger>
-                <SelectContent>{brands.map((b) => <SelectItem key={b.id} value={b.id}>{b.logoEmoji} {b.name}</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  {(brands ?? []).map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                </SelectContent>
               </Select>
             )}
           </Field>
 
           <Field label="Country *">
             {lockCountry ? (
-              <div className="rounded-md border bg-secondary/40 px-3 py-2 text-sm">{country?.flag} {country?.name} <span className="text-muted-foreground font-mono text-xs">({country?.code} · {country?.currency})</span></div>
+              <div className="rounded-md border bg-secondary/40 px-3 py-2 text-sm">
+                {resolvedCountryName} {resolvedCountryCode && <span className="font-mono text-xs text-muted-foreground">({resolvedCountryCode} · {resolvedCurrency})</span>}
+              </div>
             ) : (
               <Select value={cId} onValueChange={setCId}>
                 <SelectTrigger><SelectValue placeholder="Choose country" /></SelectTrigger>
-                <SelectContent>{countries.map((c) => <SelectItem key={c.id} value={c.id}>{c.flag} {c.name} ({c.code})</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  {(countries ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.name} ({c.code})</SelectItem>)}
+                </SelectContent>
               </Select>
             )}
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Face value *" hint="Common: 10, 25, 50, 100, 200, 500">
+            <Field label="Face value *" hint="e.g. 10, 25, 50, 100">
               <Input type="number" value={face} onChange={(e) => setFace(e.target.value)} placeholder="100" className="font-mono" />
             </Field>
             <Field label="Currency">
-              <div className="rounded-md border bg-secondary/40 px-3 py-2 text-sm font-mono">{country?.currency ?? "—"}</div>
+              <div className="rounded-md border bg-secondary/40 px-3 py-2 text-sm font-mono">{resolvedCurrency}</div>
             </Field>
           </div>
 
           <Field label="Card type *">
             <div className="grid grid-cols-2 gap-2">
-              {(["Physical", "E-code"] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setType(t)}
-                  className={cn(
-                    "rounded-md border px-3 py-2 text-sm font-medium transition-colors",
-                    type === t ? "border-primary bg-primary/10 text-primary" : "hover:bg-secondary",
-                  )}
-                >{t}</button>
+              {(["Physical", "ECode"] as CardType[]).map((t) => (
+                <button key={t} type="button" onClick={() => setCardType(t)}
+                  className={cn("rounded-md border px-3 py-2 text-sm font-medium transition-colors",
+                    cardType === t ? "border-primary bg-primary/10 text-primary" : "hover:bg-secondary")}>
+                  {t}
+                </button>
               ))}
             </div>
           </Field>
@@ -143,8 +161,10 @@ export function AddDenominationDialog({
             <label className="flex items-center justify-between text-sm font-medium">
               <span>Set initial rate?</span>
               <div className="flex gap-1.5">
-                <button type="button" onClick={() => setSetInitial(false)} className={cn("rounded px-2.5 py-1 text-xs font-medium", !setInitial ? "bg-card shadow-sm" : "text-muted-foreground")}>Skip</button>
-                <button type="button" onClick={() => setSetInitial(true)} className={cn("rounded px-2.5 py-1 text-xs font-medium", setInitial ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>Set now</button>
+                <button type="button" onClick={() => setSetInitial(false)}
+                  className={cn("rounded px-2.5 py-1 text-xs font-medium", !setInitial ? "bg-card shadow-sm" : "text-muted-foreground")}>Skip</button>
+                <button type="button" onClick={() => setSetInitial(true)}
+                  className={cn("rounded px-2.5 py-1 text-xs font-medium", setInitial ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>Set now</button>
               </div>
             </label>
             {setInitial && (
@@ -162,7 +182,9 @@ export function AddDenominationDialog({
 
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button onClick={submit}>Add Denomination</Button>
+          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+            {mutation.isPending ? "Adding…" : "Add Denomination"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

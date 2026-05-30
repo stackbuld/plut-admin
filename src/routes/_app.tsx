@@ -1,16 +1,27 @@
-import { createFileRoute, redirect, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { AppShell } from "@/components/plut/AppShell";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/_app")({
-  beforeLoad: () => {
-    if (typeof window !== "undefined") {
-      const raw = window.localStorage.getItem("plut-session");
-      if (!raw) throw redirect({ to: "/login" });
+  component: ProtectedLayout,
+});
+
+function ProtectedLayout() {
+  const { session, ready } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (ready && !session?.accessToken) {
+      navigate({ to: "/login", replace: true });
     }
-  },
-  component: () => (
+  }, [ready, session]);
+
+  if (!ready || !session?.accessToken) return null;
+
+  return (
     <AppShell>
       <Outlet />
     </AppShell>
-  ),
-});
+  );
+}
