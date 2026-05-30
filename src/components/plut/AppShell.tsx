@@ -12,8 +12,8 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/co
 import { tradeQueries } from "@/api";
 
 function usePendingCount() {
-  const { data } = useQuery(tradeQueries.list({ Status: "Submitted", PageSize: 1 }));
-  return data?.totalCount ?? 0;
+  const { data } = useQuery(tradeQueries.stats());
+  return data?.pendingReview ?? 0;
 }
 
 type NavItem = { to: string; label: string; icon: typeof LayoutGrid; badge?: number; matchPrefix?: string };

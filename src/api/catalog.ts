@@ -104,7 +104,6 @@ export const fxRateQueries = {
       queryKey: queryKeys.fxRates.current(),
       queryFn: listCurrentFxRates,
       staleTime: 60_000,
-      refetchInterval: 60_000,
     }),
 
   history: (currency = "NGN") =>

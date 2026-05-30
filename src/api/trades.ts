@@ -42,7 +42,6 @@ export const tradeQueries = {
       queryKey: queryKeys.trades.list(params),
       queryFn: () => listTrades(params),
       staleTime: 30_000,      // trades refresh every 30s
-      refetchInterval: 30_000, // auto-poll for the pending queue
     }),
 
   detail: (id: string) =>
@@ -57,6 +56,5 @@ export const tradeQueries = {
       queryKey: queryKeys.stats.dashboard(),
       queryFn: fetchAdminStats,
       staleTime: 30_000,
-      refetchInterval: 30_000,
     }),
 };
