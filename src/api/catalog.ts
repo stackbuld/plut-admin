@@ -11,6 +11,7 @@ import type {
   CreateRateBody,
   ListRatesParams,
   FxRateItem,
+  FxRateHistoryItem,
   PayoutCurrencyItem,
 } from "./types";
 
@@ -94,13 +95,23 @@ export const setFxRate = (body: {
   source?: string | null;
 }) => apiPost<void>("/giftcards/v1/admin/fx-rate", body);
 
+export const getFxRateHistory = (currency = "NGN") =>
+  apiGet<FxRateHistoryItem[]>(`/giftcards/v1/admin/fx-rate/history?currency=${currency}`);
+
 export const fxRateQueries = {
   current: () =>
     queryOptions({
       queryKey: queryKeys.fxRates.current(),
       queryFn: listCurrentFxRates,
-      staleTime: 60_000,       // FX rates can change quickly
+      staleTime: 60_000,
       refetchInterval: 60_000,
+    }),
+
+  history: (currency = "NGN") =>
+    queryOptions({
+      queryKey: [...queryKeys.fxRates.all(), "history", currency] as const,
+      queryFn: () => getFxRateHistory(currency),
+      staleTime: 5 * 60_000,
     }),
 };
 

@@ -17,6 +17,7 @@ import {
   queryKeys, type BrandDenominationDetail, type BrandCountryDetail,
 } from "@/api";
 import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/admin/giftcards/brands/$brandId")({
   head: () => ({ meta: [{ title: "Brand Detail — Plut Admin" }] }),
@@ -82,7 +83,7 @@ function BrandDetail() {
           <div>
             <h2 className="font-display text-2xl font-bold">{brand.name}</h2>
             <p className="text-xs text-muted-foreground">
-              Code: <span className="font-mono">{brand.code}</span> · Created {new Date(brand.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+              Code: <span className="font-mono">{brand.code}</span> · Created {formatDate(brand.createdAt)}
             </p>
           </div>
           <StatusBadge status={brand.isActive ? "Active" : "Paused"} className="ml-2" />

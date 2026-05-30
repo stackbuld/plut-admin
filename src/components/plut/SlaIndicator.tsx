@@ -1,8 +1,9 @@
+import { parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 
 /** Returns short SLA indicator: green / orange / red ring + label */
 export function SlaIndicator({ deadlineIso, className }: { deadlineIso: string; className?: string }) {
-  const diffMin = Math.round((new Date(deadlineIso).getTime() - Date.now()) / 60_000);
+  const diffMin = Math.round((parseISO(deadlineIso).getTime() - Date.now()) / 60_000);
   let color = "bg-green-500";
   let label: string;
   if (diffMin < 0) {

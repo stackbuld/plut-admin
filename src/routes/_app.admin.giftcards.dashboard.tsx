@@ -4,6 +4,7 @@ import { ArrowRight, Clock, AlertTriangle, Gift, Activity, CheckCircle2, XCircle
 import { StatCard } from "@/components/plut/StatCard";
 import { SlaIndicator } from "@/components/plut/SlaIndicator";
 import { tradeQueries, brandQueries } from "@/api";
+import { format, parseISO } from "date-fns";
 import { formatNaira, relativeTime, truncId } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -27,13 +28,13 @@ function Dashboard() {
   const activeBrands = (brandsData ?? []).filter((b) => b.isActive).length;
 
   const queue = [...pending]
-    .sort((a, b) => new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime())
+    .sort((a, b) => parseISO(a.submittedAt).getTime() - parseISO(b.submittedAt).getTime())
     .slice(0, 5);
 
   return (
     <div className="space-y-6">
       <div className="flex items-baseline justify-between">
-        <p className="text-sm text-muted-foreground">Today · {new Date().toLocaleDateString("en-NG", { day: "2-digit", month: "short", year: "numeric" })}</p>
+        <p className="text-sm text-muted-foreground">Today · {format(new Date(), "dd MMM yyyy")}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">

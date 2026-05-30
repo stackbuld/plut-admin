@@ -40,14 +40,18 @@ export type MarkupType = "FixedUsd" | "Percentage";
 export type RateSource = "System" | "Admin";
 
 export type RateListItem = {
-  id: string;
   denominationId: string;
   brandId: string;
   brandName: string;
+  brandImageUrl: string;
   countryId: string;
   countryName: string;
-  denominationAmount: number;
-  denominationCurrency: string;
+  amount: number;
+  currencyCode: string;
+  cardType: CardType;
+  denominationIsActive: boolean;
+  hasRate: boolean;
+  rateId: string | null;
   acquisitionCurrency: string | null;
   acquisitionRatePerCardDollar: number | null;
   marketRateUsd: number;
@@ -55,10 +59,8 @@ export type RateListItem = {
   markupUsd: number;
   markupType: MarkupType | null;
   markupValue: number;
-  source: RateSource | null;
-  isActive: boolean;
-  validFrom: string;
-  validTo: string | null;
+  rateSource: RateSource | null;
+  rateValidFrom: string | null;
 };
 
 export type CreateRateBody = {
@@ -89,6 +91,19 @@ export type FxRateItem = {
   source: string | null;
   validFrom: string;
   rateType: string;
+};
+
+// ── FX Rate History ──────────────────────────────────────────────────────────
+
+export type FxRateHistoryItem = {
+  id: string;
+  baseCurrency: string;
+  quoteCurrency: string;
+  rate: number;
+  source: string | null;
+  validFrom: string;
+  validTo: string | null;
+  isCurrent: boolean;
 };
 
 // ── Payout Currencies ─────────────────────────────────────────────────────────

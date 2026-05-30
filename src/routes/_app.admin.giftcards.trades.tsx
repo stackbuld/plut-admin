@@ -6,7 +6,7 @@ import { StatusBadge } from "@/components/plut/StatusBadge";
 import { SlaIndicator } from "@/components/plut/SlaIndicator";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { listTrades, type TradeStatus } from "@/api";
+import { tradeQueries, type TradeStatus } from "@/api";
 import { formatTime, truncId } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/admin/giftcards/trades")({

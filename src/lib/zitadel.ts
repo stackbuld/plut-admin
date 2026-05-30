@@ -83,9 +83,12 @@ export function parseIdToken(idToken: string): IdTokenClaims {
   return JSON.parse(json);
 }
 
+const ADMIN_ROLES = ["admin", "Administrator", "ADMIN"];
+
 export function isAdmin(claims: IdTokenClaims): boolean {
   const roles = claims["urn:zitadel:iam:org:project:roles"];
-  return roles ? Object.keys(roles).includes("admin") : false;
+  if (!roles) return false;
+  return Object.keys(roles).some((r) => ADMIN_ROLES.includes(r));
 }
 
 export function buildLogoutUrl(idTokenHint?: string): string {

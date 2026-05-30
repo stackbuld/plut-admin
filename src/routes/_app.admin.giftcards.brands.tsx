@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { StatusBadge } from "@/components/plut/StatusBadge";
 import { brandQueries, createBrand, queryKeys } from "@/api";
 import { toast } from "sonner";
+import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/admin/giftcards/brands")({
   head: () => ({ meta: [{ title: "Brands — Plut Admin" }] }),
@@ -92,7 +93,7 @@ function BrandsLayout() {
                     <td className="px-6 py-3.5 text-muted-foreground">{b.countryCount}</td>
                     <td className="px-6 py-3.5 text-muted-foreground">{b.denominationCount}</td>
                     <td className="px-6 py-3.5 text-xs text-muted-foreground">
-                      {new Date(b.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                      {formatDate(b.createdAt)}
                     </td>
                   </tr>
                 ))}

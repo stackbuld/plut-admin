@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, MoreHorizontal, AlertTriangle, Loader2 } from "lucide-react";
+import { Plus, MoreHorizontal, AlertTriangle, Loader2, History } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { StatusBadge } from "@/components/plut/StatusBadge";
 import {
   countryQueries, createCountry,
+  brandQueries,
   denominationQueries, activateDenomination, deactivateDenomination,
   rateQueries, deactivateRate,
   fxRateQueries, setFxRate,
@@ -18,6 +19,7 @@ import {
   queryKeys,
 } from "@/api";
 import { toast } from "sonner";
+import { formatDate, formatDateTime } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/admin/giftcards/catalog")({
   head: () => ({ meta: [{ title: "Catalog — Plut Admin" }] }),
@@ -124,6 +126,11 @@ function CountriesTab() {
 function DenominationsTab() {
   const qc = useQueryClient();
   const { data, isLoading } = useQuery(denominationQueries.list({ PageSize: 100 }));
+  const { data: brands } = useQuery(brandQueries.list());
+  const { data: countries } = useQuery(countryQueries.list());
+
+  const brandName = (id: string) => brands?.find((b) => b.id === id)?.name ?? id;
+  const countryName = (id: string) => countries?.find((c) => c.id === id)?.name ?? id;
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, active }: { id: string; active: boolean }) =>
@@ -151,8 +158,8 @@ function DenominationsTab() {
               <tbody>
                 {(data?.items ?? []).map((d) => (
                   <tr key={d.id} className="border-b border-border last:border-0 hover:bg-secondary/40">
-                    <td className="px-6 py-3.5 font-medium">{d.brandName}</td>
-                    <td className="px-6 py-3.5 text-muted-foreground">{d.countryName}</td>
+                    <td className="px-6 py-3.5 font-medium">{d.brandName || brandName(d.brandId)}</td>
+                    <td className="px-6 py-3.5 text-muted-foreground">{d.countryName || countryName(d.countryId)}</td>
                     <td className="px-6 py-3.5 font-mono">{d.amount}</td>
                     <td className="px-6 py-3.5 text-muted-foreground">{d.currencyCode}</td>
                     <td className="px-6 py-3.5"><StatusBadge status={d.cardType} dot={false} /></td>
@@ -188,7 +195,7 @@ function RatesTab() {
   const { data, isLoading } = useQuery(rateQueries.list({ ActiveOnly: true, PageSize: 100 }));
 
   const deactivateMutation = useMutation({
-    mutationFn: (id: string) => deactivateRate(id),
+    mutationFn: (rateId: string) => deactivateRate(rateId),
     onSuccess: () => {
       toast.success("Rate deactivated.");
       qc.invalidateQueries({ queryKey: queryKeys.rates.all() });
@@ -210,18 +217,18 @@ function RatesTab() {
                 </tr>
               </thead>
               <tbody>
-                {(data?.items ?? []).map((r) => (
-                  <tr key={r.id} className="border-b border-border last:border-0 hover:bg-secondary/40">
+                {(data?.items ?? []).filter((r) => r.hasRate).map((r) => (
+                  <tr key={r.denominationId} className="border-b border-border last:border-0 hover:bg-secondary/40">
                     <td className="px-6 py-3.5 font-medium">{r.brandName}</td>
                     <td className="px-6 py-3.5 text-muted-foreground">{r.countryName}</td>
-                    <td className="px-6 py-3.5 font-mono">{r.denominationCurrency} {r.denominationAmount}</td>
+                    <td className="px-6 py-3.5 font-mono">{r.currencyCode} {r.amount}</td>
                     <td className="px-6 py-3.5 font-mono">${r.marketRateUsd.toFixed(4)}</td>
                     <td className="px-6 py-3.5 font-mono">${r.customerRateUsd.toFixed(4)}</td>
                     <td className="px-6 py-3.5 font-mono text-muted-foreground">
                       {r.markupType === "Percentage" ? `${r.markupValue}%` : `$${r.markupValue}`}
                     </td>
                     <td className="px-6 py-3.5 text-xs text-muted-foreground">
-                      {new Date(r.validFrom).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                      {r.rateValidFrom ? formatDate(r.rateValidFrom) : "—"}
                     </td>
                     <td className="px-6 py-3.5 text-right">
                       <DropdownMenu>
@@ -229,7 +236,8 @@ function RatesTab() {
                           <Button size="icon" variant="ghost" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="text-destructive" onClick={() => deactivateMutation.mutate(r.id)}>
+                          <DropdownMenuItem className="text-destructive"
+                            onClick={() => r.rateId && deactivateMutation.mutate(r.rateId)}>
                             Deactivate
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -255,8 +263,13 @@ function FxTab() {
   const [base, setBase] = useState("USD");
   const [quote, setQuote] = useState("NGN");
   const [rate, setRate] = useState("");
+  const [historyCurrency, setHistoryCurrency] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery(fxRateQueries.current());
+  const { data: historyData, isLoading: historyLoading } = useQuery({
+    ...fxRateQueries.history(historyCurrency ?? "NGN"),
+    enabled: historyCurrency !== null,
+  });
 
   const mutation = useMutation({
     mutationFn: () => setFxRate({ baseCurrency: base, quoteCurrency: quote, rate: parseFloat(rate), source: "Admin" }),
@@ -278,7 +291,7 @@ function FxTab() {
           <table className="w-full text-sm">
             <thead className="bg-secondary/60">
               <tr className="text-left">
-                {["Pair", "Rate", "Source", "Valid From"].map((h) => (
+                {["Pair", "Rate", "Source", "Valid From", ""].map((h) => (
                   <th key={h} className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
                 ))}
               </tr>
@@ -290,13 +303,61 @@ function FxTab() {
                   <td className="px-6 py-3.5 font-mono">{fx.rate.toLocaleString()}</td>
                   <td className="px-6 py-3.5 text-muted-foreground">{fx.source ?? "—"}</td>
                   <td className="px-6 py-3.5 text-xs text-muted-foreground">
-                    {new Date(fx.validFrom).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    {formatDateTime(fx.validFrom)}
+                  </td>
+                  <td className="px-6 py-3.5 text-right">
+                    <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs"
+                      onClick={() => setHistoryCurrency(historyCurrency === fx.quoteCurrency ? null : fx.quoteCurrency)}>
+                      <History className="h-3.5 w-3.5" />
+                      {historyCurrency === fx.quoteCurrency ? "Hide" : "History"}
+                    </Button>
                   </td>
                 </tr>
               ))}
-              {(data ?? []).length === 0 && <EmptyRow cols={4} />}
+              {(data ?? []).length === 0 && <EmptyRow cols={5} />}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {historyCurrency && (
+        <div className="rounded-2xl border bg-card overflow-hidden">
+          <div className="flex items-center justify-between border-b border-border px-6 py-3">
+            <p className="text-sm font-semibold">USD/{historyCurrency} history</p>
+            {historyLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[500px] text-sm">
+              <thead className="bg-secondary/60">
+                <tr className="text-left">
+                  {["Pair", "Rate", "Source", "Status", "Valid From", "Valid To"].map((h) => (
+                    <th key={h} className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {(historyData ?? []).map((h) => (
+                  <tr key={h.id} className="border-b border-border last:border-0 hover:bg-secondary/40">
+                    <td className="px-6 py-3 font-mono font-semibold">{h.baseCurrency}/{h.quoteCurrency}</td>
+                    <td className="px-6 py-3 font-mono">{h.rate.toLocaleString()}</td>
+                    <td className="px-6 py-3 text-muted-foreground">{h.source ?? "—"}</td>
+                    <td className="px-6 py-3">
+                      {h.isCurrent
+                        ? <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">● Current</span>
+                        : <span className="text-xs text-muted-foreground">Superseded</span>}
+                    </td>
+                    <td className="px-6 py-3 text-xs text-muted-foreground">
+                      {formatDateTime(h.validFrom)}
+                    </td>
+                    <td className="px-6 py-3 text-xs text-muted-foreground">
+                      {h.validTo ? formatDateTime(h.validTo) : "—"}
+                    </td>
+                  </tr>
+                ))}
+                {!historyLoading && (historyData ?? []).length === 0 && <EmptyRow cols={5} />}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
