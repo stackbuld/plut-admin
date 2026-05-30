@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Clock, AlertTriangle, Gift, Activity, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { StatCard } from "@/components/plut/StatCard";
 import { SlaIndicator } from "@/components/plut/SlaIndicator";
-import { tradeQueries, brandQueries } from "@/api";
+import { tradeQueries } from "@/api";
 import { format, parseISO } from "date-fns";
 import { formatNaira, relativeTime, truncId } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -14,18 +14,18 @@ export const Route = createFileRoute("/_app/admin/giftcards/dashboard")({
 });
 
 function Dashboard() {
+  const { data: stats } = useQuery(tradeQueries.stats());
   const { data: pendingData } = useQuery(tradeQueries.list({ Status: "Submitted", PageSize: 50 }));
-  const { data: pastSlaData } = useQuery(tradeQueries.list({ PastSlaOnly: true, PageSize: 1 }));
-  const { data: paidData } = useQuery(tradeQueries.list({ Status: "Paid", PageSize: 1 }));
-  const { data: rejectedData } = useQuery(tradeQueries.list({ Status: "Rejected", PageSize: 1 }));
-  const { data: brandsData } = useQuery(brandQueries.list());
 
   const pending = pendingData?.items ?? [];
-  const pendingCount = pendingData?.totalCount ?? 0;
-  const pastSlaCount = pastSlaData?.totalCount ?? 0;
-  const paidCount = paidData?.totalCount ?? 0;
-  const rejectedCount = rejectedData?.totalCount ?? 0;
-  const activeBrands = (brandsData ?? []).filter((b) => b.isActive).length;
+  const pendingCount = stats?.pendingReview ?? pendingData?.totalCount ?? 0;
+  const pastSlaCount = stats?.pastSla ?? 0;
+  const paidCount = stats?.totalPaid ?? 0;
+  const rejectedCount = stats?.totalRejected ?? 0;
+  const activeBrands = stats?.activeBrands ?? 0;
+  const avgReviewMin = stats?.avgReviewSeconds != null
+    ? `${Math.round(stats.avgReviewSeconds / 60)} min`
+    : "—";
 
   const queue = [...pending]
     .sort((a, b) => parseISO(a.submittedAt).getTime() - parseISO(b.submittedAt).getTime())
@@ -45,7 +45,7 @@ function Dashboard() {
         <StatCard label="Total Paid" value={String(paidCount)} icon={CheckCircle2} sublabel="all time" />
         <StatCard label="Total Rejected" value={String(rejectedCount)} icon={XCircle} sublabel="all time" />
         <StatCard label="Active Brands" value={String(activeBrands)} icon={Gift} sublabel="live brands" />
-        <StatCard label="Avg Review Time" value="—" icon={Activity} sublabel="not yet available" />
+        <StatCard label="Avg Review Time" value={avgReviewMin} icon={Activity} sublabel="last completed trades" />
       </div>
 
       <section className="rounded-2xl border bg-card">

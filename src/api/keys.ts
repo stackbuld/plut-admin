@@ -49,4 +49,8 @@ export const queryKeys = {
     all: () => ["admin", "payout-currencies"] as const,
     list: () => queryKeys.payoutCurrencies.all(),
   },
+
+  stats: {
+    dashboard: () => ["admin", "stats", "dashboard"] as const,
+  },
 } as const;

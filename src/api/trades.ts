@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { apiGet, apiPost, getAdminUserId, buildQs } from "./client";
 import { queryKeys } from "./keys";
-import type { PagedResult, TradeListItem, TradeDetail, ListTradesParams } from "./types";
+import type { PagedResult, TradeListItem, TradeDetail, ListTradesParams, AdminDashboardStats } from "./types";
 
 // ── Fetchers ──────────────────────────────────────────────────────────────────
 
@@ -31,6 +31,9 @@ export const rejectTrade = (tradeId: string, reason: string) => {
   });
 };
 
+export const fetchAdminStats = () =>
+  apiGet<AdminDashboardStats>("/giftcards/v1/admin/stats");
+
 // ── Query options (co-located cache config) ───────────────────────────────────
 
 export const tradeQueries = {
@@ -47,5 +50,13 @@ export const tradeQueries = {
       queryKey: queryKeys.trades.detail(id),
       queryFn: () => getTrade(id),
       staleTime: 60_000,
+    }),
+
+  stats: () =>
+    queryOptions({
+      queryKey: queryKeys.stats.dashboard(),
+      queryFn: fetchAdminStats,
+      staleTime: 30_000,
+      refetchInterval: 30_000,
     }),
 };

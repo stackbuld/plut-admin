@@ -64,6 +64,15 @@ export type TradeDetail = {
   items: TradeItem[];
 };
 
+export type AdminDashboardStats = {
+  pendingReview: number;
+  pastSla: number;
+  totalPaid: number;
+  totalRejected: number;
+  activeBrands: number;
+  avgReviewSeconds: number | null;
+};
+
 export type ListTradesParams = {
   Status?: TradeStatus;
   CustomerId?: string;
