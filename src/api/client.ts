@@ -21,6 +21,11 @@ type Envelope<T> = {
   message?: string;
 };
 
+function forceLogout() {
+  localStorage.removeItem(SESSION_KEY);
+  window.location.replace("/login");
+}
+
 async function request<T>(path: string, init: RequestInit): Promise<T> {
   const token = getAccessToken();
   const res = await fetch(`${BASE_URL}${path}`, {
@@ -30,6 +35,11 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
+
+  if (res.status === 401) {
+    forceLogout();
+    throw new Error("Session expired. Redirecting to login…");
+  }
 
   const envelope: Envelope<T> = await res.json();
   if (!res.ok || !envelope.success) {
