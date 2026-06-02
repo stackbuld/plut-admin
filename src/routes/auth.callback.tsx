@@ -4,6 +4,20 @@ import { Loader2 } from "lucide-react";
 import { exchangeCode, parseIdToken, isAdmin } from "@/lib/zitadel";
 import { useAuth } from "@/lib/auth";
 
+type BootstrapUser = {
+  userId: string;
+  zitadelUserId: string;
+  email: string;
+  displayName: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string | null;
+  avatarUrl: string | null;
+  status: string;
+  kycTier: string;
+  createdAt: string;
+};
+
 export const Route = createFileRoute("/auth/callback")({
   component: CallbackPage,
 });
@@ -32,7 +46,6 @@ function CallbackPage() {
       try {
         const tokens = await exchangeCode(code, params.get("state"));
 
-        // id_token contains profile + roles (enabled in Zitadel app token settings)
         const claims = parseIdToken(tokens.id_token);
 
         if (!isAdmin(claims)) {
@@ -40,26 +53,28 @@ function CallbackPage() {
           return;
         }
 
-        const nameParts = [claims.given_name, claims.family_name].filter(Boolean).join(" ");
-        const name = claims.name || nameParts || claims.email?.split("@")[0] || "Admin";
-
-        // Bootstrap the user on the backend (idempotent — safe to call every login)
-        await fetch("https://api-v2.plut.ng/api/v1/users/bootstrap", {
+        // Bootstrap provisions the user and returns the backend user record
+        const bootstrapRes = await fetch("https://api-v2.plut.ng/api/v1/users/bootstrap", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${tokens.access_token}`,
             "Content-Type": "application/json",
           },
-        }).catch(() => {
-          // Non-fatal: user may already be provisioned
         });
+
+        let backendUser: BootstrapUser | null = null;
+        if (bootstrapRes.ok) {
+          const body = await bootstrapRes.json();
+          backendUser = body.data ?? null;
+        }
 
         setSession({
           accessToken: tokens.access_token,
           idToken: tokens.id_token,
-          userId: claims.sub,
-          email: claims.email ?? "",
-          name,
+          // Use backend userId (not Zitadel sub) — this is what API mutations expect
+          userId: backendUser?.userId ?? claims.sub,
+          email: backendUser?.email ?? claims.email ?? "",
+          name: backendUser?.displayName ?? claims.name ?? "Admin",
           role: "Super Admin",
         });
 

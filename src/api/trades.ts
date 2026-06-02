@@ -17,7 +17,7 @@ export const acceptTrade = (tradeId: string, overridePayout?: number) => {
   const adminUserId = getAdminUserId();
   if (!adminUserId) throw new Error("Not authenticated");
   return apiPost<boolean>(`/giftcards/v1/admin/trades/${tradeId}/accept`, {
-    adminUserId,
+    userId: adminUserId,
     ...(overridePayout != null ? { overridePayout } : {}),
   });
 };
