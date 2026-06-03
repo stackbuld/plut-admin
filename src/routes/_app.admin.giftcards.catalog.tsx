@@ -157,7 +157,7 @@ function DenominationsTab() {
   const [justAdded, setJustAdded] = useState<{ label: string } | null>(null);
   const [rateFor, setRateFor] = useState<DenomRateContext | null>(null);
 
-  const { data, isLoading } = useQuery(denominationQueries.list({ PageSize: 200 }));
+  const { data, isLoading } = useQuery(denominationQueries.list({ PageSize: 100 }));
   const { data: brands } = useQuery(brandQueries.list());
   const { data: countries } = useQuery(countryQueries.list());
 
