@@ -192,7 +192,7 @@ function TradeDetailPage() {
         </div>
       )}
 
-      <Dialog open={openApprove} onOpenChange={setOpenApprove}>
+      <Dialog open={openApprove} onOpenChange={(o) => { setOpenApprove(o); if (!o) setPayoutOverride(""); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Approval</DialogTitle>
@@ -204,9 +204,43 @@ function TradeDetailPage() {
               <span className="font-mono font-semibold">{trade.totalCustomerPayoutAmount.toLocaleString()} {trade.payoutCurrency}</span>
             </Row>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="payout-override" className="text-sm">
+              Override payout <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="payout-override"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="0.01"
+                placeholder={trade.totalCustomerPayoutAmount.toString()}
+                value={payoutOverride}
+                onChange={(e) => setPayoutOverride(e.target.value)}
+                className="font-mono"
+              />
+              <span className="text-sm text-muted-foreground">{trade.payoutCurrency}</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Leave blank to credit the calculated amount. Enter a value to override.
+            </p>
+          </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpenApprove(false)}>Cancel</Button>
-            <Button onClick={() => approveMutation.mutate()} disabled={approveMutation.isPending}>
+            <Button
+              onClick={() => {
+                const trimmed = payoutOverride.trim();
+                if (trimmed === "") return approveMutation.mutate(undefined);
+                const n = Number(trimmed);
+                if (!Number.isFinite(n) || n < 0) {
+                  toast.error("Enter a valid payout amount");
+                  return;
+                }
+                approveMutation.mutate(n);
+              }}
+              disabled={approveMutation.isPending}
+            >
               {approveMutation.isPending ? "Approving…" : "Confirm Approve"}
             </Button>
           </DialogFooter>
