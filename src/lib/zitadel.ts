@@ -29,7 +29,31 @@ export async function beginLogin(loginHint?: string) {
     ...(loginHint ? { login_hint: loginHint } : {}),
   });
 
-  window.location.href = `${AUTHORITY}/oauth/v2/authorize?${params}`;
+  const authUrl = `${AUTHORITY}/oauth/v2/authorize?${params}`;
+
+  // Zitadel sends `X-Frame-Options: DENY` / `frame-ancestors 'none'`, so it
+  // refuses to render inside any iframe (e.g. the Lovable preview).
+  // Detect that case and break out of the frame instead of redirecting in-frame.
+  const inIframe = typeof window !== "undefined" && window.self !== window.top;
+  if (inIframe) {
+    // Stash PKCE in localStorage so the popped-out tab can complete the exchange.
+    // (sessionStorage is per-tab and would be lost.)
+    try {
+      localStorage.setItem(PKCE_VERIFIER_KEY, verifier);
+      localStorage.setItem(PKCE_STATE_KEY, state);
+    } catch {}
+    // Try to navigate the top window; if blocked by cross-origin, open a new tab.
+    try {
+      if (window.top) {
+        window.top.location.href = authUrl;
+        return;
+      }
+    } catch {}
+    window.open(authUrl, "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  window.location.href = authUrl;
 }
 
 export async function exchangeCode(code: string, returnedState: string | null): Promise<{
