@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { StatusBadge } from "@/components/plut/StatusBadge";
 import { SlaIndicator } from "@/components/plut/SlaIndicator";
 import { tradeQueries, acceptTrade, rejectTrade, queryKeys } from "@/api";
@@ -38,9 +40,10 @@ function TradeDetailPage() {
   const [openApprove, setOpenApprove] = useState(false);
   const [openReject, setOpenReject] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [payoutOverride, setPayoutOverride] = useState<string>("");
 
   const approveMutation = useMutation({
-    mutationFn: () => acceptTrade(tradeId),
+    mutationFn: (override?: number) => acceptTrade(tradeId, override),
     onSuccess: () => {
       toast.success("Trade approved. Payout in progress.");
       qc.invalidateQueries({ queryKey: queryKeys.trades.all() });
