@@ -61,8 +61,12 @@ export async function exchangeCode(code: string, returnedState: string | null): 
   id_token: string;
   refresh_token?: string;
 }> {
-  const verifier = sessionStorage.getItem(PKCE_VERIFIER_KEY);
-  const storedState = sessionStorage.getItem(PKCE_STATE_KEY);
+  const verifier =
+    sessionStorage.getItem(PKCE_VERIFIER_KEY) ??
+    localStorage.getItem(PKCE_VERIFIER_KEY);
+  const storedState =
+    sessionStorage.getItem(PKCE_STATE_KEY) ??
+    localStorage.getItem(PKCE_STATE_KEY);
 
   if (!verifier) throw new Error("PKCE verifier missing — session may have expired.");
   if (returnedState && storedState && returnedState !== storedState) {
@@ -83,6 +87,8 @@ export async function exchangeCode(code: string, returnedState: string | null): 
 
   sessionStorage.removeItem(PKCE_VERIFIER_KEY);
   sessionStorage.removeItem(PKCE_STATE_KEY);
+  localStorage.removeItem(PKCE_VERIFIER_KEY);
+  localStorage.removeItem(PKCE_STATE_KEY);
 
   if (!res.ok) {
     const text = await res.text();
