@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { SetRateDialog, type DenomRateContext } from "@/components/plut/SetRateDialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, MoreHorizontal, AlertTriangle, Loader2, History } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -193,6 +194,7 @@ function DenominationsTab() {
 function RatesTab() {
   const qc = useQueryClient();
   const { data, isLoading } = useQuery(rateQueries.list({ ActiveOnly: true, PageSize: 100 }));
+  const [rateFor, setRateFor] = useState<DenomRateContext | null>(null);
 
   const deactivateMutation = useMutation({
     mutationFn: (rateId: string) => deactivateRate(rateId),
@@ -202,6 +204,27 @@ function RatesTab() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  function openUpdateRate(r: (typeof data)["items"][number]) {
+    setRateFor({
+      id: r.denominationId,
+      amount: r.amount,
+      currencyCode: r.currencyCode,
+      cardType: r.cardType,
+      brandName: r.brandName,
+      countryCode: r.countryName, // countryCode not in list response; countryName used for display
+      activeRate: r.rateId ? {
+        id: r.rateId,
+        marketRateUsd: r.marketRateUsd,
+        customerRateUsd: r.customerRateUsd,
+        markupUsd: r.markupUsd,
+        markupType: r.markupType ?? "",
+        markupValue: r.markupValue,
+        source: r.rateSource ?? "",
+        validFrom: r.rateValidFrom ?? "",
+      } : null,
+    });
+  }
 
   return (
     <div className="space-y-4">
@@ -231,17 +254,22 @@ function RatesTab() {
                       {r.rateValidFrom ? formatDate(r.rateValidFrom) : "—"}
                     </td>
                     <td className="px-6 py-3.5 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="text-destructive"
-                            onClick={() => r.rateId && deactivateMutation.mutate(r.rateId)}>
-                            Deactivate
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="inline-flex items-center gap-1">
+                        <Button size="sm" variant="outline" onClick={() => openUpdateRate(r)}>
+                          Update Rate
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem className="text-destructive"
+                              onClick={() => r.rateId && deactivateMutation.mutate(r.rateId)}>
+                              Deactivate
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -251,6 +279,14 @@ function RatesTab() {
           </div>
         </div>
       )}
+
+      <SetRateDialog
+        denom={rateFor}
+        onClose={() => {
+          setRateFor(null);
+          qc.invalidateQueries({ queryKey: queryKeys.rates.all() });
+        }}
+      />
     </div>
   );
 }
