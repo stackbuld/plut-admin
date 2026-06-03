@@ -1,6 +1,6 @@
 import { generateVerifier, deriveChallenge } from "./pkce";
 
-const AUTHORITY = "http://62.171.136.156:9061";
+const AUTHORITY = "https://auth.plut.ng";
 const CLIENT_ID = "375064387368517634";
 
 const PKCE_VERIFIER_KEY = "pkce_verifier";
