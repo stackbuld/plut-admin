@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Check, X, AlertTriangle, ChevronRight, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, X, AlertTriangle, ChevronRight, Clock, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -11,18 +11,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StatusBadge } from "@/components/plut/StatusBadge";
 import { SlaIndicator } from "@/components/plut/SlaIndicator";
-import { tradeQueries, acceptTrade, rejectTrade, queryKeys } from "@/api";
+import { tradeQueries, acceptTrade, rejectTrade, approveTradeItem, rejectTradeItem, queryKeys } from "@/api";
 import { formatDateTime } from "@/lib/format";
+import type { TradeItem } from "@/api/types";
+import { cn } from "@/lib/utils";
 
 const REJECT_REASONS = [
-  { value: "INVALID_CARD", label: "Invalid card", help: "Card appears invalid or expired" },
-  { value: "WRONG_BRAND", label: "Wrong brand", help: "Card is not the declared brand" },
-  { value: "WRONG_REGION", label: "Wrong region", help: "Card region doesn't match" },
-  { value: "WRONG_AMOUNT", label: "Wrong amount", help: "Face value doesn't match declared" },
-  { value: "DUPLICATE_CARD", label: "Duplicate card", help: "Card was previously submitted" },
-  { value: "LOW_QUALITY_PROOF", label: "Low-quality proof", help: "Photos are blurry or incomplete" },
-  { value: "RESOLD_CARD", label: "Resold card", help: "Card has been used or resold", ban: true },
-  { value: "OTHER", label: "Other", help: "See notes below" },
+  { value: "INVALID_CARD",      label: "Invalid card",       help: "Card appears invalid or expired" },
+  { value: "WRONG_BRAND",       label: "Wrong brand",        help: "Card is not the declared brand" },
+  { value: "WRONG_REGION",      label: "Wrong region",       help: "Card region doesn't match" },
+  { value: "WRONG_AMOUNT",      label: "Wrong amount",       help: "Face value doesn't match declared" },
+  { value: "DUPLICATE_CARD",    label: "Duplicate card",     help: "Card was previously submitted" },
+  { value: "LOW_QUALITY_PROOF", label: "Low-quality proof",  help: "Photos are blurry or incomplete" },
+  { value: "RESOLD_CARD",       label: "Resold card",        help: "Card has been used or resold", ban: true },
+  { value: "OTHER",             label: "Other",              help: "See notes below" },
 ];
 
 export const Route = createFileRoute("/_app/admin/giftcards/trades/$tradeId")({
@@ -40,7 +42,8 @@ function TradeDetailPage() {
   const [openApprove, setOpenApprove] = useState(false);
   const [openReject, setOpenReject] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
-  const [payoutOverride, setPayoutOverride] = useState<string>("");
+  const [payoutOverride, setPayoutOverride] = useState("");
+  const [itemRejectTarget, setItemRejectTarget] = useState<TradeItem | null>(null);
 
   const approveMutation = useMutation({
     mutationFn: (override?: number) => acceptTrade(tradeId, override),
@@ -58,6 +61,26 @@ function TradeDetailPage() {
       toast.success("Trade rejected. User notified.");
       qc.invalidateQueries({ queryKey: queryKeys.trades.all() });
       navigate({ to: "/admin/giftcards/trades" });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const approveItemMutation = useMutation({
+    mutationFn: (itemId: string) => approveTradeItem(tradeId, itemId),
+    onSuccess: () => {
+      toast.success("Item approved.");
+      qc.invalidateQueries({ queryKey: queryKeys.trades.detail(tradeId) });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const rejectItemMutation = useMutation({
+    mutationFn: ({ itemId, reason }: { itemId: string; reason: string }) =>
+      rejectTradeItem(tradeId, itemId, reason),
+    onSuccess: () => {
+      toast.success("Item rejected.");
+      setItemRejectTarget(null);
+      qc.invalidateQueries({ queryKey: queryKeys.trades.detail(tradeId) });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -83,6 +106,7 @@ function TradeDetailPage() {
 
   const isTerminal = !["Submitted", "Approved"].includes(trade.status);
   const allImages = trade.items.flatMap((i) => i.imageUrls);
+  const pendingCount = trade.items.filter((i) => i.status === "Pending").length;
 
   return (
     <div className="space-y-6">
@@ -121,16 +145,17 @@ function TradeDetailPage() {
         </Panel>
       </div>
 
-      <Panel title="Batch Items">
+      <Panel title={`Batch Items${!isTerminal && pendingCount > 0 ? ` — ${pendingCount} pending review` : ""}`}>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px] text-sm">
+          <table className="w-full min-w-[700px] text-sm">
             <thead>
               <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 <th className="py-2 pr-4">Denomination</th>
                 <th className="py-2 pr-4">Qty</th>
                 <th className="py-2 pr-4 text-right">Cust Rate (USD)</th>
                 <th className="py-2 pr-4 text-right">Payout / item</th>
-                <th className="py-2 pl-4 text-right">Line Total</th>
+                <th className="py-2 pr-4 text-right">Line Total</th>
+                <th className="py-2 pl-4 text-right">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -140,15 +165,29 @@ function TradeDetailPage() {
                   <td className="py-3 pr-4">{item.quantity}</td>
                   <td className="py-3 pr-4 text-right font-mono">${item.customerRateUsd.toFixed(4)}</td>
                   <td className="py-3 pr-4 text-right font-mono">{item.customerPayoutAmount.toLocaleString()} {item.payoutCurrency}</td>
-                  <td className="py-3 pl-4 text-right font-mono font-semibold">
+                  <td className="py-3 pr-4 text-right font-mono font-semibold">
                     {(item.customerPayoutAmount * item.quantity).toLocaleString()} {item.payoutCurrency}
+                  </td>
+                  <td className="py-3 pl-4 text-right">
+                    {isTerminal ? (
+                      <ItemStatusBadge status={item.status} />
+                    ) : (
+                      <ItemStatusSelect
+                        value={item.status}
+                        loading={approveItemMutation.isPending && approveItemMutation.variables === item.id}
+                        onChange={(next) => {
+                          if (next === "Approved") approveItemMutation.mutate(item.id);
+                          else setItemRejectTarget(item);
+                        }}
+                      />
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="border-t border-border">
-                <td colSpan={4} className="py-2 text-right text-sm font-semibold">Total Payout</td>
+                <td colSpan={5} className="py-2 text-right text-sm font-semibold">Total Payout</td>
                 <td className="py-2 pl-4 text-right font-mono text-lg font-bold">
                   {trade.totalCustomerPayoutAmount.toLocaleString()} {trade.payoutCurrency}
                 </td>
@@ -181,17 +220,24 @@ function TradeDetailPage() {
       )}
 
       {!isTerminal && (
-        <div className="sticky bottom-4 z-10 flex flex-wrap gap-3 rounded-2xl border bg-card/95 p-4 shadow-lg backdrop-blur">
-          <Button onClick={() => setOpenApprove(true)}>
+        <div className="sticky bottom-4 z-10 flex flex-wrap items-center gap-3 rounded-2xl border bg-card/95 p-4 shadow-lg backdrop-blur">
+          {pendingCount > 0 && (
+            <p className="flex-1 text-xs text-muted-foreground">
+              <AlertTriangle className="mr-1 inline h-3 w-3 text-warning" />
+              {pendingCount} item{pendingCount !== 1 ? "s" : ""} still pending review
+            </p>
+          )}
+          <Button onClick={() => setOpenApprove(true)} className="flex-1 sm:flex-none">
             <Check className="h-4 w-4" /> Approve Trade
           </Button>
           <Button onClick={() => setOpenReject(true)} variant="outline"
-            className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive">
+            className="flex-1 sm:flex-none border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive">
             <X className="h-4 w-4" /> Reject Trade
           </Button>
         </div>
       )}
 
+      {/* Trade-level approve */}
       <Dialog open={openApprove} onOpenChange={(o) => { setOpenApprove(o); if (!o) setPayoutOverride(""); }}>
         <DialogContent>
           <DialogHeader>
@@ -206,50 +252,49 @@ function TradeDetailPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="payout-override" className="text-sm">
-              Override payout <span className="text-muted-foreground font-normal">(optional)</span>
+              Override payout <span className="font-normal text-muted-foreground">(optional)</span>
             </Label>
             <div className="flex items-center gap-2">
-              <Input
-                id="payout-override"
-                type="number"
-                inputMode="decimal"
-                min={0}
-                step="0.01"
+              <Input id="payout-override" type="number" inputMode="decimal" min={0} step="0.01"
                 placeholder={trade.totalCustomerPayoutAmount.toString()}
-                value={payoutOverride}
-                onChange={(e) => setPayoutOverride(e.target.value)}
-                className="font-mono"
-              />
+                value={payoutOverride} onChange={(e) => setPayoutOverride(e.target.value)}
+                className="font-mono" />
               <span className="text-sm text-muted-foreground">{trade.payoutCurrency}</span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Leave blank to credit the calculated amount. Enter a value to override.
-            </p>
+            <p className="text-xs text-muted-foreground">Leave blank to credit the calculated amount.</p>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpenApprove(false)}>Cancel</Button>
-            <Button
-              onClick={() => {
-                const trimmed = payoutOverride.trim();
-                if (trimmed === "") return approveMutation.mutate(undefined);
-                const n = Number(trimmed);
-                if (!Number.isFinite(n) || n < 0) {
-                  toast.error("Enter a valid payout amount");
-                  return;
-                }
-                approveMutation.mutate(n);
-              }}
-              disabled={approveMutation.isPending}
-            >
+            <Button onClick={() => {
+              const t = payoutOverride.trim();
+              if (t === "") return approveMutation.mutate(undefined);
+              const n = Number(t);
+              if (!Number.isFinite(n) || n < 0) { toast.error("Enter a valid payout amount"); return; }
+              approveMutation.mutate(n);
+            }} disabled={approveMutation.isPending}>
               {approveMutation.isPending ? "Approving…" : "Confirm Approve"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Trade-level reject */}
       <RejectDialog open={openReject} onOpenChange={setOpenReject}
-        onSubmit={(r) => rejectMutation.mutate(r)} submitting={rejectMutation.isPending} />
+        title="Reject Trade"
+        description="The user will be notified and a strike added to their account."
+        onSubmit={(r) => rejectMutation.mutate(r)}
+        submitting={rejectMutation.isPending} />
 
+      {/* Per-item reject */}
+      <RejectDialog
+        open={!!itemRejectTarget}
+        onOpenChange={(o) => !o && setItemRejectTarget(null)}
+        title={`Reject Item — ${itemRejectTarget?.denominationCurrency} ${itemRejectTarget?.denominationAmount}`}
+        description="Only this item will be marked rejected. Other items are unaffected."
+        onSubmit={(r) => itemRejectTarget && rejectItemMutation.mutate({ itemId: itemRejectTarget.id, reason: r })}
+        submitting={rejectItemMutation.isPending} />
+
+      {/* Lightbox */}
       <Dialog open={!!lightbox} onOpenChange={(o) => !o && setLightbox(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
@@ -261,6 +306,51 @@ function TradeDetailPage() {
       </Dialog>
     </div>
   );
+}
+
+// ── Sub-components ─────────────────────────────────────────────────────────────
+
+type ItemStatus = TradeItem["status"];
+
+const STATUS_STYLES: Record<ItemStatus, string> = {
+  Pending:  "border-warning/40 bg-warning/10 text-warning",
+  Approved: "border-success/40 bg-success/10 text-success",
+  Rejected: "border-destructive/40 bg-destructive/10 text-destructive",
+};
+
+function ItemStatusSelect({ value, onChange, loading }: {
+  value: ItemStatus;
+  onChange: (next: "Approved" | "Rejected") => void;
+  loading: boolean;
+}) {
+  return (
+    <Select value={value} onValueChange={(v) => onChange(v as "Approved" | "Rejected")} disabled={loading}>
+      <SelectTrigger className={cn("h-8 w-[130px] gap-1.5 text-xs font-semibold", STATUS_STYLES[value])}>
+        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ItemStatusIcon status={value} />}
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="Pending" disabled>Pending</SelectItem>
+        <SelectItem value="Approved">Approved</SelectItem>
+        <SelectItem value="Rejected">Rejected</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+}
+
+function ItemStatusBadge({ status }: { status: ItemStatus }) {
+  return (
+    <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold", STATUS_STYLES[status])}>
+      <ItemStatusIcon status={status} />
+      {status}
+    </span>
+  );
+}
+
+function ItemStatusIcon({ status }: { status: ItemStatus }) {
+  if (status === "Approved") return <CheckCircle2 className="h-3.5 w-3.5" />;
+  if (status === "Rejected") return <XCircle className="h-3.5 w-3.5" />;
+  return <Clock className="h-3.5 w-3.5" />;
 }
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
@@ -281,9 +371,11 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-function RejectDialog({ open, onOpenChange, onSubmit, submitting }: {
+function RejectDialog({ open, onOpenChange, title, description, onSubmit, submitting }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
+  title: string;
+  description: string;
   onSubmit: (reason: string) => void;
   submitting: boolean;
 }) {
@@ -291,17 +383,12 @@ function RejectDialog({ open, onOpenChange, onSubmit, submitting }: {
   const [notes, setNotes] = useState("");
   const banWarn = REJECT_REASONS.find((r) => r.value === reason)?.ban;
 
-  const submit = () => {
-    if (!reason) { toast.error("Pick a rejection reason."); return; }
-    onSubmit(`${reason}${notes ? `: ${notes}` : ""}`);
-  };
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) { setReason(""); setNotes(""); } }}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Reject Trade</DialogTitle>
-          <DialogDescription>The user will be notified and a strike added to their account.</DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
@@ -330,7 +417,9 @@ function RejectDialog({ open, onOpenChange, onSubmit, submitting }: {
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button variant="destructive" onClick={submit} disabled={submitting}>
+          <Button variant="destructive"
+            onClick={() => { if (!reason) { toast.error("Pick a rejection reason."); return; } onSubmit(`${reason}${notes ? `: ${notes}` : ""}`); }}
+            disabled={submitting}>
             {submitting ? "Rejecting…" : "Confirm Reject"}
           </Button>
         </DialogFooter>

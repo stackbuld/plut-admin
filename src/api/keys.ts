@@ -1,4 +1,4 @@
-import type { ListTradesParams, ListDenominationsParams, ListRatesParams } from "./types";
+import type { ListTradesParams, ListDenominationsParams, ListRatesParams, ListUsersParams, ListImageBlacklistParams } from "./types";
 
 /**
  * Centralized query key factory.
@@ -48,6 +48,16 @@ export const queryKeys = {
   payoutCurrencies: {
     all: () => ["admin", "payout-currencies"] as const,
     list: () => queryKeys.payoutCurrencies.all(),
+  },
+
+  users: {
+    all: () => ["admin", "users"] as const,
+    lists: () => [...queryKeys.users.all(), "list"] as const,
+    list: (params?: ListUsersParams) => [...queryKeys.users.lists(), params] as const,
+    detail: (id: string) => [...queryKeys.users.all(), id] as const,
+    blocks: (id: string) => [...queryKeys.users.all(), id, "blocks"] as const,
+    strikes: (id: string) => [...queryKeys.users.all(), id, "strikes"] as const,
+    blacklist: (params?: ListImageBlacklistParams) => [...queryKeys.users.all(), "blacklist", params] as const,
   },
 
   stats: {

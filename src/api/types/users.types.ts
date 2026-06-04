@@ -5,9 +5,10 @@ export type UserListItem = {
   userId: string;
   email: string;
   displayName: string;
+  phoneNumber: string | null;
   status: UserStatus;
   kycTier: KycTier;
-  lastLogin: string | null;
+  lastLoginAt: string | null;
   createdAt: string;
 };
 
@@ -22,7 +23,7 @@ export type UserDetail = {
   kycTier: KycTier;
   status: UserStatus;
   oldUserId: string | null;
-  lastLogin: string | null;
+  lastLoginAt: string | null;
   avatarUrl: string | null;
   createdAt: string;
 };
@@ -31,6 +32,42 @@ export type ListUsersParams = {
   search?: string;
   status?: UserStatus;
   kycTier?: KycTier;
+  page?: number;
+  pageSize?: number;
+};
+
+export type BlockType = "Temporary" | "Permanent";
+
+export type UserBlock = {
+  id: string;
+  type: BlockType;
+  reason: string;
+  durationHours: number | null;
+  startedAt: string;
+  expiresAt: string | null;
+  isActive: boolean;
+  createdBy: string;
+};
+
+export type UserStrike = {
+  id: string;
+  strikeNumber: number;
+  reason: string;
+  tradeId: string | null;
+  addedAt: string;
+  isExpired: boolean;
+};
+
+export type ImageBlacklistEntry = {
+  id: string;
+  hash: string;
+  reason: string;
+  notes: string | null;
+  addedAt: string;
+  addedBy: string;
+};
+
+export type ListImageBlacklistParams = {
   page?: number;
   pageSize?: number;
 };

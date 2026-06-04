@@ -31,6 +31,18 @@ export const rejectTrade = (tradeId: string, reason: string) => {
   });
 };
 
+export const approveTradeItem = (tradeId: string, itemId: string) => {
+  const adminUserId = getAdminUserId();
+  if (!adminUserId) throw new Error("Not authenticated");
+  return apiPost<void>(`/giftcards/v1/admin/trades/${tradeId}/items/${itemId}/approve`, { adminUserId });
+};
+
+export const rejectTradeItem = (tradeId: string, itemId: string, reason: string) => {
+  const adminUserId = getAdminUserId();
+  if (!adminUserId) throw new Error("Not authenticated");
+  return apiPost<void>(`/giftcards/v1/admin/trades/${tradeId}/items/${itemId}/reject`, { adminUserId, reason });
+};
+
 export const fetchAdminStats = () =>
   apiGet<AdminDashboardStats>("/giftcards/v1/admin/stats");
 
