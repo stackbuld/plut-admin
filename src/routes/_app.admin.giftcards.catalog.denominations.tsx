@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, MoreHorizontal, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,12 +14,15 @@ import {
 } from "@/api";
 import { toast } from "sonner";
 import { currencySymbol } from "@/lib/format";
-import { FilterSelect, TabLoader, EmptyRow } from "@/components/plut/catalog-shared";
+import { FilterSelect, TabLoader, EmptyRow, TablePager } from "@/components/plut/catalog-shared";
+import type { CardType } from "@/api/types";
+
+const DEFAULT_PAGE_SIZE = 20;
 
 export const Route = createFileRoute("/_app/admin/giftcards/catalog/denominations")({
   loader: ({ context }) => {
     const qc = context.queryClient;
-    qc.prefetchQuery(denominationQueries.list({ PageSize: 100 }));
+    qc.prefetchQuery(denominationQueries.list({ Page: 1, PageSize: DEFAULT_PAGE_SIZE }));
     qc.prefetchQuery(brandQueries.list());
     qc.prefetchQuery(countryQueries.list());
   },
@@ -28,15 +31,27 @@ export const Route = createFileRoute("/_app/admin/giftcards/catalog/denomination
 
 function DenominationsTab() {
   const qc = useQueryClient();
+
   const [brandFilter, setBrandFilter] = useState("All");
   const [countryFilter, setCountryFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+
   const [addOpen, setAddOpen] = useState(false);
   const [justAdded, setJustAdded] = useState<{ label: string } | null>(null);
   const [rateFor, setRateFor] = useState<DenomRateContext | null>(null);
 
-  const { data, isLoading } = useQuery(denominationQueries.list({ PageSize: 100 }));
+  const params = {
+    ...(brandFilter !== "All" && { BrandId: brandFilter }),
+    ...(countryFilter !== "All" && { CountryId: countryFilter }),
+    ...(typeFilter !== "All" && { CardType: typeFilter as CardType }),
+    Page: page,
+    PageSize: pageSize,
+  };
+
+  const { data, isLoading } = useQuery(denominationQueries.list(params));
   const { data: brands } = useQuery(brandQueries.list());
   const { data: countries } = useQuery(countryQueries.list());
 
@@ -50,11 +65,18 @@ function DenominationsTab() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const list = (data?.items ?? [])
-    .filter((d) => brandFilter === "All" || d.brandId === brandFilter)
-    .filter((d) => countryFilter === "All" || d.countryId === countryFilter)
-    .filter((d) => typeFilter === "All" || d.cardType === typeFilter)
-    .filter((d) => statusFilter === "All" || (statusFilter === "Active" ? d.isActive : !d.isActive));
+  // Prefetch next page so turning pages is instant
+  useEffect(() => {
+    if (!data || page >= Math.ceil(data.totalCount / pageSize)) return;
+    qc.prefetchQuery(denominationQueries.list({ ...params, Page: page + 1 }));
+  }, [data?.totalCount, page, pageSize, brandFilter, countryFilter, typeFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function resetPage() { setPage(1); }
+
+  // Status filter is UI-only (no API param), applied on top of the current page
+  const list = (data?.items ?? []).filter(
+    (d) => statusFilter === "All" || (statusFilter === "Active" ? d.isActive : !d.isActive),
+  );
 
   return (
     <div className="space-y-4">
@@ -77,16 +99,15 @@ function DenominationsTab() {
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <FilterSelect value={brandFilter} onChange={setBrandFilter} placeholder="Brand"
+        <FilterSelect value={brandFilter} onChange={(v) => { setBrandFilter(v); resetPage(); }} placeholder="Brand"
           options={[{ v: "All", l: "All brands" }, ...(brands ?? []).map((b) => ({ v: b.id, l: b.name }))]} />
-        <FilterSelect value={countryFilter} onChange={setCountryFilter} placeholder="Country"
+        <FilterSelect value={countryFilter} onChange={(v) => { setCountryFilter(v); resetPage(); }} placeholder="Country"
           options={[{ v: "All", l: "All countries" }, ...(countries ?? []).map((c) => ({ v: c.id, l: c.name }))]} />
-        <FilterSelect value={typeFilter} onChange={setTypeFilter} placeholder="Type"
+        <FilterSelect value={typeFilter} onChange={(v) => { setTypeFilter(v); resetPage(); }} placeholder="Type"
           options={[{ v: "All", l: "All types" }, { v: "Physical", l: "Physical" }, { v: "ECode", l: "E-code" }]} />
-        <FilterSelect value={statusFilter} onChange={setStatusFilter} placeholder="Status"
+        <FilterSelect value={statusFilter} onChange={(v) => { setStatusFilter(v); resetPage(); }} placeholder="Status"
           options={[{ v: "All", l: "All statuses" }, { v: "Active", l: "Active" }, { v: "Inactive", l: "Inactive" }]} />
-        <span className="ml-auto text-xs text-muted-foreground">{list.length} denomination{list.length === 1 ? "" : "s"}</span>
-        <Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add Denomination</Button>
+        <Button className="ml-auto" onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add Denomination</Button>
       </div>
 
       {isLoading ? <TabLoader /> : (
@@ -138,13 +159,18 @@ function DenominationsTab() {
               </tbody>
             </table>
           </div>
+          <TablePager
+            page={page}
+            pageSize={pageSize}
+            total={data?.totalCount ?? 0}
+            onPageChange={setPage}
+            onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+            noun="denominations"
+          />
         </div>
       )}
 
-      <AddDenominationDialog
-        open={addOpen}
-        onClose={() => setAddOpen(false)}
-      />
+      <AddDenominationDialog open={addOpen} onClose={() => setAddOpen(false)} />
       <SetRateDialog denom={rateFor} onClose={() => setRateFor(null)} />
     </div>
   );

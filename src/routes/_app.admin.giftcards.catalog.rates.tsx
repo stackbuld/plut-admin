@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal, History } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,12 +16,14 @@ import {
 } from "@/api";
 import { toast } from "sonner";
 import { formatDate, currencySymbol } from "@/lib/format";
-import { FilterSelect, TabLoader, EmptyRow, Dash } from "@/components/plut/catalog-shared";
+import { FilterSelect, TabLoader, EmptyRow, Dash, TablePager } from "@/components/plut/catalog-shared";
+
+const DEFAULT_PAGE_SIZE = 20;
 
 export const Route = createFileRoute("/_app/admin/giftcards/catalog/rates")({
   loader: ({ context }) => {
     const qc = context.queryClient;
-    qc.prefetchQuery(rateQueries.list({ PageSize: 100 }));
+    qc.prefetchQuery(rateQueries.list({ Page: 1, PageSize: DEFAULT_PAGE_SIZE, ActiveOnly: true }));
     qc.prefetchQuery(brandQueries.list());
     qc.prefetchQuery(countryQueries.list());
     qc.prefetchQuery(fxRateQueries.current());
@@ -38,11 +40,21 @@ function RatesTab() {
   const [countryFilter, setCountryFilter] = useState("All");
   const [activeOnly, setActiveOnly] = useState(true);
   const [view, setView] = useState("USD");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const [rateFor, setRateFor] = useState<DenomRateContext | null>(null);
   const [historyFor, setHistoryFor] = useState<DenomRateContext | null>(null);
 
-  const { data, isLoading } = useQuery(rateQueries.list({ PageSize: 100 }));
+  const params = {
+    ...(brandFilter !== "All" && { BrandId: brandFilter }),
+    ...(countryFilter !== "All" && { CountryId: countryFilter }),
+    ActiveOnly: activeOnly,
+    Page: page,
+    PageSize: pageSize,
+  };
+
+  const { data, isLoading } = useQuery(rateQueries.list(params));
   const { data: brandsData } = useQuery(brandQueries.list());
   const { data: countriesData } = useQuery(countryQueries.list());
   const { data: fxRates } = useQuery(fxRateQueries.current());
@@ -61,6 +73,14 @@ function RatesTab() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  // Prefetch next page so turning pages is instant
+  useEffect(() => {
+    if (!data || page >= Math.ceil(data.totalCount / pageSize)) return;
+    qc.prefetchQuery(rateQueries.list({ ...params, Page: page + 1 }));
+  }, [data?.totalCount, page, pageSize, brandFilter, countryFilter, activeOnly]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function resetPage() { setPage(1); }
 
   function buildContext(r: NonNullable<typeof data>["items"][number]): DenomRateContext {
     return {
@@ -83,10 +103,8 @@ function RatesTab() {
     };
   }
 
-  const filtered = (data?.items ?? [])
-    .filter((r) => brandFilter === "All" || r.brandId === brandFilter)
-    .filter((r) => countryFilter === "All" || r.countryId === countryFilter)
-    .filter((r) => activeOnly ? r.hasRate : true);
+  const rows = data?.items ?? [];
+  const total = data?.totalCount ?? 0;
 
   const supplierLabel = (r: NonNullable<typeof data>["items"][number]) => {
     if (!r.hasRate) return "—";
@@ -103,12 +121,12 @@ function RatesTab() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <FilterSelect value={brandFilter} onChange={setBrandFilter} placeholder="Brand"
+        <FilterSelect value={brandFilter} onChange={(v) => { setBrandFilter(v); resetPage(); }} placeholder="Brand"
           options={[{ v: "All", l: "All brands" }, ...(brandsData ?? []).map((b) => ({ v: b.id, l: b.name }))]} />
-        <FilterSelect value={countryFilter} onChange={setCountryFilter} placeholder="Country"
+        <FilterSelect value={countryFilter} onChange={(v) => { setCountryFilter(v); resetPage(); }} placeholder="Country"
           options={[{ v: "All", l: "All countries" }, ...(countriesData ?? []).map((c) => ({ v: c.id, l: c.name }))]} />
         <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
-          <Checkbox checked={activeOnly} onCheckedChange={(v) => setActiveOnly(!!v)} />
+          <Checkbox checked={activeOnly} onCheckedChange={(v) => { setActiveOnly(!!v); resetPage(); }} />
           Active only
         </label>
         <div className="flex items-center gap-1 rounded-md border bg-secondary/40 p-0.5">
@@ -120,7 +138,7 @@ function RatesTab() {
             </button>
           ))}
         </div>
-        <span className="ml-auto text-xs text-muted-foreground">{filtered.length} rate{filtered.length === 1 ? "" : "s"}</span>
+        <span className="ml-auto text-xs text-muted-foreground">{total.toLocaleString()} rate{total === 1 ? "" : "s"}</span>
       </div>
 
       {view !== "USD" && viewFxRate > 0 && (
@@ -141,7 +159,7 @@ function RatesTab() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((r) => {
+                {rows.map((r) => {
                   const margin = r.marketRateUsd ? ((r.marketRateUsd - r.customerRateUsd) / r.marketRateUsd) * 100 : 0;
                   const cost = r.marketRateUsd * r.amount * viewFxRate;
                   const payout = r.customerRateUsd * r.amount * viewFxRate;
@@ -149,8 +167,7 @@ function RatesTab() {
                   const ctx = buildContext(r);
 
                   return (
-                    <tr key={r.denominationId}
-                      className="border-b border-border last:border-0 hover:bg-secondary/40">
+                    <tr key={r.denominationId} className="border-b border-border last:border-0 hover:bg-secondary/40">
                       <td className="px-6 py-3.5 font-medium">{r.brandName}</td>
                       <td className="px-6 py-3.5 text-muted-foreground">{r.countryName}</td>
                       <td className="px-6 py-3.5 font-mono">{currencySymbol(r.currencyCode)}{r.amount}</td>
@@ -177,6 +194,7 @@ function RatesTab() {
                         <div className="inline-flex items-center gap-1">
                           {r.hasRate && (
                             <Button size="sm" variant="ghost" className="h-8 gap-1 text-xs"
+                              onMouseEnter={() => qc.prefetchQuery(rateQueries.list({ DenominationId: r.denominationId }))}
                               onClick={() => setHistoryFor(ctx)}>
                               <History className="h-3.5 w-3.5" /> History
                             </Button>
@@ -202,10 +220,18 @@ function RatesTab() {
                     </tr>
                   );
                 })}
-                {filtered.length === 0 && <EmptyRow cols={view === "USD" ? 10 : 9} />}
+                {rows.length === 0 && <EmptyRow cols={view === "USD" ? 10 : 9} />}
               </tbody>
             </table>
           </div>
+          <TablePager
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+            noun="rates"
+          />
           <p className="border-t border-border bg-secondary/30 px-6 py-2 text-[11px] text-muted-foreground">
             Legend: M = Manual, A = Auto · Use the History button to see past rates · Supplier Quote shows the input mode used.
           </p>
