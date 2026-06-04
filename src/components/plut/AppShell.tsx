@@ -106,7 +106,7 @@ function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: stri
         {open && (
           <div className="mt-0.5 ml-6 flex flex-col gap-0.5 border-l border-border pl-2">
             {item.children.map((c) => {
-              const cActive = pathname.startsWith(c.to);
+              const cActive = pathname === c.to || pathname.startsWith(c.to + "/");
               return (
                 <Link
                   key={c.to}
