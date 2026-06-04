@@ -1,12 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Check, Filter, Loader2, Search, X } from "lucide-react";
+import { Check, Loader2, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import { withdrawalQueries } from "@/api/withdrawals";
 import type { AdminWithdrawal, WithdrawalStatus } from "@/api/types/withdrawals.types";
 import { WithdrawalStatusBadge, formatNgn, maskAccount } from "@/components/plut/withdrawals/WithdrawalStatusBadge";
@@ -40,6 +37,19 @@ function WithdrawalsList() {
   const { data, isLoading } = useQuery(
     withdrawalQueries.list({ status, pageSize: 100 }),
   );
+  const { data: summary } = useQuery(withdrawalQueries.summary());
+
+  const counts: Record<WithdrawalStatus | "All", number> = useMemo(() => ({
+    All: summary?.totalCount ?? 0,
+    PendingApproval: summary?.pendingApprovalCount ?? 0,
+    PendingProvider: summary?.pendingProviderCount ?? 0,
+    Successful: summary?.successfulCount ?? 0,
+    Failed: summary?.failedCount ?? 0,
+    Rejected: summary?.rejectedCount ?? 0,
+    Initiated: 0,
+    PendingLedger: 0,
+    Reversed: 0,
+  }), [summary]);
 
   const items = useMemo(() => {
     const all = data?.items ?? [];
@@ -58,21 +68,40 @@ function WithdrawalsList() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-3">
-        <Select
-          value={status}
-          onValueChange={(v) => navigate({ search: { status: v as WithdrawalStatus | "All" } })}
-        >
-          <SelectTrigger className="h-9 w-[200px]">
-            <Filter className="h-3.5 w-3.5" /> <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {STATUS_OPTIONS.map((s) => (
-              <SelectItem key={s} value={s}>{s === "All" ? "All statuses" : prettyStatus(s)}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="flex flex-wrap items-center gap-2 border-b border-border pb-2">
+        {STATUS_OPTIONS.map((s) => {
+          const active = status === s;
+          const count = counts[s] ?? 0;
+          const isAttention = s === "PendingApproval" && count > 0;
+          return (
+            <button
+              key={s}
+              type="button"
+              onClick={() => navigate({ search: { status: s } })}
+              className={cn(
+                "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                active
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground hover:bg-secondary/70 hover:text-foreground",
+              )}
+            >
+              {s === "All" ? "All" : prettyStatus(s)}
+              <span className={cn(
+                "inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold",
+                active
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : isAttention
+                  ? "bg-red-500 text-white"
+                  : "bg-background text-muted-foreground",
+              )}>
+                {count > 99 ? "99+" : count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
+      <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[220px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
