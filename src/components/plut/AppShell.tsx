@@ -38,8 +38,8 @@ const CATALOG_CHILDREN: { to: string; label: string }[] = [
   { to: "/admin/giftcards/catalog/payout", label: "Payout Currencies" },
 ];
 
-const WITHDRAWAL_CHILDREN: { to: string; label: string }[] = [
-  { to: "/admin/wallets/withdrawals", label: "Overview", exact: true } as { to: string; label: string; exact?: boolean },
+const WITHDRAWAL_CHILDREN: { to: string; label: string; exact?: boolean }[] = [
+  { to: "/admin/wallets/withdrawals", label: "Overview", exact: true },
   { to: "/admin/wallets/withdrawals/all", label: "All Withdrawals" },
 ];
 
