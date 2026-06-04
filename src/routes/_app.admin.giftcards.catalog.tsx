@@ -36,6 +36,9 @@ export const Route = createFileRoute("/_app/admin/giftcards/catalog")({
     qc.prefetchQuery(rateQueries.list({ PageSize: 100 }));
     qc.prefetchQuery(fxRateQueries.current());
     qc.prefetchQuery(payoutCurrencyQueries.list());
+    // Preload the heavy SetRateDialog chunk in the background so the first
+    // click on Update / Set Rate paints the body instantly.
+    import("@/components/plut/SetRateDialog.body");
   },
   component: Catalog,
 });
