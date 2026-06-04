@@ -24,7 +24,7 @@ function useGiftcardNav(): NavItem[] {
     { to: "/admin/giftcards/dashboard", label: "Dashboard", icon: LayoutGrid },
     { to: "/admin/giftcards/trades", label: "Trades", icon: ArrowLeftRight, badge: pending || undefined, matchPrefix: "/admin/giftcards/trades" },
     { to: "/admin/giftcards/brands", label: "Brands", icon: Gift, matchPrefix: "/admin/giftcards/brands" },
-    { to: "/admin/giftcards/catalog", label: "Catalog", icon: BookOpen },
+    { to: "/admin/giftcards/catalog", label: "Catalog", icon: BookOpen, matchPrefix: "/admin/giftcards/catalog" },
     { to: "/admin/giftcards/users", label: "Users", icon: Users, matchPrefix: "/admin/giftcards/users" },
   ];
 }
