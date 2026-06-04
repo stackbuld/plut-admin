@@ -419,7 +419,6 @@ export function SetRateDialogBody({ denom, onClose }: { denom: DenomRateContext 
             </Button>
           </div>
         </div>
-      </div>
     </>
   );
 }
