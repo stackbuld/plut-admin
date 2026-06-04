@@ -5,7 +5,7 @@ import { StatCard } from "@/components/plut/StatCard";
 import { SlaIndicator } from "@/components/plut/SlaIndicator";
 import { tradeQueries } from "@/api";
 import { format, parseISO } from "date-fns";
-import { formatNaira, relativeTime, truncId } from "@/lib/format";
+import { formatNaira, relativeTime, truncId, formatDuration } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/admin/giftcards/dashboard")({
@@ -24,7 +24,7 @@ function Dashboard() {
   const rejectedCount = stats?.totalRejected ?? 0;
   const activeBrands = stats?.activeBrands ?? 0;
   const avgReviewMin = stats?.avgReviewSeconds != null
-    ? `${Math.round(stats.avgReviewSeconds / 60)} min`
+    ? formatDuration(stats.avgReviewSeconds)
     : "—";
 
   const queue = [...pending]

@@ -1,4 +1,5 @@
-import { format, formatDistanceToNow, parseISO } from "date-fns";
+import { format, formatDistanceToNow, parseISO, intervalToDuration, formatDuration as dfFormatDuration } from "date-fns";
+import type { Duration } from "date-fns";
 
 export const formatNaira = (n: number) =>
   "₦" + n.toLocaleString("en-NG", { maximumFractionDigits: 0 });
@@ -25,6 +26,14 @@ export const formatDateTime = (iso: string) =>
 
 export const truncId = (id: string, n = 12) =>
   id.length <= n ? id : `${id.slice(0, n)}…`;
+
+const DURATION_UNITS: (keyof Duration)[] = ["years", "months", "days", "hours", "minutes", "seconds"];
+
+export const formatDuration = (seconds: number): string => {
+  const d = intervalToDuration({ start: 0, end: Math.round(seconds) * 1000 });
+  const nonZero = DURATION_UNITS.filter((u) => (d[u] ?? 0) > 0).slice(0, 2);
+  return nonZero.length ? dfFormatDuration(d, { format: nonZero }) : "< 1 second";
+};
 
 export const currencySymbol = (code: string) => {
   const m: Record<string, string> = {
