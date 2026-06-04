@@ -19,6 +19,7 @@ import { Route as AppAdminGiftcardsTradesRouteImport } from './routes/_app.admin
 import { Route as AppAdminGiftcardsDashboardRouteImport } from './routes/_app.admin.giftcards.dashboard'
 import { Route as AppAdminGiftcardsCatalogRouteImport } from './routes/_app.admin.giftcards.catalog'
 import { Route as AppAdminGiftcardsBrandsRouteImport } from './routes/_app.admin.giftcards.brands'
+import { Route as AppAdminWalletsWithdrawalsIndexRouteImport } from './routes/_app.admin.wallets.withdrawals.index'
 import { Route as AppAdminGiftcardsCatalogIndexRouteImport } from './routes/_app.admin.giftcards.catalog.index'
 import { Route as AppAdminGiftcardsUsersUserIdRouteImport } from './routes/_app.admin.giftcards.users.$userId'
 import { Route as AppAdminGiftcardsTradesTradeIdRouteImport } from './routes/_app.admin.giftcards.trades.$tradeId'
@@ -81,6 +82,12 @@ const AppAdminGiftcardsBrandsRoute = AppAdminGiftcardsBrandsRouteImport.update({
   path: '/admin/giftcards/brands',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminWalletsWithdrawalsIndexRoute =
+  AppAdminWalletsWithdrawalsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppAdminWalletsWithdrawalsRoute,
+  } as any)
 const AppAdminGiftcardsCatalogIndexRoute =
   AppAdminGiftcardsCatalogIndexRouteImport.update({
     id: '/',
@@ -145,7 +152,7 @@ export interface FileRoutesByFullPath {
   '/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
-  '/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRoute
+  '/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
   '/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
   '/admin/giftcards/catalog/denominations': typeof AppAdminGiftcardsCatalogDenominationsRoute
@@ -155,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
   '/admin/giftcards/catalog/': typeof AppAdminGiftcardsCatalogIndexRoute
+  '/admin/wallets/withdrawals/': typeof AppAdminWalletsWithdrawalsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -164,7 +172,6 @@ export interface FileRoutesByTo {
   '/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
-  '/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRoute
   '/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
   '/admin/giftcards/catalog/denominations': typeof AppAdminGiftcardsCatalogDenominationsRoute
@@ -174,6 +181,7 @@ export interface FileRoutesByTo {
   '/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
   '/admin/giftcards/catalog': typeof AppAdminGiftcardsCatalogIndexRoute
+  '/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -186,7 +194,7 @@ export interface FileRoutesById {
   '/_app/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/_app/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/_app/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
-  '/_app/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRoute
+  '/_app/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
   '/_app/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/_app/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
   '/_app/admin/giftcards/catalog/denominations': typeof AppAdminGiftcardsCatalogDenominationsRoute
@@ -196,6 +204,7 @@ export interface FileRoutesById {
   '/_app/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/_app/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
   '/_app/admin/giftcards/catalog/': typeof AppAdminGiftcardsCatalogIndexRoute
+  '/_app/admin/wallets/withdrawals/': typeof AppAdminWalletsWithdrawalsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/admin/giftcards/trades/$tradeId'
     | '/admin/giftcards/users/$userId'
     | '/admin/giftcards/catalog/'
+    | '/admin/wallets/withdrawals/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -227,7 +237,6 @@ export interface FileRouteTypes {
     | '/admin/giftcards/dashboard'
     | '/admin/giftcards/trades'
     | '/admin/giftcards/users'
-    | '/admin/wallets/withdrawals'
     | '/admin/giftcards/brands/$brandId'
     | '/admin/giftcards/catalog/countries'
     | '/admin/giftcards/catalog/denominations'
@@ -237,6 +246,7 @@ export interface FileRouteTypes {
     | '/admin/giftcards/trades/$tradeId'
     | '/admin/giftcards/users/$userId'
     | '/admin/giftcards/catalog'
+    | '/admin/wallets/withdrawals'
   id:
     | '__root__'
     | '/_app'
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
     | '/_app/admin/giftcards/trades/$tradeId'
     | '/_app/admin/giftcards/users/$userId'
     | '/_app/admin/giftcards/catalog/'
+    | '/_app/admin/wallets/withdrawals/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -337,6 +348,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/giftcards/brands'
       preLoaderRoute: typeof AppAdminGiftcardsBrandsRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_app/admin/wallets/withdrawals/': {
+      id: '/_app/admin/wallets/withdrawals/'
+      path: '/'
+      fullPath: '/admin/wallets/withdrawals/'
+      preLoaderRoute: typeof AppAdminWalletsWithdrawalsIndexRouteImport
+      parentRoute: typeof AppAdminWalletsWithdrawalsRoute
     }
     '/_app/admin/giftcards/catalog/': {
       id: '/_app/admin/giftcards/catalog/'
@@ -472,6 +490,20 @@ const AppAdminGiftcardsUsersRouteWithChildren =
     AppAdminGiftcardsUsersRouteChildren,
   )
 
+interface AppAdminWalletsWithdrawalsRouteChildren {
+  AppAdminWalletsWithdrawalsIndexRoute: typeof AppAdminWalletsWithdrawalsIndexRoute
+}
+
+const AppAdminWalletsWithdrawalsRouteChildren: AppAdminWalletsWithdrawalsRouteChildren =
+  {
+    AppAdminWalletsWithdrawalsIndexRoute: AppAdminWalletsWithdrawalsIndexRoute,
+  }
+
+const AppAdminWalletsWithdrawalsRouteWithChildren =
+  AppAdminWalletsWithdrawalsRoute._addFileChildren(
+    AppAdminWalletsWithdrawalsRouteChildren,
+  )
+
 interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppAdminGiftcardsBrandsRoute: typeof AppAdminGiftcardsBrandsRouteWithChildren
@@ -479,7 +511,7 @@ interface AppRouteChildren {
   AppAdminGiftcardsDashboardRoute: typeof AppAdminGiftcardsDashboardRoute
   AppAdminGiftcardsTradesRoute: typeof AppAdminGiftcardsTradesRouteWithChildren
   AppAdminGiftcardsUsersRoute: typeof AppAdminGiftcardsUsersRouteWithChildren
-  AppAdminWalletsWithdrawalsRoute: typeof AppAdminWalletsWithdrawalsRoute
+  AppAdminWalletsWithdrawalsRoute: typeof AppAdminWalletsWithdrawalsRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -489,7 +521,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminGiftcardsDashboardRoute: AppAdminGiftcardsDashboardRoute,
   AppAdminGiftcardsTradesRoute: AppAdminGiftcardsTradesRouteWithChildren,
   AppAdminGiftcardsUsersRoute: AppAdminGiftcardsUsersRouteWithChildren,
-  AppAdminWalletsWithdrawalsRoute: AppAdminWalletsWithdrawalsRoute,
+  AppAdminWalletsWithdrawalsRoute: AppAdminWalletsWithdrawalsRouteWithChildren,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
