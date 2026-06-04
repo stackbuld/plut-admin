@@ -31,7 +31,7 @@ const ACQ_META: Record<string, { symbol: string; name: string }> = {
   CNY: { symbol: "¥", name: "Chinese Yuan (RMB)" },
 };
 
-export function SetRateDialog({ denom, onClose }: { denom: DenomRateContext | null; onClose: () => void }) {
+export function SetRateDialogBody({ denom, onClose }: { denom: DenomRateContext | null; onClose: () => void }) {
   const open = denom !== null;
   const qc = useQueryClient();
 
