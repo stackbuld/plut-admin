@@ -196,20 +196,19 @@ export function SetRateDialogBody({ denom, onClose }: { denom: DenomRateContext 
   const supplierSymbol = acqCode === "USD" ? "$" : (acqCurs.find((a) => a.code === acqCode)?.symbol ?? acqCode);
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-xl max-h-[92vh] overflow-y-auto p-0">
-        <DialogHeader className="border-b px-5 py-3.5">
-          <DialogTitle className="flex flex-wrap items-center gap-2 text-sm font-semibold">
-            {denom.activeRate ? "Update Rate" : "Set Rate"}
-            <span className="text-muted-foreground">·</span>
-            <span className="font-normal text-muted-foreground">
-              {denom.brandName} / {denom.countryCode} / {denom.currencyCode} {denom.amount} {denom.cardType}
-            </span>
-          </DialogTitle>
-          <DialogDescription className="text-xs">Enter the supplier quote — we derive market rate, payouts and Plut margin.</DialogDescription>
-        </DialogHeader>
+    <>
+      <DialogHeader className="border-b px-5 py-3.5">
+        <DialogTitle className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+          {denom.activeRate ? "Update Rate" : "Set Rate"}
+          <span className="text-muted-foreground">·</span>
+          <span className="font-normal text-muted-foreground">
+            {denom.brandName} / {denom.countryCode} / {denom.currencyCode} {denom.amount} {denom.cardType}
+          </span>
+        </DialogTitle>
+        <DialogDescription className="text-xs">Enter the supplier quote — we derive market rate, payouts and Plut margin.</DialogDescription>
+      </DialogHeader>
 
-        <div className="space-y-5 px-5 py-4">
+      <div className="space-y-5 px-5 py-4">
           {/* 1 — Supplier Quote */}
           <Section title="Supplier Quote">
             <div className="grid grid-cols-[140px_1fr] gap-2">
