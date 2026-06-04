@@ -402,8 +402,7 @@ function RatesTab() {
 
                   return (
                     <tr key={r.denominationId}
-                      onClick={() => r.hasRate && setHistoryFor(ctx)}
-                      className={`border-b border-border last:border-0 hover:bg-secondary/40 ${r.hasRate ? "cursor-pointer" : ""}`}>
+                      className="border-b border-border last:border-0 hover:bg-secondary/40">
                       <td className="px-6 py-3.5 font-medium">{r.brandName}</td>
                       <td className="px-6 py-3.5 text-muted-foreground">{r.countryName}</td>
                       <td className="px-6 py-3.5 font-mono">{currencySymbol(r.currencyCode)}{r.amount}</td>
@@ -426,8 +425,14 @@ function RatesTab() {
                         </>
                       )}
 
-                      <td className="px-6 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-6 py-3.5 text-right">
                         <div className="inline-flex items-center gap-1">
+                          {r.hasRate && (
+                            <Button size="sm" variant="ghost" className="h-8 gap-1 text-xs"
+                              onClick={() => setHistoryFor(ctx)}>
+                              <History className="h-3.5 w-3.5" /> History
+                            </Button>
+                          )}
                           <Button size="sm" variant={r.hasRate ? "outline" : "default"} onClick={() => setRateFor(ctx)}>
                             {r.hasRate ? "Update" : "Set Rate"}
                           </Button>
@@ -454,7 +459,7 @@ function RatesTab() {
             </table>
           </div>
           <p className="border-t border-border bg-secondary/30 px-6 py-2 text-[11px] text-muted-foreground">
-            Legend: M = Manual, A = Auto · Click any row to see rate history · Supplier Quote shows the input mode used.
+            Legend: M = Manual, A = Auto · Use the History button to see past rates · Supplier Quote shows the input mode used.
           </p>
         </div>
       )}
