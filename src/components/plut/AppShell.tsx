@@ -1,7 +1,7 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Bell, ChevronDown, Coins, Gift, LayoutGrid, LogOut, Menu, Moon, Sun,
-  ArrowLeftRight, Users, BookOpen, Wallet, Bitcoin,
+  ArrowLeftRight, Users, BookOpen, Wallet, Bitcoin, Banknote,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -9,11 +9,16 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
 import { useAuth } from "@/lib/auth";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { tradeQueries } from "@/api";
+import { tradeQueries, withdrawalQueries } from "@/api";
 
 function usePendingCount() {
   const { data } = useQuery(tradeQueries.stats());
   return data?.pendingReview ?? 0;
+}
+
+function usePendingWithdrawalsCount() {
+  const { data } = useQuery(withdrawalQueries.summary());
+  return data?.pendingApprovalCount ?? 0;
 }
 
 type NavItem = {
@@ -33,6 +38,11 @@ const CATALOG_CHILDREN: { to: string; label: string }[] = [
   { to: "/admin/giftcards/catalog/payout", label: "Payout Currencies" },
 ];
 
+const WITHDRAWAL_CHILDREN: { to: string; label: string }[] = [
+  { to: "/admin/wallets/withdrawals", label: "Overview" },
+  { to: "/admin/wallets/withdrawals/all", label: "All Withdrawals" },
+];
+
 function useGiftcardNav(): NavItem[] {
   const pending = usePendingCount();
   return [
@@ -41,6 +51,20 @@ function useGiftcardNav(): NavItem[] {
     { to: "/admin/giftcards/brands", label: "Brands", icon: Gift, matchPrefix: "/admin/giftcards/brands" },
     { to: "/admin/giftcards/catalog", label: "Catalog", icon: BookOpen, matchPrefix: "/admin/giftcards/catalog", children: CATALOG_CHILDREN },
     { to: "/admin/giftcards/users", label: "Users", icon: Users, matchPrefix: "/admin/giftcards/users" },
+  ];
+}
+
+function useWalletsNav(): NavItem[] {
+  const pendingWd = usePendingWithdrawalsCount();
+  return [
+    {
+      to: "/admin/wallets/withdrawals",
+      label: "Withdrawals",
+      icon: Banknote,
+      badge: pendingWd || undefined,
+      matchPrefix: "/admin/wallets/withdrawals",
+      children: WITHDRAWAL_CHILDREN,
+    },
   ];
 }
 
@@ -182,8 +206,10 @@ function SidebarFooter() {
 
 function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   const giftcardNav = useGiftcardNav();
+  const walletsNav = useWalletsNav();
   const products: Product[] = [
     { id: "giftcards", label: "Giftcards", icon: Gift, items: giftcardNav },
+    { id: "wallets", label: "Wallets", icon: Wallet, items: walletsNav },
     { id: "vas", label: "VAS", icon: Wallet, comingSoon: true },
     { id: "crypto", label: "Crypto", icon: Bitcoin, comingSoon: true },
   ];
@@ -206,6 +232,7 @@ function deriveTitle(pathname: string): string {
   if (pathname.startsWith("/admin/giftcards/catalog")) return "Catalog";
   if (pathname.startsWith("/admin/giftcards/users")) return "User Management";
   if (pathname.startsWith("/admin/giftcards/dashboard")) return "Dashboard";
+  if (pathname.startsWith("/admin/wallets/withdrawals")) return "Withdrawals";
   return "Plut Admin";
 }
 
