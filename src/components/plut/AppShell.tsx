@@ -16,7 +16,22 @@ function usePendingCount() {
   return data?.pendingReview ?? 0;
 }
 
-type NavItem = { to: string; label: string; icon: typeof LayoutGrid; badge?: number; matchPrefix?: string };
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof LayoutGrid;
+  badge?: number;
+  matchPrefix?: string;
+  children?: { to: string; label: string }[];
+};
+
+const CATALOG_CHILDREN: { to: string; label: string }[] = [
+  { to: "/admin/giftcards/catalog/countries", label: "Countries" },
+  { to: "/admin/giftcards/catalog/denominations", label: "Denominations" },
+  { to: "/admin/giftcards/catalog/rates", label: "Rates" },
+  { to: "/admin/giftcards/catalog/fx", label: "FX Rates" },
+  { to: "/admin/giftcards/catalog/payout", label: "Payout Currencies" },
+];
 
 function useGiftcardNav(): NavItem[] {
   const pending = usePendingCount();
@@ -24,7 +39,7 @@ function useGiftcardNav(): NavItem[] {
     { to: "/admin/giftcards/dashboard", label: "Dashboard", icon: LayoutGrid },
     { to: "/admin/giftcards/trades", label: "Trades", icon: ArrowLeftRight, badge: pending || undefined, matchPrefix: "/admin/giftcards/trades" },
     { to: "/admin/giftcards/brands", label: "Brands", icon: Gift, matchPrefix: "/admin/giftcards/brands" },
-    { to: "/admin/giftcards/catalog", label: "Catalog", icon: BookOpen, matchPrefix: "/admin/giftcards/catalog" },
+    { to: "/admin/giftcards/catalog", label: "Catalog", icon: BookOpen, matchPrefix: "/admin/giftcards/catalog", children: CATALOG_CHILDREN },
     { to: "/admin/giftcards/users", label: "Users", icon: Users, matchPrefix: "/admin/giftcards/users" },
   ];
 }
@@ -45,6 +60,50 @@ function Logo() {
 
 function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: string; onNavigate?: () => void }) {
   const active = item.matchPrefix ? pathname.startsWith(item.matchPrefix) : pathname === item.to;
+  const [expanded, setExpanded] = useState(active);
+
+  if (item.children && item.children.length > 0) {
+    const open = expanded || active;
+    return (
+      <div>
+        <button
+          type="button"
+          onClick={() => setExpanded((e) => !e)}
+          className={cn(
+            "relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            active ? "bg-primary/12 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+          )}
+        >
+          {active && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-primary" />}
+          <item.icon className="h-4 w-4" />
+          <span className="flex-1 text-left">{item.label}</span>
+          <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", !open && "-rotate-90")} />
+        </button>
+        {open && (
+          <div className="mt-0.5 ml-6 flex flex-col gap-0.5 border-l border-border pl-2">
+            {item.children.map((c) => {
+              const cActive = pathname.startsWith(c.to);
+              return (
+                <Link
+                  key={c.to}
+                  to={c.to}
+                  preload="intent"
+                  onClick={onNavigate}
+                  className={cn(
+                    "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                    cActive ? "bg-primary/12 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                  )}
+                >
+                  {c.label}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <Link
       to={item.to}
