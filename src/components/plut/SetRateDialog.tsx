@@ -5,9 +5,8 @@ import type { DenomRateContext } from "./SetRateDialog.body";
 
 export type { DenomRateContext } from "./SetRateDialog.body";
 
-// Lazy-load the heavy body so clicking Update/Set Rate paints the modal
-// instantly with a skeleton instead of freezing while React mounts ~540
-// lines of form + Radix popovers.
+// Lazy-load the heavy body so the Dialog shell paints instantly with a
+// skeleton on first click. Subsequent opens reuse the cached chunk.
 const SetRateDialogBody = lazy(() =>
   import("./SetRateDialog.body").then((m) => ({ default: m.SetRateDialogBody })),
 );
@@ -22,52 +21,34 @@ export function SetRateDialog({
   const open = denom !== null;
 
   return (
-    <>
-      {/* Shell renders immediately so the user gets visual feedback on click */}
-      <Suspense fallback={null}>
-        {open && <SetRateDialogBody denom={denom} onClose={onClose} />}
-      </Suspense>
-
-      {/* Fallback shell — only visible during the brief lazy-load window */}
-      <FallbackShell open={open} denom={denom} onClose={onClose} />
-    </>
-  );
-}
-
-function FallbackShell({
-  open,
-  denom,
-  onClose,
-}: {
-  open: boolean;
-  denom: DenomRateContext | null;
-  onClose: () => void;
-}) {
-  // Once the lazy body mounts, IT owns the Dialog. We only render the shell
-  // before the chunk resolves. Detect that via a tiny module flag.
-  if (!open || bodyLoaded) return null;
-  return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-xl p-0">
-        <DialogHeader className="border-b px-5 py-3.5">
-          <DialogTitle className="text-sm font-semibold">
-            {denom?.activeRate ? "Update Rate" : "Set Rate"}
-          </DialogTitle>
-          <DialogDescription className="text-xs">
-            Loading rate editor…
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex items-center justify-center gap-2 px-5 py-16 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Preparing form…
-        </div>
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-xl max-h-[92vh] overflow-y-auto p-0">
+        {denom ? (
+          <Suspense fallback={<RateFormSkeleton title={denom.activeRate ? "Update Rate" : "Set Rate"} />}>
+            <SetRateDialogBody denom={denom} onClose={onClose} />
+          </Suspense>
+        ) : null}
       </DialogContent>
     </Dialog>
   );
 }
 
-// Set to true after the lazy chunk has loaded once, so the fallback never
-// flashes on subsequent opens.
-let bodyLoaded = false;
-import("./SetRateDialog.body").then(() => {
-  bodyLoaded = true;
-});
+function RateFormSkeleton({ title }: { title: string }) {
+  return (
+    <>
+      <DialogHeader className="border-b px-5 py-3.5">
+        <DialogTitle className="text-sm font-semibold">{title}</DialogTitle>
+        <DialogDescription className="text-xs">Loading rate editor…</DialogDescription>
+      </DialogHeader>
+      <div className="space-y-3 px-5 py-6">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> Preparing form…
+        </div>
+        <div className="h-9 animate-pulse rounded-md bg-secondary/60" />
+        <div className="h-9 animate-pulse rounded-md bg-secondary/60" />
+        <div className="h-24 animate-pulse rounded-md bg-secondary/40" />
+        <div className="h-9 animate-pulse rounded-md bg-secondary/60" />
+      </div>
+    </>
+  );
+}
