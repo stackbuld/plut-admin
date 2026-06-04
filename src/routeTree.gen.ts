@@ -21,6 +21,7 @@ import { Route as AppAdminGiftcardsBrandsRouteImport } from './routes/_app.admin
 import { Route as AppAdminGiftcardsCatalogIndexRouteImport } from './routes/_app.admin.giftcards.catalog.index'
 import { Route as AppAdminGiftcardsUsersUserIdRouteImport } from './routes/_app.admin.giftcards.users.$userId'
 import { Route as AppAdminGiftcardsTradesTradeIdRouteImport } from './routes/_app.admin.giftcards.trades.$tradeId'
+import { Route as AppAdminGiftcardsCatalogDenominationsRouteImport } from './routes/_app.admin.giftcards.catalog.denominations'
 import { Route as AppAdminGiftcardsCatalogCountriesRouteImport } from './routes/_app.admin.giftcards.catalog.countries'
 import { Route as AppAdminGiftcardsBrandsBrandIdRouteImport } from './routes/_app.admin.giftcards.brands.$brandId'
 
@@ -88,6 +89,12 @@ const AppAdminGiftcardsTradesTradeIdRoute =
     path: '/$tradeId',
     getParentRoute: () => AppAdminGiftcardsTradesRoute,
   } as any)
+const AppAdminGiftcardsCatalogDenominationsRoute =
+  AppAdminGiftcardsCatalogDenominationsRouteImport.update({
+    id: '/denominations',
+    path: '/denominations',
+    getParentRoute: () => AppAdminGiftcardsCatalogRoute,
+  } as any)
 const AppAdminGiftcardsCatalogCountriesRoute =
   AppAdminGiftcardsCatalogCountriesRouteImport.update({
     id: '/countries',
@@ -112,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
   '/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
+  '/admin/giftcards/catalog/denominations': typeof AppAdminGiftcardsCatalogDenominationsRoute
   '/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
   '/admin/giftcards/catalog/': typeof AppAdminGiftcardsCatalogIndexRoute
@@ -126,6 +134,7 @@ export interface FileRoutesByTo {
   '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
   '/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
+  '/admin/giftcards/catalog/denominations': typeof AppAdminGiftcardsCatalogDenominationsRoute
   '/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
   '/admin/giftcards/catalog': typeof AppAdminGiftcardsCatalogIndexRoute
@@ -143,6 +152,7 @@ export interface FileRoutesById {
   '/_app/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
   '/_app/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/_app/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
+  '/_app/admin/giftcards/catalog/denominations': typeof AppAdminGiftcardsCatalogDenominationsRoute
   '/_app/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/_app/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
   '/_app/admin/giftcards/catalog/': typeof AppAdminGiftcardsCatalogIndexRoute
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/admin/giftcards/users'
     | '/admin/giftcards/brands/$brandId'
     | '/admin/giftcards/catalog/countries'
+    | '/admin/giftcards/catalog/denominations'
     | '/admin/giftcards/trades/$tradeId'
     | '/admin/giftcards/users/$userId'
     | '/admin/giftcards/catalog/'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/admin/giftcards/users'
     | '/admin/giftcards/brands/$brandId'
     | '/admin/giftcards/catalog/countries'
+    | '/admin/giftcards/catalog/denominations'
     | '/admin/giftcards/trades/$tradeId'
     | '/admin/giftcards/users/$userId'
     | '/admin/giftcards/catalog'
@@ -190,6 +202,7 @@ export interface FileRouteTypes {
     | '/_app/admin/giftcards/users'
     | '/_app/admin/giftcards/brands/$brandId'
     | '/_app/admin/giftcards/catalog/countries'
+    | '/_app/admin/giftcards/catalog/denominations'
     | '/_app/admin/giftcards/trades/$tradeId'
     | '/_app/admin/giftcards/users/$userId'
     | '/_app/admin/giftcards/catalog/'
@@ -287,6 +300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminGiftcardsTradesTradeIdRouteImport
       parentRoute: typeof AppAdminGiftcardsTradesRoute
     }
+    '/_app/admin/giftcards/catalog/denominations': {
+      id: '/_app/admin/giftcards/catalog/denominations'
+      path: '/denominations'
+      fullPath: '/admin/giftcards/catalog/denominations'
+      preLoaderRoute: typeof AppAdminGiftcardsCatalogDenominationsRouteImport
+      parentRoute: typeof AppAdminGiftcardsCatalogRoute
+    }
     '/_app/admin/giftcards/catalog/countries': {
       id: '/_app/admin/giftcards/catalog/countries'
       path: '/countries'
@@ -320,6 +340,7 @@ const AppAdminGiftcardsBrandsRouteWithChildren =
 
 interface AppAdminGiftcardsCatalogRouteChildren {
   AppAdminGiftcardsCatalogCountriesRoute: typeof AppAdminGiftcardsCatalogCountriesRoute
+  AppAdminGiftcardsCatalogDenominationsRoute: typeof AppAdminGiftcardsCatalogDenominationsRoute
   AppAdminGiftcardsCatalogIndexRoute: typeof AppAdminGiftcardsCatalogIndexRoute
 }
 
@@ -327,6 +348,8 @@ const AppAdminGiftcardsCatalogRouteChildren: AppAdminGiftcardsCatalogRouteChildr
   {
     AppAdminGiftcardsCatalogCountriesRoute:
       AppAdminGiftcardsCatalogCountriesRoute,
+    AppAdminGiftcardsCatalogDenominationsRoute:
+      AppAdminGiftcardsCatalogDenominationsRoute,
     AppAdminGiftcardsCatalogIndexRoute: AppAdminGiftcardsCatalogIndexRoute,
   }
 
