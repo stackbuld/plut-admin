@@ -27,6 +27,16 @@ import { formatDate, formatDateTime, currencySymbol } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/admin/giftcards/catalog")({
   head: () => ({ meta: [{ title: "Catalog — Plut Admin" }] }),
+  loader: ({ context }) => {
+    // Warm the cache for every tab so switching tabs / opening Set Rate is instant.
+    const qc = context.queryClient;
+    qc.prefetchQuery(countryQueries.list());
+    qc.prefetchQuery(brandQueries.list());
+    qc.prefetchQuery(denominationQueries.list({ PageSize: 100 }));
+    qc.prefetchQuery(rateQueries.list({ PageSize: 100 }));
+    qc.prefetchQuery(fxRateQueries.current());
+    qc.prefetchQuery(payoutCurrencyQueries.list());
+  },
   component: Catalog,
 });
 
