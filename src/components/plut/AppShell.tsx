@@ -27,7 +27,7 @@ type NavItem = {
   icon: typeof LayoutGrid;
   badge?: number;
   matchPrefix?: string;
-  children?: { to: string; label: string }[];
+  children?: { to: string; label: string; exact?: boolean }[];
 };
 
 const CATALOG_CHILDREN: { to: string; label: string }[] = [
@@ -39,7 +39,7 @@ const CATALOG_CHILDREN: { to: string; label: string }[] = [
 ];
 
 const WITHDRAWAL_CHILDREN: { to: string; label: string }[] = [
-  { to: "/admin/wallets/withdrawals", label: "Overview" },
+  { to: "/admin/wallets/withdrawals", label: "Overview", exact: true } as { to: string; label: string; exact?: boolean },
   { to: "/admin/wallets/withdrawals/all", label: "All Withdrawals" },
 ];
 
@@ -106,7 +106,9 @@ function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: stri
         {open && (
           <div className="mt-0.5 ml-6 flex flex-col gap-0.5 border-l border-border pl-2">
             {item.children.map((c) => {
-              const cActive = pathname === c.to || pathname.startsWith(c.to + "/");
+              const cActive = c.exact
+                ? pathname === c.to
+                : pathname === c.to || pathname.startsWith(c.to + "/");
               return (
                 <Link
                   key={c.to}
