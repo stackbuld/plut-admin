@@ -5,3 +5,4 @@ export * from "./trades";
 export * from "./brands";
 export * from "./catalog";
 export * from "./users";
+export * from "./withdrawals";
