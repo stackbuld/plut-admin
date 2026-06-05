@@ -14,7 +14,7 @@ export type AdminWithdrawal = {
   withdrawalId: string;
   walletId: string;
   userId: string;
-  userName: string;
+  userName?: string; // not yet in API — backend to add
   status: WithdrawalStatus;
   amount: number;
   fee: number;
@@ -25,14 +25,14 @@ export type AdminWithdrawal = {
   bankCode: string;
   bankName: string;
   accountNumber: string;
-  accountName: string;
+  accountName: string | null;
   failureReason: string | null;
   approvalMethod: ApprovalMethod | null;
   settledBy: string | null;
   createdAt: string;
   completedAt: string | null;
-  walletBalance: number;
-  estimatedArrival: string;
+  walletBalance?: number; // not yet in API — backend to add
+  estimatedArrival?: string; // not yet in API — backend to add
 };
 
 export type WithdrawalsSummary = {

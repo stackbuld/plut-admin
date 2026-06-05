@@ -84,7 +84,7 @@ function WithdrawalDetail() {
           <Row label="User" value={w.userName} />
           <Row label="User ID" value={truncId(w.userId, 16)} mono />
           <Row label="Wallet ID" value={truncId(w.walletId, 16)} mono />
-          <Row label="Wallet Balance" value={formatNgn(w.walletBalance)} mono />
+          <Row label="Wallet Balance" value={w.walletBalance != null ? formatNgn(w.walletBalance) : undefined} mono />
         </Section>
 
         <Section title="Reference">
@@ -128,12 +128,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Row({ label, value, strong, mono }: { label: string; value: string; strong?: boolean; mono?: boolean }) {
+function Row({ label, value, strong, mono }: { label: string; value: string | null | undefined; strong?: boolean; mono?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
       <span className="text-muted-foreground">{label}</span>
       <span className={(mono ? "font-mono text-xs " : "") + (strong ? "font-semibold" : "")}>
-        {value}
+        {value ?? "—"}
       </span>
     </div>
   );

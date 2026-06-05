@@ -57,7 +57,7 @@ function WithdrawalsList() {
     const q = query.toLowerCase();
     return all.filter(
       (w) =>
-        w.userName.toLowerCase().includes(q) ||
+        w.userName?.toLowerCase().includes(q) ||
         w.reference.toLowerCase().includes(q) ||
         w.accountNumber.includes(q),
     );

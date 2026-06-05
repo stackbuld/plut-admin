@@ -1,27 +1,41 @@
 import { queryOptions } from "@tanstack/react-query";
-import {
-  mockApproveWithdrawal,
-  mockGetSummary,
-  mockGetWithdrawal,
-  mockListWithdrawals,
-  mockRejectWithdrawal,
-} from "@/data/mock-withdrawals";
+import { mockGetSummary } from "@/data/mock-withdrawals";
+import { apiGet, apiPost, buildQs } from "./client";
 import type {
+  AdminWithdrawal,
   ApproveWithdrawalBody,
   ListWithdrawalsParams,
   RejectWithdrawalBody,
+  WithdrawalsSummary,
 } from "./types/withdrawals.types";
+import type { PagedResult } from "./types";
 
-// ── Fetchers (mock — swap with apiGet/apiPost when the real API is live) ─────
+// ── Fetchers ──────────────────────────────────────────────────────────────────
 
-export const fetchWithdrawalsSummary = () => mockGetSummary();
-export const listWithdrawals = (p: ListWithdrawalsParams = {}) => mockListWithdrawals(p);
-export const getWithdrawal = (id: string) => mockGetWithdrawal(id);
+// No summary endpoint yet — still mocked
+export const fetchWithdrawalsSummary = (): Promise<WithdrawalsSummary> =>
+  mockGetSummary();
+
+export const listWithdrawals = (p: ListWithdrawalsParams = {}) => {
+  const params: Record<string, unknown> = {};
+  if (p.status && p.status !== "All") params.Status = p.status;
+  if (p.userId) params.UserId = p.userId;
+  if (p.walletId) params.WalletId = p.walletId;
+  if (p.dateFrom) params.DateFrom = p.dateFrom;
+  if (p.dateTo) params.DateTo = p.dateTo;
+  if (p.page) params.Page = p.page;
+  if (p.pageSize) params.PageSize = p.pageSize;
+  return apiGet<PagedResult<AdminWithdrawal>>(`/api/admin/Withdrawals${buildQs(params)}`);
+};
+
+export const getWithdrawal = (id: string) =>
+  apiGet<AdminWithdrawal>(`/api/admin/Withdrawals/${id}`);
 
 export const approveWithdrawal = (id: string, body: ApproveWithdrawalBody) =>
-  mockApproveWithdrawal(id, body);
+  apiPost<void>(`/api/admin/Withdrawals/${id}/approve`, body);
+
 export const rejectWithdrawal = (id: string, body: RejectWithdrawalBody) =>
-  mockRejectWithdrawal(id, body);
+  apiPost<void>(`/api/admin/Withdrawals/${id}/reject`, body);
 
 // ── Query keys & options ─────────────────────────────────────────────────────
 

@@ -184,7 +184,7 @@ export async function mockListWithdrawals(
     const q = params.query.toLowerCase();
     items = items.filter(
       (w) =>
-        w.userName.toLowerCase().includes(q) ||
+        w.userName?.toLowerCase().includes(q) ||
         w.reference.toLowerCase().includes(q) ||
         w.accountNumber.includes(q),
     );
