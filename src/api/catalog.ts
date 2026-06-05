@@ -140,3 +140,19 @@ export const payoutCurrencyQueries = {
       staleTime: 10 * 60_000,
     }),
 };
+
+// ── Acquisition Currencies ────────────────────────────────────────────────────
+
+export type AcquisitionCurrencyItem = { code: string; name: string; symbol: string };
+
+export const listAcquisitionCurrencies = () =>
+  apiGet<AcquisitionCurrencyItem[]>("/giftcards/v1/admin/acquisition-currencies");
+
+export const acquisitionCurrencyQueries = {
+  list: () =>
+    queryOptions({
+      queryKey: ["admin", "acquisition-currencies"] as const,
+      queryFn: listAcquisitionCurrencies,
+      staleTime: 30 * 60_000,
+    }),
+};

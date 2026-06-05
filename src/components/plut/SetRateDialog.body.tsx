@@ -8,7 +8,7 @@ import { DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  fxRateQueries, payoutCurrencyQueries,
+  fxRateQueries, payoutCurrencyQueries, acquisitionCurrencyQueries,
   createRate, setFxRate,
   queryKeys,
   type BrandRateDetail,
@@ -27,9 +27,6 @@ export type DenomRateContext = {
 
 type CustomerMode = "profit" | "payout" | "markup";
 
-const ACQ_META: Record<string, { symbol: string; name: string }> = {
-  CNY: { symbol: "¥", name: "Chinese Yuan (RMB)" },
-};
 
 export function SetRateDialogBody({ denom, onClose }: { denom: DenomRateContext | null; onClose: () => void }) {
   const open = denom !== null;
@@ -37,20 +34,10 @@ export function SetRateDialogBody({ denom, onClose }: { denom: DenomRateContext 
 
   const { data: fxRatesData } = useQuery({ ...fxRateQueries.current(), enabled: open });
   const { data: payoutsData } = useQuery({ ...payoutCurrencyQueries.list(), enabled: open });
+  const { data: acqCursData } = useQuery({ ...acquisitionCurrencyQueries.list(), enabled: open });
 
   const allPayouts = (payoutsData ?? []).filter((p) => p.isActive);
-
-  // Derive acquisition currencies: non-USD base FX rates that aren't payout currencies
-  const payoutCodes = new Set(allPayouts.map((p) => p.code));
-  const acqCurs = (fxRatesData ?? [])
-    .filter((f) => f.baseCurrency !== "USD" && !payoutCodes.has(f.baseCurrency))
-    .reduce<{ code: string; symbol: string; name: string }[]>((acc, f) => {
-      if (!acc.find((a) => a.code === f.baseCurrency)) {
-        const m = ACQ_META[f.baseCurrency] ?? { symbol: f.baseCurrency, name: f.baseCurrency };
-        acc.push({ code: f.baseCurrency, ...m });
-      }
-      return acc;
-    }, []);
+  const acqCurs = acqCursData ?? [];
 
   const getFxFromApi = (base: string, quote: string) =>
     fxRatesData?.find((f) => f.baseCurrency === base && f.quoteCurrency === quote)?.rate ?? 0;

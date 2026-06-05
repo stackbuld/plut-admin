@@ -10,17 +10,8 @@ import type {
 
 // ── Users ─────────────────────────────────────────────────────────────────────
 
-// The API returns { users: [...] } — normalise to standard PagedResult shape
-export const listAdminUsers = async (params: ListUsersParams = {}): Promise<PagedResult<UserListItem>> => {
-  const raw = await apiGet<{
-    users: UserListItem[];
-    totalCount: number;
-    page: number;
-    pageSize: number;
-    totalPages?: number;
-  }>(`/api/v1/admin/users${buildQs(params)}`);
-  return { items: raw.users, totalCount: raw.totalCount, page: raw.page, pageSize: raw.pageSize, totalPages: raw.totalPages };
-};
+export const listAdminUsers = (params: ListUsersParams = {}) =>
+  apiGet<PagedResult<UserListItem>>(`/api/v1/admin/users${buildQs(params)}`);
 
 export const getAdminUser = (userId: string) =>
   apiGet<UserDetail>(`/api/v1/admin/users/${userId}`);
