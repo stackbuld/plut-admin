@@ -110,6 +110,9 @@ export function SetRateDialogBody({ denom, onClose }: { denom: DenomRateContext 
         description: `Mkt $${marketRateUsd.toFixed(4)} · Cust $${customerRateUsd.toFixed(4)} · ${marginPctCalc.toFixed(1)}% margin`,
       });
       qc.invalidateQueries({ queryKey: queryKeys.fxRates.all() });
+      qc.invalidateQueries({ queryKey: queryKeys.brands.all() });
+      qc.invalidateQueries({ queryKey: queryKeys.rates.all() });
+      qc.invalidateQueries({ queryKey: queryKeys.denominations.all() });
       onClose();
     },
     onError: (e: Error) => toast.error(e.message),
