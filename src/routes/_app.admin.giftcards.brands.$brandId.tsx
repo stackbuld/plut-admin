@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Pause, Plus, AlertTriangle, MoreHorizontal, Info, Loader2, Camera, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -33,7 +33,7 @@ function BrandDetail() {
   const [rateFor, setRateFor] = useState<DenomRateContext | null>(null);
   const [addDenomCountry, setAddDenomCountry] = useState<{ id: string; name: string; code: string; currencyCode: string } | null>(null);
   const [confirmPause, setConfirmPause] = useState(false);
-  const [editImageOpen, setEditImageOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const toggleBrandMutation = useMutation({
     mutationFn: () => updateBrand(brandId, { isActive: !brand?.isActive }),
@@ -80,10 +80,10 @@ function BrandDetail() {
           <div
             role="button"
             tabIndex={0}
-            title="Edit brand image"
+            title="Edit brand"
             className="group relative grid h-14 w-14 cursor-pointer place-items-center overflow-hidden rounded-xl bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={() => setEditImageOpen(true)}
-            onKeyDown={(e) => e.key === "Enter" && setEditImageOpen(true)}
+            onClick={() => setEditOpen(true)}
+            onKeyDown={(e) => e.key === "Enter" && setEditOpen(true)}
           >
             {brand.imageUrl
               ? <img src={brand.imageUrl} alt={brand.name} className="h-full w-full object-contain p-1" />
@@ -100,9 +100,14 @@ function BrandDetail() {
           </div>
           <StatusBadge status={brand.isActive ? "Active" : "Paused"} className="ml-2" />
         </div>
-        <Button variant="outline" size="sm" onClick={() => setConfirmPause(true)}>
-          <Pause className="h-3.5 w-3.5" /> {brand.isActive ? "Pause" : "Resume"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+            Edit Brand
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setConfirmPause(true)}>
+            <Pause className="h-3.5 w-3.5" /> {brand.isActive ? "Pause" : "Resume"}
+          </Button>
+        </div>
       </div>
 
       <div>
@@ -128,7 +133,7 @@ function BrandDetail() {
         )}
       </div>
 
-      <EditImageDialog open={editImageOpen} brandId={brandId} onClose={() => setEditImageOpen(false)} />
+      <EditBrandDialog open={editOpen} brand={brand} onClose={() => setEditOpen(false)} />
       <SetRateDialog denom={rateFor} onClose={() => setRateFor(null)} />
       <AddDenominationDialog
         open={addDenomCountry !== null}
@@ -179,7 +184,7 @@ function ImageUploadField({ preview, onChange }: {
     <div
       role="button"
       tabIndex={0}
-      className="relative mx-auto flex h-32 w-32 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/30 bg-secondary/40 transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="relative mx-auto flex h-28 w-28 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/30 bg-secondary/40 transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       onClick={() => inputRef.current?.click()}
       onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
     >
@@ -187,13 +192,13 @@ function ImageUploadField({ preview, onChange }: {
         <>
           <img src={preview} alt="Preview" className="h-full w-full rounded-xl object-contain p-2" />
           <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/50 opacity-0 transition-opacity hover:opacity-100">
-            <Camera className="h-6 w-6 text-white" />
+            <Camera className="h-5 w-5 text-white" />
           </div>
         </>
       ) : (
         <div className="flex flex-col items-center gap-2 text-muted-foreground">
           <Upload className="h-6 w-6" />
-          <span className="text-xs">Click to upload</span>
+          <span className="text-xs">Upload logo</span>
         </div>
       )}
       <input
@@ -207,10 +212,18 @@ function ImageUploadField({ preview, onChange }: {
   );
 }
 
-function EditImageDialog({ open, brandId, onClose }: { open: boolean; brandId: string; onClose: () => void }) {
+function EditBrandDialog({ open, brand, onClose }: {
+  open: boolean;
+  brand: { id: string; name: string; imageUrl: string };
+  onClose: () => void;
+}) {
   const qc = useQueryClient();
+  const [name, setName] = useState(brand.name);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Sync name if brand prop changes while dialog is closed
+  useEffect(() => { if (!open) { setName(brand.name); } }, [open, brand.name]);
 
   const reset = () => {
     if (imagePreview) URL.revokeObjectURL(imagePreview);
@@ -219,12 +232,17 @@ function EditImageDialog({ open, brandId, onClose }: { open: boolean; brandId: s
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!imageFile) return;
-      const [result] = await uploadImage(imageFile);
-      await updateBrand(brandId, { imageUrl: result?.absoluteUrl });
+      const patch: { name?: string; imageUrl?: string } = {};
+      if (name.trim() && name.trim() !== brand.name) patch.name = name.trim();
+      if (imageFile) {
+        const [result] = await uploadImage(imageFile);
+        patch.imageUrl = result?.absoluteUrl;
+      }
+      if (!patch.name && !patch.imageUrl) return;
+      await updateBrand(brand.id, patch);
     },
     onSuccess: () => {
-      toast.success("Brand image updated.");
+      toast.success("Brand updated.");
       qc.invalidateQueries({ queryKey: queryKeys.brands.all() });
       reset();
       onClose();
@@ -232,19 +250,38 @@ function EditImageDialog({ open, brandId, onClose }: { open: boolean; brandId: s
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const isDirty = name.trim() !== brand.name || !!imageFile;
+
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) { reset(); onClose(); } }}>
-      <DialogContent className="max-w-xs">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Update Brand Image</DialogTitle>
-          <DialogDescription>Select a new logo image to upload.</DialogDescription>
+          <DialogTitle>Edit Brand</DialogTitle>
+          <DialogDescription>Update the brand name or logo.</DialogDescription>
         </DialogHeader>
-        <ImageUploadField preview={imagePreview} onChange={(file, preview) => { setImageFile(file); setImagePreview(preview); }} />
+        <div className="flex gap-4">
+          <ImageUploadField
+            preview={imagePreview ?? (brand.imageUrl || null)}
+            onChange={(file, preview) => { setImageFile(file); setImagePreview(preview); }}
+          />
+          <div className="flex-1 space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Brand name</label>
+              <input
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Brand name"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Click the logo to change the image.</p>
+          </div>
+        </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => { reset(); onClose(); }}>Cancel</Button>
-          <Button onClick={() => mutation.mutate()} disabled={!imageFile || mutation.isPending}>
+          <Button onClick={() => mutation.mutate()} disabled={!isDirty || mutation.isPending}>
             {mutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-            {mutation.isPending ? "Uploading…" : "Save"}
+            {mutation.isPending ? "Saving…" : "Save Changes"}
           </Button>
         </DialogFooter>
       </DialogContent>
