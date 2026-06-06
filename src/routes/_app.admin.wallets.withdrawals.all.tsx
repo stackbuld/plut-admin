@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { Check, Loader2, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,13 @@ import { ApproveWithdrawalDialog } from "@/components/plut/withdrawals/ApproveWi
 import { RejectWithdrawalDialog } from "@/components/plut/withdrawals/RejectWithdrawalDialog";
 import { relativeTime, truncId } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { TablePager } from "@/components/plut/catalog-shared";
 
 const STATUS_OPTIONS: (WithdrawalStatus | "All")[] = [
   "All", "PendingApproval", "PendingProvider", "Successful", "Failed", "Rejected",
 ];
+
+const DEFAULT_PAGE_SIZE = 20;
 
 type SearchState = { status?: WithdrawalStatus | "All" };
 
@@ -30,14 +33,27 @@ export const Route = createFileRoute("/_app/admin/wallets/withdrawals/all")({
 function WithdrawalsList() {
   const { status = "All" } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
+  const qc = useQueryClient();
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [toApprove, setToApprove] = useState<AdminWithdrawal | null>(null);
   const [toReject, setToReject] = useState<AdminWithdrawal | null>(null);
 
-  const { data, isLoading } = useQuery(
-    withdrawalQueries.list({ status, pageSize: 100 }),
+  // Reset to page 1 when filter changes
+  useEffect(() => { setPage(1); }, [status]);
+
+  const { data, isLoading, isFetching } = useQuery(
+    withdrawalQueries.list({ status, page, pageSize }),
   );
   const { data: summary } = useQuery(withdrawalQueries.summary());
+
+  // Prefetch next page
+  useEffect(() => {
+    if (data && page < data.totalPages) {
+      qc.prefetchQuery(withdrawalQueries.list({ status, page: page + 1, pageSize }));
+    }
+  }, [data, page, pageSize, status, qc]);
 
   const counts: Record<WithdrawalStatus | "All", number> = useMemo(() => ({
     All: summary?.totalCount ?? 0,
@@ -106,14 +122,15 @@ function WithdrawalsList() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => { setQuery(e.target.value); setPage(1); }}
             placeholder="Search by user, reference or account no."
             className="h-9 pl-9"
           />
         </div>
 
-        <span className="ml-auto text-xs text-muted-foreground">
-          {isLoading ? "Loading…" : `${items.length} result${items.length === 1 ? "" : "s"}`}
+        <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+          {isFetching && !isLoading && <Loader2 className="h-3 w-3 animate-spin" />}
+          {isLoading ? "Loading…" : `${(data?.totalCount ?? 0).toLocaleString()} withdrawal${(data?.totalCount ?? 0) === 1 ? "" : "s"}`}
         </span>
       </div>
 
@@ -143,6 +160,17 @@ function WithdrawalsList() {
             </Section>
           )}
         </div>
+      )}
+
+      {!isLoading && (data?.totalCount ?? 0) > 0 && (
+        <TablePager
+          page={page}
+          pageSize={pageSize}
+          total={data?.totalCount ?? 0}
+          onPageChange={setPage}
+          onPageSizeChange={(ps) => { setPageSize(ps); setPage(1); }}
+          noun="withdrawal"
+        />
       )}
 
       <ApproveWithdrawalDialog
