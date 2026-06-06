@@ -3,10 +3,13 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+ENV NITRO_PRESET=node-server
 RUN npm run build
 
-FROM nginx:alpine
-COPY --from=builder /app/dist/client /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+FROM node:22-alpine
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3043
+COPY --from=builder /app/dist ./dist
 EXPOSE 3043
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "dist/server/index.mjs"]
