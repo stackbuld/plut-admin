@@ -12,5 +12,7 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
-  nitro: true,
+  // Preset defaults to cloudflare-module (wrangler deploys); the Dockerfile
+  // sets NITRO_PRESET=node-server to build a plain node server for Coolify.
+  nitro: { preset: process.env.NITRO_PRESET || "cloudflare-module" },
 });
