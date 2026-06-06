@@ -20,7 +20,7 @@ import type {
 export const listCountries = () =>
   apiGet<CountryListItem[]>("/giftcards/v1/admin/countries");
 
-export const createCountry = (body: { countryCode: string; countryName: string }) =>
+export const createCountry = (body: { name: string; code: string; currencyCode: string }) =>
   apiPost<{ id: string }>("/giftcards/v1/admin/countries", body);
 
 export const countryQueries = {

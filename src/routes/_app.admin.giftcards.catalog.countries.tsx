@@ -21,15 +21,16 @@ function CountriesTab() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
+  const [currencyCode, setCurrencyCode] = useState("");
 
   const { data, isLoading } = useQuery(countryQueries.list());
 
   const mutation = useMutation({
-    mutationFn: () => createCountry({ countryCode: code.trim().toUpperCase(), countryName: name.trim() }),
+    mutationFn: () => createCountry({ name: name.trim(), code: code.trim().toUpperCase(), currencyCode: currencyCode.trim().toUpperCase() }),
     onSuccess: () => {
       toast.success("Country added.");
       qc.invalidateQueries({ queryKey: queryKeys.countries.all() });
-      setCode(""); setName(""); setOpen(false);
+      setCode(""); setName(""); setCurrencyCode(""); setOpen(false);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -94,13 +95,16 @@ function CountriesTab() {
             <Field label="Country name *">
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="United States" />
             </Field>
-            <Field label="Country code * (ISO 3166 Alpha-2)">
-              <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="US" maxLength={3} className="font-mono" />
+            <Field label="Country code * (ISO 3166-1 Alpha-2)">
+              <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="US" maxLength={2} className="font-mono" />
+            </Field>
+            <Field label="Currency code * (ISO 4217)">
+              <Input value={currencyCode} onChange={(e) => setCurrencyCode(e.target.value.toUpperCase())} placeholder="USD" maxLength={3} className="font-mono" />
             </Field>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={() => mutation.mutate()} disabled={!name.trim() || !code.trim() || mutation.isPending}>
+            <Button onClick={() => mutation.mutate()} disabled={!name.trim() || !code.trim() || !currencyCode.trim() || mutation.isPending}>
               {mutation.isPending ? "Adding…" : "Add Country"}
             </Button>
           </DialogFooter>
