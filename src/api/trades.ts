@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { apiGet, apiPost, getAdminUserId, buildQs } from "./client"; // getAdminUserId used by item-level actions
+import { apiGet, apiPost, getAdminUserId, buildQs } from "./client";
 import { queryKeys } from "./keys";
 import type { PagedResult, TradeListItem, TradeDetail, ListTradesParams, AdminDashboardStats } from "./types";
 
@@ -13,13 +13,23 @@ export const getTrade = (id: string) =>
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
 
-export const acceptTrade = (tradeId: string, overridePayout?: number) =>
-  apiPost<void>(`/giftcards/v1/admin/trades/${tradeId}/accept`, {
-    overridePayout: overridePayout ?? null,
+export const acceptTrade = (tradeId: string, overridePayout?: number) => {
+  const adminUserId = getAdminUserId();
+  if (!adminUserId) throw new Error("Not authenticated");
+  return apiPost<boolean>(`/giftcards/v1/admin/trades/${tradeId}/accept`, {
+    adminUserId,
+    ...(overridePayout != null ? { overridePayout } : {}),
   });
+};
 
-export const rejectTrade = (tradeId: string, reason: string) =>
-  apiPost<void>(`/giftcards/v1/admin/trades/${tradeId}/reject`, { reason });
+export const rejectTrade = (tradeId: string, reason: string) => {
+  const adminUserId = getAdminUserId();
+  if (!adminUserId) throw new Error("Not authenticated");
+  return apiPost<boolean>(`/giftcards/v1/admin/trades/${tradeId}/reject`, {
+    adminUserId,
+    reason,
+  });
+};
 
 export const approveTradeItem = (tradeId: string, itemId: string) => {
   const adminUserId = getAdminUserId();
