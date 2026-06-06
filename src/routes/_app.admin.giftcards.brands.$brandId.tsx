@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Pause, Plus, AlertTriangle, MoreHorizontal, Info, Loader2 } from "lucide-react";
+import { ArrowLeft, Pause, Plus, AlertTriangle, MoreHorizontal, Info, Loader2, Camera, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/plut/StatusBadge";
 import { SetRateDialog, type DenomRateContext } from "@/components/plut/SetRateDialog";
 import { AddDenominationDialog } from "@/components/plut/AddDenominationDialog";
@@ -13,7 +14,7 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  brandQueries, updateBrand, activateDenomination, deactivateDenomination,
+  brandQueries, updateBrand, uploadImage, activateDenomination, deactivateDenomination,
   queryKeys, type BrandDenominationDetail, type BrandCountryDetail,
 } from "@/api";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ function BrandDetail() {
   const [rateFor, setRateFor] = useState<DenomRateContext | null>(null);
   const [addDenomCountry, setAddDenomCountry] = useState<{ id: string; name: string; code: string; currencyCode: string } | null>(null);
   const [confirmPause, setConfirmPause] = useState(false);
+  const [editImageOpen, setEditImageOpen] = useState(false);
 
   const toggleBrandMutation = useMutation({
     mutationFn: () => updateBrand(brandId, { isActive: !brand?.isActive }),
@@ -75,10 +77,20 @@ function BrandDetail() {
 
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-card p-5">
         <div className="flex items-center gap-4">
-          <div className="grid h-14 w-14 place-items-center rounded-xl bg-secondary overflow-hidden">
+          <div
+            role="button"
+            tabIndex={0}
+            title="Edit brand image"
+            className="group relative grid h-14 w-14 cursor-pointer place-items-center overflow-hidden rounded-xl bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={() => setEditImageOpen(true)}
+            onKeyDown={(e) => e.key === "Enter" && setEditImageOpen(true)}
+          >
             {brand.imageUrl
               ? <img src={brand.imageUrl} alt={brand.name} className="h-full w-full object-contain p-1" />
               : <span className="text-2xl font-bold">{brand.name[0]}</span>}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+              <Camera className="h-4 w-4 text-white" />
+            </div>
           </div>
           <div>
             <h2 className="font-display text-2xl font-bold">{brand.name}</h2>
@@ -116,6 +128,7 @@ function BrandDetail() {
         )}
       </div>
 
+      <EditImageDialog open={editImageOpen} brandId={brandId} onClose={() => setEditImageOpen(false)} />
       <SetRateDialog denom={rateFor} onClose={() => setRateFor(null)} />
       <AddDenominationDialog
         open={addDenomCountry !== null}
@@ -149,6 +162,93 @@ function BrandDetail() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+function ImageUploadField({ preview, onChange }: {
+  preview: string | null;
+  onChange: (file: File, preview: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const handleFile = useCallback((file: File) => {
+    const url = URL.createObjectURL(file);
+    onChange(file, url);
+  }, [onChange]);
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      className="relative mx-auto flex h-32 w-32 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/30 bg-secondary/40 transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      onClick={() => inputRef.current?.click()}
+      onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
+    >
+      {preview ? (
+        <>
+          <img src={preview} alt="Preview" className="h-full w-full rounded-xl object-contain p-2" />
+          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/50 opacity-0 transition-opacity hover:opacity-100">
+            <Camera className="h-6 w-6 text-white" />
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-col items-center gap-2 text-muted-foreground">
+          <Upload className="h-6 w-6" />
+          <span className="text-xs">Click to upload</span>
+        </div>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }}
+      />
+    </div>
+  );
+}
+
+function EditImageDialog({ open, brandId, onClose }: { open: boolean; brandId: string; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const reset = () => {
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(null); setImagePreview(null);
+  };
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!imageFile) return;
+      const [result] = await uploadImage(imageFile);
+      await updateBrand(brandId, { imageUrl: result?.absoluteUrl });
+    },
+    onSuccess: () => {
+      toast.success("Brand image updated.");
+      qc.invalidateQueries({ queryKey: queryKeys.brands.all() });
+      reset();
+      onClose();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { if (!o) { reset(); onClose(); } }}>
+      <DialogContent className="max-w-xs">
+        <DialogHeader>
+          <DialogTitle>Update Brand Image</DialogTitle>
+          <DialogDescription>Select a new logo image to upload.</DialogDescription>
+        </DialogHeader>
+        <ImageUploadField preview={imagePreview} onChange={(file, preview) => { setImageFile(file); setImagePreview(preview); }} />
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => { reset(); onClose(); }}>Cancel</Button>
+          <Button onClick={() => mutation.mutate()} disabled={!imageFile || mutation.isPending}>
+            {mutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            {mutation.isPending ? "Uploading…" : "Save"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { apiGet, apiPost, apiPatch } from "./client";
+import { apiGet, apiPost, apiPatch, apiUpload } from "./client";
 import { queryKeys } from "./keys";
 import type { BrandListItem, BrandDetail } from "./types";
 
@@ -20,6 +20,12 @@ export const updateBrand = (
   id: string,
   body: { name?: string; isActive?: boolean; imageUrl?: string },
 ) => apiPatch<void>(`/giftcards/v1/admin/brands/${id}`, body);
+
+export const uploadImage = (file: File): Promise<{ relativeUrl: string; absoluteUrl: string }[]> => {
+  const fd = new FormData();
+  fd.append("files", file);
+  return apiUpload("/giftcards/v1/uploads", fd);
+};
 
 // ── Query options ─────────────────────────────────────────────────────────────
 

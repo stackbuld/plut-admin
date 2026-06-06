@@ -131,11 +131,11 @@ function DenominationsTab() {
                         <Link to="/admin/giftcards/brands/$brandId" params={{ brandId: d.brandId }} className="inline-flex items-center gap-2 hover:text-primary">
                           {b?.imageUrl
                             ? <img src={b.imageUrl} alt="" className="h-4 w-4 rounded object-contain" />
-                            : <span className="text-sm">{b?.name[0] ?? "?"}</span>}
-                          {d.brandName}
+                            : <span className="grid h-4 w-4 shrink-0 place-items-center rounded bg-secondary text-[10px] font-bold">{b?.name[0] ?? "?"}</span>}
+                          {b?.name ?? d.brandId}
                         </Link>
                       </td>
-                      <td className="px-6 py-3.5 text-muted-foreground">{c?.code ?? d.countryName}</td>
+                      <td className="px-6 py-3.5 text-muted-foreground">{c?.name ?? c?.code ?? d.countryId}</td>
                       <td className="px-6 py-3.5 font-mono">{currencySymbol(d.currencyCode)}{d.amount}</td>
                       <td className="px-6 py-3.5 font-mono text-xs text-muted-foreground">{d.currencyCode}</td>
                       <td className="px-6 py-3.5"><StatusBadge status={d.cardType} dot={false} /></td>

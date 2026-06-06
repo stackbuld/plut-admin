@@ -50,6 +50,23 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
 
 export const apiGet = <T>(path: string) => request<T>(path, { method: "GET" });
 
+export async function apiUpload<T>(path: string, formData: FormData): Promise<T> {
+  const token = getAccessToken();
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: "POST",
+    body: formData,
+    // No Content-Type — browser sets multipart/form-data with boundary automatically
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (res.status === 401) {
+    forceLogout();
+    throw new Error("Session expired. Redirecting to login…");
+  }
+  const envelope: Envelope<T> = await res.json();
+  if (!res.ok || !envelope.success) throw new Error(envelope.message ?? `HTTP ${res.status}`);
+  return envelope.data;
+}
+
 export const apiPost = <T>(path: string, body?: unknown) =>
   request<T>(path, {
     method: "POST",

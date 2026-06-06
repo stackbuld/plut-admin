@@ -1,13 +1,13 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Search, Loader2, Upload, Camera } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/plut/StatusBadge";
-import { brandQueries, createBrand, queryKeys } from "@/api";
+import { brandQueries, createBrand, uploadImage, queryKeys } from "@/api";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
 
@@ -127,47 +127,108 @@ function CreateBrandDialog({ open, onClose }: { open: boolean; onClose: () => vo
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const reset = () => {
+    setName(""); setCode("");
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(null); setImagePreview(null);
+  };
 
   const mutation = useMutation({
-    mutationFn: () => createBrand({ name: name.trim(), code: code.trim().toUpperCase(), imageUrl: imageUrl.trim() || undefined }),
+    mutationFn: async () => {
+      let resolvedImageUrl: string | undefined;
+      if (imageFile) {
+        const [result] = await uploadImage(imageFile);
+        resolvedImageUrl = result?.absoluteUrl;
+      }
+      return createBrand({ name: name.trim(), code: code.trim().toUpperCase(), imageUrl: resolvedImageUrl });
+    },
     onSuccess: () => {
       toast.success("Brand created.");
       qc.invalidateQueries({ queryKey: queryKeys.brands.all() });
-      setName(""); setCode(""); setImageUrl("");
+      reset();
       onClose();
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const statusText = mutation.isPending
+    ? imageFile ? "Uploading image…" : "Creating…"
+    : "Create Brand";
+
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) { reset(); onClose(); } }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create Brand</DialogTitle>
           <DialogDescription>Add a new gift card brand to the catalog.</DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Brand name *</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Apple" />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Code *</label>
-            <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="e.g. APPLE" className="font-mono" />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Image URL (optional)</label>
-            <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://…" />
+        <div className="flex gap-4">
+          <ImageUploadField preview={imagePreview} onChange={(file, preview) => { setImageFile(file); setImagePreview(preview); }} />
+          <div className="flex-1 space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Brand name *</label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Apple" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Code *</label>
+              <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="e.g. APPLE" className="font-mono" />
+            </div>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="ghost" onClick={() => { reset(); onClose(); }}>Cancel</Button>
           <Button onClick={() => mutation.mutate()} disabled={!name.trim() || !code.trim() || mutation.isPending}>
-            {mutation.isPending ? "Creating…" : "Create Brand"}
+            {mutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            {statusText}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ImageUploadField({ preview, onChange }: {
+  preview: string | null;
+  onChange: (file: File, preview: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = useCallback((file: File) => {
+    const url = URL.createObjectURL(file);
+    onChange(file, url);
+  }, [onChange]);
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      className="relative flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/30 bg-secondary/40 transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      onClick={() => inputRef.current?.click()}
+      onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
+    >
+      {preview ? (
+        <>
+          <img src={preview} alt="Preview" className="h-full w-full rounded-xl object-contain p-1" />
+          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/50 opacity-0 transition-opacity hover:opacity-100">
+            <Camera className="h-5 w-5 text-white" />
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-col items-center gap-1 text-muted-foreground">
+          <Upload className="h-5 w-5" />
+          <span className="text-[10px]">Upload logo</span>
+        </div>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }}
+      />
+    </div>
   );
 }

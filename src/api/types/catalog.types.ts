@@ -17,13 +17,12 @@ export type CardType = "Physical" | "ECode";
 export type DenominationListItem = {
   id: string;
   brandId: string;
-  brandName: string;
   countryId: string;
-  countryName: string;
   amount: number;
   currencyCode: string;
   cardType: CardType;
   isActive: boolean;
+  createdAt?: string;
 };
 
 export type ListDenominationsParams = {

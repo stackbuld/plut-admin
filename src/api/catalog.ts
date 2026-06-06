@@ -42,7 +42,8 @@ export const listDenominations = (params: ListDenominationsParams = {}) =>
 export const createDenomination = (body: {
   brandId: string;
   countryId: string;
-  value: number;
+  amount: number;
+  currencyCode: string;
   cardType?: CardType;
 }) => apiPost<{ id: string }>("/giftcards/v1/admin/denominations", body);
 

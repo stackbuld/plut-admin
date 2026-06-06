@@ -69,7 +69,8 @@ export function AddDenominationDialog({
       const { id: denomId } = await createDenomination({
         brandId: bId,
         countryId: cId,
-        value: faceNum,
+        amount: faceNum,
+        currencyCode: resolvedCurrency,
         cardType,
       });
 
