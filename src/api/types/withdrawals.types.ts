@@ -12,27 +12,27 @@ export type ApprovalMethod = "Provider" | "Manual";
 
 export type AdminWithdrawal = {
   withdrawalId: string;
-  walletId: string;
-  userId: string;
-  userName?: string; // not yet in API — backend to add
+  walletId?: string;
+  userId?: string;
+  userName?: string;
   status: WithdrawalStatus;
   amount: number;
   fee: number;
   totalAmount: number;
   currency: string;
   reference: string;
-  providerReference: string | null;
-  bankCode: string;
-  bankName: string;
-  accountNumber: string;
-  accountName: string | null;
-  failureReason: string | null;
-  approvalMethod: ApprovalMethod | null;
-  settledBy: string | null;
-  createdAt: string;
-  completedAt: string | null;
-  walletBalance?: number; // not yet in API — backend to add
-  estimatedArrival?: string; // not yet in API — backend to add
+  providerReference?: string | null;
+  bankCode?: string;
+  bankName?: string;
+  accountNumber?: string;
+  accountName?: string | null;
+  failureReason?: string | null;
+  approvalMethod?: ApprovalMethod | null;
+  settledBy?: string | null;
+  createdAt?: string;
+  completedAt?: string | null;
+  walletBalance?: number;
+  estimatedArrival?: string;
 };
 
 export type WithdrawalsSummary = {

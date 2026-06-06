@@ -174,11 +174,11 @@ export async function mockListWithdrawals(
   if (params.walletId) items = items.filter((w) => w.walletId === params.walletId);
   if (params.dateFrom) {
     const t = new Date(params.dateFrom).getTime();
-    items = items.filter((w) => new Date(w.createdAt).getTime() >= t);
+    items = items.filter((w) => new Date(w.createdAt!).getTime() >= t);
   }
   if (params.dateTo) {
     const t = new Date(params.dateTo).getTime();
-    items = items.filter((w) => new Date(w.createdAt).getTime() <= t);
+    items = items.filter((w) => new Date(w.createdAt!).getTime() <= t);
   }
   if (params.query) {
     const q = params.query.toLowerCase();
@@ -186,7 +186,7 @@ export async function mockListWithdrawals(
       (w) =>
         w.userName?.toLowerCase().includes(q) ||
         w.reference.toLowerCase().includes(q) ||
-        w.accountNumber.includes(q),
+        w.accountNumber!.includes(q),
     );
   }
 
@@ -195,7 +195,7 @@ export async function mockListWithdrawals(
     const ap = a.status === "PendingApproval" ? 0 : 1;
     const bp = b.status === "PendingApproval" ? 0 : 1;
     if (ap !== bp) return ap - bp;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    return new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime();
   });
 
   const totalCount = items.length;

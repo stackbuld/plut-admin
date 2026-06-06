@@ -59,7 +59,7 @@ function WithdrawalsList() {
       (w) =>
         w.userName?.toLowerCase().includes(q) ||
         w.reference.toLowerCase().includes(q) ||
-        w.accountNumber.includes(q),
+        w.accountNumber?.includes(q),
     );
   }, [data, query]);
 
@@ -195,10 +195,10 @@ function Row({
             <WithdrawalStatusBadge status={w.status} />
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            {w.bankName} · {maskAccount(w.accountNumber)}
+            {w.bankName ?? "—"} · {w.accountNumber ? maskAccount(w.accountNumber) : "—"}
           </p>
           <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-            {truncId(w.reference, 22)} · {relativeTime(w.createdAt)}
+            {truncId(w.reference, 22)} · {w.createdAt ? relativeTime(w.createdAt) : "—"}
           </p>
         </Link>
 

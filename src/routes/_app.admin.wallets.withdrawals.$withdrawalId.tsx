@@ -45,9 +45,11 @@ function WithdrawalDetail() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <WithdrawalStatusBadge status={w.status} />
-            <p className="mt-2 text-sm text-muted-foreground">
-              Submitted: {formatDateTime(w.createdAt)}
-            </p>
+            {w.createdAt && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Submitted: {formatDateTime(w.createdAt)}
+              </p>
+            )}
             {w.completedAt && (
               <p className="text-xs text-muted-foreground">
                 Completed: {formatDateTime(w.completedAt)}
@@ -76,14 +78,14 @@ function WithdrawalDetail() {
 
         <Section title="Destination">
           <Row label="Account Name" value={w.accountName} />
-          <Row label="Bank" value={`${w.bankName} (${w.bankCode})`} />
-          <Row label="Account No." value={maskAccount(w.accountNumber)} mono />
+          <Row label="Bank" value={w.bankName ? `${w.bankName}${w.bankCode ? ` (${w.bankCode})` : ""}` : undefined} />
+          <Row label="Account No." value={w.accountNumber ? maskAccount(w.accountNumber) : undefined} mono />
         </Section>
 
         <Section title="User Info">
           <Row label="User" value={w.userName} />
-          <Row label="User ID" value={truncId(w.userId, 16)} mono />
-          <Row label="Wallet ID" value={truncId(w.walletId, 16)} mono />
+          <Row label="User ID" value={w.userId ? truncId(w.userId, 16) : undefined} mono />
+          <Row label="Wallet ID" value={w.walletId ? truncId(w.walletId, 16) : undefined} mono />
           <Row label="Wallet Balance" value={w.walletBalance != null ? formatNgn(w.walletBalance) : undefined} mono />
         </Section>
 
