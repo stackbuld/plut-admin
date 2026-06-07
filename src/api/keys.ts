@@ -50,6 +50,11 @@ export const queryKeys = {
     list: () => queryKeys.payoutCurrencies.all(),
   },
 
+  acquisitionCurrencies: {
+    all: () => ["admin", "acquisition-currencies"] as const,
+    list: () => queryKeys.acquisitionCurrencies.all(),
+  },
+
   users: {
     all: () => ["admin", "users"] as const,
     lists: () => [...queryKeys.users.all(), "list"] as const,

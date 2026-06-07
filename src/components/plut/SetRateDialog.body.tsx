@@ -68,12 +68,17 @@ export function SetRateDialogBody({ denom, onClose }: { denom: DenomRateContext 
 
     const r = denom?.activeRate;
     if (r) {
-      setAcqCode("USD");
-      setSupplierInput(String(r.marketRateUsd));
+      const restoredCode = r.acquisitionCurrency ?? "CNY";
+      setAcqCode(restoredCode);
+      setSupplierInput(
+        r.acquisitionCurrency && r.acquisitionRatePerCardDollar != null
+          ? String(r.acquisitionRatePerCardDollar)
+          : String(r.marketRateUsd),
+      );
       setCustMode("markup");
       setMarkupPct(String(r.markupValue));
     } else {
-      setAcqCode("USD");
+      setAcqCode("CNY");
       setSupplierInput("");
       setCustMode("markup");
       setMarkupPct("8");
@@ -85,23 +90,31 @@ export function SetRateDialogBody({ denom, onClose }: { denom: DenomRateContext 
   const rateMutation = useMutation({
     mutationFn: async () => {
       if (!denom) return;
-      // Persist edited FX rates first
+      // Persist edited FX rates first; collect failures before touching the rate
+      const fxFailures: string[] = [];
       for (const [key, value] of Object.entries(fx)) {
         const [base, quote] = key.split("_");
         if (!base || !quote || !value) continue;
         const current = getFxFromApi(base, quote);
         if (current !== value) {
-          await setFxRate({ baseCurrency: base, quoteCurrency: quote, rate: value, source: "Admin" });
+          try {
+            await setFxRate({ baseCurrency: base, quoteCurrency: quote, rate: value, source: "Admin" });
+          } catch {
+            fxFailures.push(`${base}/${quote}`);
+          }
         }
       }
-      // Create the rate
+      if (fxFailures.length > 0) {
+        throw new Error(`Failed to save FX rate(s): ${fxFailures.join(", ")}. Rate not updated.`);
+      }
+      // Create the rate — send only the fields for the active mode (XOR enforced by backend)
       await createRate({
         denominationId: denom.id,
-        marketRateUsd,
+        marketRateUsd: acqCode === "USD" ? marketRateUsd : null,
         acquisitionCurrency: acqCode !== "USD" ? acqCode : null,
         acquisitionRatePerCardDollar: acqCode !== "USD" ? supplierNum : null,
         markupType: "Percentage",
-        markupValue: Number(marginPctCalc.toFixed(4)),
+        markupValue: Number(marginPctCalc.toFixed(6)),
         source: "Admin",
       });
     },
@@ -205,7 +218,6 @@ export function SetRateDialogBody({ denom, onClose }: { denom: DenomRateContext 
               <Select value={acqCode} onValueChange={switchAcqCurrency}>
                 <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="USD">USD — direct</SelectItem>
                   {acqCurs.map((a) => (
                     <SelectItem key={a.code} value={a.code}>{a.code} — {a.name}</SelectItem>
                   ))}
@@ -456,7 +468,7 @@ function ModeTab({ active, onClick, label, sub }: { active: boolean; onClick: ()
 function FxInline({ label, value, onChange, symbol, onRemove }: { label: string; base: string; quote: string; value: number; onChange: (n: number) => void; symbol: string; onRemove?: () => void }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(value));
-  useEffect(() => { setDraft(String(value)); }, [value]);
+  useEffect(() => { if (!editing) setDraft(String(value)); }, [value, editing]);
   return (
     <div className="rounded-md border bg-secondary/30 px-2.5 py-1.5">
       <div className="flex items-center justify-between gap-1">

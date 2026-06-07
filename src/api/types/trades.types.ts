@@ -41,12 +41,19 @@ export type TradeItem = {
   payoutCurrency: string;
   status: TradeItemStatus;
   rejectionReason: string | null;
+  // Catalog snapshot fields returned by the admin detail endpoint
+  brandName: string;
+  countryName: string;
+  countryCode: string;
+  cardFormat: string;
+  fxRateToPayoutCurrency: number;
 };
 
 export type TradeDetail = {
   id: string;
   customerId: string;
   quoteId: string;
+  quoteSnapshotJson: string;
   status: TradeStatus;
   payoutCurrency: string;
   totalCardValueUsd: number;

@@ -92,6 +92,8 @@ function RatesTab() {
       countryCode: r.countryName,
       activeRate: r.rateId ? {
         id: r.rateId,
+        acquisitionCurrency: r.acquisitionCurrency ?? null,
+        acquisitionRatePerCardDollar: r.acquisitionRatePerCardDollar ?? null,
         marketRateUsd: r.marketRateUsd,
         customerRateUsd: r.customerRateUsd,
         markupUsd: r.markupUsd,

@@ -1,13 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { countryQueries, createCountry, queryKeys } from "@/api";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { Field, TabLoader, EmptyRow } from "@/components/plut/catalog-shared";
+import { WORLD_COUNTRIES } from "@/data/countries";
 
 export const Route = createFileRoute("/_app/admin/giftcards/catalog/countries")({
   loader: ({ context }) => {
@@ -19,6 +23,7 @@ export const Route = createFileRoute("/_app/admin/giftcards/catalog/countries")(
 function CountriesTab() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [currencyCode, setCurrencyCode] = useState("");
@@ -30,10 +35,27 @@ function CountriesTab() {
     onSuccess: () => {
       toast.success("Country added.");
       qc.invalidateQueries({ queryKey: queryKeys.countries.all() });
-      setCode(""); setName(""); setCurrencyCode(""); setOpen(false);
+      resetForm();
+      setOpen(false);
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  function resetForm() {
+    setName(""); setCode(""); setCurrencyCode("");
+  }
+
+  function selectCountry(countryName: string) {
+    const match = WORLD_COUNTRIES.find((c) => c.name === countryName);
+    if (!match) return;
+    setName(match.name);
+    setCode(match.code);
+    setCurrencyCode(match.currencyCode);
+    setPickerOpen(false);
+  }
+
+  const selectedCountry = WORLD_COUNTRIES.find((c) => c.code === code && c.name === name);
+  const valid = name.trim() && code.trim().length === 2 && currencyCode.trim().length === 3;
 
   return (
     <div className="space-y-4">
@@ -85,26 +107,66 @@ function CountriesTab() {
         </div>
       )}
 
-      <Dialog open={open} onOpenChange={(o) => !o && setOpen(false)}>
+      <Dialog open={open} onOpenChange={(o) => { if (!o) { resetForm(); } setOpen(o); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Country</DialogTitle>
             <DialogDescription>Register a new country with its currency.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
+            {/* Searchable country picker */}
+            <Field label="Search country">
+              <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" aria-expanded={pickerOpen}
+                    className="w-full justify-between font-normal">
+                    {selectedCountry ? (
+                      <span className="flex items-center gap-2">
+                        <span className="font-mono text-xs text-muted-foreground">{selectedCountry.code}</span>
+                        {selectedCountry.name}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">Select a country…</span>
+                    )}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search countries…" />
+                    <CommandList>
+                      <CommandEmpty>No country found.</CommandEmpty>
+                      <CommandGroup>
+                        {WORLD_COUNTRIES.map((c) => (
+                          <CommandItem key={c.code} value={c.name} onSelect={selectCountry}>
+                            <Check className={cn("mr-2 h-4 w-4 shrink-0", selectedCountry?.code === c.code ? "opacity-100" : "opacity-0")} />
+                            <span className="flex-1">{c.name}</span>
+                            <span className="ml-2 font-mono text-xs text-muted-foreground">{c.code} · {c.currencyCode}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </Field>
+
+            {/* Editable fields — pre-filled from picker, overridable */}
             <Field label="Country name *">
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="United States" />
             </Field>
-            <Field label="Country code * (ISO 3166-1 Alpha-2)">
-              <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="US" maxLength={2} className="font-mono" />
-            </Field>
-            <Field label="Currency code * (ISO 4217)">
-              <Input value={currencyCode} onChange={(e) => setCurrencyCode(e.target.value.toUpperCase())} placeholder="USD" maxLength={3} className="font-mono" />
-            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Country code * (ISO 3166-1)">
+                <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="US" maxLength={2} className="font-mono" />
+              </Field>
+              <Field label="Currency code * (ISO 4217)">
+                <Input value={currencyCode} onChange={(e) => setCurrencyCode(e.target.value.toUpperCase())} placeholder="USD" maxLength={3} className="font-mono" />
+              </Field>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={() => mutation.mutate()} disabled={!name.trim() || !code.trim() || !currencyCode.trim() || mutation.isPending}>
+            <Button variant="ghost" onClick={() => { resetForm(); setOpen(false); }}>Cancel</Button>
+            <Button onClick={() => mutation.mutate()} disabled={!valid || mutation.isPending}>
               {mutation.isPending ? "Adding…" : "Add Country"}
             </Button>
           </DialogFooter>

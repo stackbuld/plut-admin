@@ -7,7 +7,7 @@ import { SlaIndicator } from "@/components/plut/SlaIndicator";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { tradeQueries, type TradeStatus } from "@/api";
-import { formatTime, truncId } from "@/lib/format";
+import { formatDate, formatTime, truncId } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/admin/giftcards/trades")({
   head: () => ({ meta: [{ title: "Trades — Plut Admin" }] }),
@@ -76,9 +76,12 @@ function TradesLayout() {
                     <p className="font-mono text-[11px] text-muted-foreground">${t.totalCardValueUsd.toFixed(2)}</p>
                   </div>
                 </div>
-                <div className="mt-3 flex items-center justify-between border-t border-border pt-2 text-[11px] text-muted-foreground">
-                  <span>{formatTime(t.submittedAt)}</span>
-                  {t.status === "Submitted" ? <SlaIndicator deadlineIso={t.slaDeadlineAt} /> : <span>—</span>}
+                <div className="mt-3 flex items-center justify-between border-t border-border pt-2">
+                  <div>
+                    <p className="text-xs font-medium tabular-nums">{formatTime(t.submittedAt)}</p>
+                    <p className="text-[11px] text-muted-foreground">{formatDate(t.submittedAt)}</p>
+                  </div>
+                  {t.status === "Submitted" ? <SlaIndicator deadlineIso={t.slaDeadlineAt} /> : <span className="text-xs text-muted-foreground">—</span>}
                 </div>
               </Link>
             ))}
@@ -108,7 +111,10 @@ function TradesLayout() {
                       <td className="px-6 py-3.5 text-muted-foreground">{t.itemCount}</td>
                       <td className="px-6 py-3.5 font-mono">${t.totalCardValueUsd.toFixed(2)}</td>
                       <td className="px-6 py-3.5 font-mono font-semibold text-right">{t.totalCustomerPayoutAmount.toLocaleString()} {t.payoutCurrency}</td>
-                      <td className="px-6 py-3.5 text-muted-foreground">{formatTime(t.submittedAt)}</td>
+                      <td className="px-6 py-3.5">
+                        <p className="text-sm tabular-nums">{formatTime(t.submittedAt)}</p>
+                        <p className="text-[11px] text-muted-foreground">{formatDate(t.submittedAt)}</p>
+                      </td>
                       <td className="px-6 py-3.5">{t.status === "Submitted" ? <SlaIndicator deadlineIso={t.slaDeadlineAt} /> : <span className="text-xs text-muted-foreground">—</span>}</td>
                       <td className="px-6 py-3.5"><StatusBadge status={t.status} /></td>
                     </tr>

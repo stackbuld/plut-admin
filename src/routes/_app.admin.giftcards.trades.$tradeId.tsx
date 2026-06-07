@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Check, X, AlertTriangle, ChevronRight, Clock, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, Check, X, AlertTriangle, ChevronRight, Clock, Loader2, CheckCircle2, XCircle, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -11,9 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StatusBadge } from "@/components/plut/StatusBadge";
 import { SlaIndicator } from "@/components/plut/SlaIndicator";
-import { tradeQueries, acceptTrade, rejectTrade, approveTradeItem, rejectTradeItem, queryKeys } from "@/api";
+import { tradeQueries, userQueries, acceptTrade, rejectTrade, approveTradeItem, rejectTradeItem, queryKeys } from "@/api";
 import { formatDateTime } from "@/lib/format";
-import type { TradeItem } from "@/api/types";
+import type { TradeItem, KycTier, UserStatus } from "@/api/types";
 import { cn } from "@/lib/utils";
 
 const REJECT_REASONS = [
@@ -38,6 +38,11 @@ function TradeDetailPage() {
   const qc = useQueryClient();
 
   const { data: trade, isLoading, isError } = useQuery(tradeQueries.detail(tradeId));
+
+  const { data: customer, isLoading: customerLoading } = useQuery({
+    ...userQueries.detail(trade?.customerId ?? ""),
+    enabled: !!trade?.customerId,
+  });
 
   const [openApprove, setOpenApprove] = useState(false);
   const [openReject, setOpenReject] = useState(false);
@@ -107,6 +112,10 @@ function TradeDetailPage() {
   const isTerminal = !["Submitted", "Approved"].includes(trade.status);
   const allImages = trade.items.flatMap((i) => i.imageUrls);
   const pendingCount = trade.items.filter((i) => i.status === "Pending").length;
+  // All items share the same FX snapshot from the quote
+  const fxRate = trade.items[0]?.fxRateToPayoutCurrency;
+  // Derive brand/country from first item for the rate-lock panel
+  const firstItem = trade.items[0];
 
   return (
     <div className="space-y-6">
@@ -120,7 +129,9 @@ function TradeDetailPage() {
         </div>
       </div>
 
+      {/* ── Row 1: Trade Summary + Customer ── */}
       <div className="grid gap-4 lg:grid-cols-2">
+        {/* Trade Summary — Finding 5: divider separates financials from lifecycle timestamps */}
         <Panel title="Trade Summary">
           <Row label="Payout Currency">{trade.payoutCurrency}</Row>
           <Row label="Card Value (USD)"><span className="font-mono">${trade.totalCardValueUsd.toFixed(2)}</span></Row>
@@ -128,6 +139,9 @@ function TradeDetailPage() {
             <span className="font-mono font-semibold">{trade.totalCustomerPayoutAmount.toLocaleString()} {trade.payoutCurrency}</span>
           </Row>
           <Row label="Profit (USD)"><span className="font-mono text-success">${trade.totalProfitUsd.toFixed(2)}</span></Row>
+
+          <div className="my-2 border-t border-border" />
+
           <Row label="Submitted">{formatDateTime(trade.submittedAt)}</Row>
           {!isTerminal && <Row label="SLA"><SlaIndicator deadlineIso={trade.slaDeadlineAt} /></Row>}
           {trade.approvedAt && <Row label="Approved">{formatDateTime(trade.approvedAt)}</Row>}
@@ -135,21 +149,95 @@ function TradeDetailPage() {
           {trade.rejectedAt && <Row label="Rejected">{formatDateTime(trade.rejectedAt)}</Row>}
         </Panel>
 
+        {/* Customer — Finding 1: fetch and display customer details */}
         <Panel title="Customer">
-          <Row label="Customer ID"><span className="font-mono text-xs break-all">{trade.customerId}</span></Row>
-          <Row label="Quote ID"><span className="font-mono text-xs break-all">{trade.quoteId}</span></Row>
-          <Link to="/admin/giftcards/users/$userId" params={{ userId: trade.customerId }}
-            className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
-            View user profile <ChevronRight className="h-3 w-3" />
-          </Link>
+          {customerLoading ? (
+            <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Loading customer…
+            </div>
+          ) : customer ? (
+            <div className="space-y-3">
+              {/* Avatar + name row */}
+              <div className="flex items-center gap-3">
+                {customer.avatarUrl ? (
+                  <img src={customer.avatarUrl} alt={customer.displayName}
+                    className="h-10 w-10 rounded-full object-cover" />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                    {customer.displayName?.[0]?.toUpperCase() ?? "?"}
+                  </div>
+                )}
+                <div>
+                  <p className="font-semibold leading-tight">{customer.displayName}</p>
+                  <p className="text-xs text-muted-foreground">{customer.firstName} {customer.lastName}</p>
+                </div>
+              </div>
+
+              <div className="space-y-0">
+                <Row label="Email"><span className="text-xs">{customer.email}</span></Row>
+                {customer.phoneNumber && (
+                  <Row label="Phone"><span className="font-mono text-xs">{customer.phoneNumber}</span></Row>
+                )}
+                <Row label="KYC Tier"><KycBadge tier={customer.kycTier} /></Row>
+                <Row label="Status"><UserStatusBadge status={customer.status} /></Row>
+                <Row label="Customer ID"><span className="font-mono text-[11px] break-all text-muted-foreground">{trade.customerId}</span></Row>
+              </div>
+
+              <Link to="/admin/giftcards/users/$userId" params={{ userId: trade.customerId }}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+                View full profile <ChevronRight className="h-3 w-3" />
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <Row label="Customer ID"><span className="font-mono text-xs break-all">{trade.customerId}</span></Row>
+              <Link to="/admin/giftcards/users/$userId" params={{ userId: trade.customerId }}
+                className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+                View user profile <ChevronRight className="h-3 w-3" />
+              </Link>
+            </div>
+          )}
         </Panel>
       </div>
 
+      {/* ── Rate Lock — Finding 2: quoteId as audit ref + brand/country/FX from items ── */}
+      {firstItem && (
+        <Panel title="Rate Lock">
+          <div className="grid gap-x-8 gap-y-0 sm:grid-cols-2">
+            <Row label="Brand">{firstItem.brandName}</Row>
+            <Row label="Country">{firstItem.countryName} <span className="ml-1 text-[11px] text-muted-foreground">({firstItem.countryCode})</span></Row>
+            <Row label="Payout Currency">{trade.payoutCurrency}</Row>
+            {fxRate && (
+              <Row label="FX Rate Applied">
+                <span className="font-mono">1 USD = {fxRate.toLocaleString()} {trade.payoutCurrency}</span>
+              </Row>
+            )}
+            <div className="col-span-2">
+              <Row label="Rate-lock ID">
+                <span className="flex items-center gap-1.5">
+                  <span className="font-mono text-[11px] text-muted-foreground">{trade.quoteId}</span>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(trade.quoteId); toast.success("Copied"); }}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    title="Copy quote ID"
+                  >
+                    <Copy className="h-3 w-3" />
+                  </button>
+                </span>
+              </Row>
+            </div>
+          </div>
+        </Panel>
+      )}
+
+      {/* ── Batch Items — Finding 3: Brand + Country columns; Finding 4: FX note below ── */}
       <Panel title={`Batch Items${!isTerminal && pendingCount > 0 ? ` — ${pendingCount} pending review` : ""}`}>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px] text-sm">
+          <table className="w-full min-w-[860px] text-sm">
             <thead>
               <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <th className="py-2 pr-4">Brand</th>
+                <th className="py-2 pr-4">Country</th>
                 <th className="py-2 pr-4">Denomination</th>
                 <th className="py-2 pr-4">Qty</th>
                 <th className="py-2 pr-4 text-right">Cust Rate (USD)</th>
@@ -161,12 +249,16 @@ function TradeDetailPage() {
             <tbody>
               {trade.items.map((item) => (
                 <tr key={item.id} className="border-t border-border">
+                  <td className="py-3 pr-4 font-medium">{item.brandName}</td>
+                  <td className="py-3 pr-4 text-muted-foreground">{item.countryName}</td>
                   <td className="py-3 pr-4 font-mono">{item.denominationCurrency} {item.denominationAmount}</td>
                   <td className="py-3 pr-4">{item.quantity}</td>
                   <td className="py-3 pr-4 text-right font-mono">${item.customerRateUsd.toFixed(4)}</td>
-                  <td className="py-3 pr-4 text-right font-mono">{item.customerPayoutAmount.toLocaleString()} {item.payoutCurrency}</td>
+                  <td className="py-3 pr-4 text-right font-mono">
+                    {(item.customerPayoutAmount / item.quantity).toLocaleString(undefined, { maximumFractionDigits: 2 })} {item.payoutCurrency}
+                  </td>
                   <td className="py-3 pr-4 text-right font-mono font-semibold">
-                    {(item.customerPayoutAmount * item.quantity).toLocaleString()} {item.payoutCurrency}
+                    {item.customerPayoutAmount.toLocaleString()} {item.payoutCurrency}
                   </td>
                   <td className="py-3 pl-4 text-right">
                     {isTerminal ? (
@@ -187,7 +279,7 @@ function TradeDetailPage() {
             </tbody>
             <tfoot>
               <tr className="border-t border-border">
-                <td colSpan={5} className="py-2 text-right text-sm font-semibold">Total Payout</td>
+                <td colSpan={7} className="py-2 text-right text-sm font-semibold">Total Payout</td>
                 <td className="py-2 pl-4 text-right font-mono text-lg font-bold">
                   {trade.totalCustomerPayoutAmount.toLocaleString()} {trade.payoutCurrency}
                 </td>
@@ -195,6 +287,12 @@ function TradeDetailPage() {
             </tfoot>
           </table>
         </div>
+        {/* Finding 4: locked FX rate for audit reference */}
+        {fxRate && (
+          <p className="mt-2 text-right text-[11px] text-muted-foreground">
+            FX rate locked at submission: 1 USD = {fxRate.toLocaleString()} {trade.payoutCurrency}
+          </p>
+        )}
       </Panel>
 
       {allImages.length > 0 && (
@@ -317,6 +415,42 @@ const STATUS_STYLES: Record<ItemStatus, string> = {
   Approved: "border-success/40 bg-success/10 text-success",
   Rejected: "border-destructive/40 bg-destructive/10 text-destructive",
 };
+
+const KYC_STYLES: Record<KycTier, string> = {
+  Tier0: "border-border bg-secondary text-muted-foreground",
+  Tier1: "border-amber-400/40 bg-amber-400/10 text-amber-600 dark:text-amber-400",
+  Tier2: "border-blue-400/40 bg-blue-400/10 text-blue-600 dark:text-blue-400",
+  Tier3: "border-success/40 bg-success/10 text-success",
+};
+
+const KYC_LABELS: Record<KycTier, string> = {
+  Tier0: "Unverified",
+  Tier1: "Basic KYC",
+  Tier2: "Intermediate",
+  Tier3: "Full KYC",
+};
+
+const USER_STATUS_STYLES: Record<UserStatus, string> = {
+  Active:    "border-success/40 bg-success/10 text-success",
+  Pending:   "border-warning/40 bg-warning/10 text-warning",
+  Suspended: "border-destructive/40 bg-destructive/10 text-destructive",
+};
+
+function KycBadge({ tier }: { tier: KycTier }) {
+  return (
+    <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold", KYC_STYLES[tier])}>
+      {KYC_LABELS[tier]}
+    </span>
+  );
+}
+
+function UserStatusBadge({ status }: { status: UserStatus }) {
+  return (
+    <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold", USER_STATUS_STYLES[status])}>
+      {status}
+    </span>
+  );
+}
 
 function ItemStatusSelect({ value, onChange, loading }: {
   value: ItemStatus;

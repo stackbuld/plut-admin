@@ -152,7 +152,7 @@ export const listAcquisitionCurrencies = () =>
 export const acquisitionCurrencyQueries = {
   list: () =>
     queryOptions({
-      queryKey: ["admin", "acquisition-currencies"] as const,
+      queryKey: queryKeys.acquisitionCurrencies.list(),
       queryFn: listAcquisitionCurrencies,
       staleTime: 30 * 60_000,
     }),

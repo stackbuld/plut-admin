@@ -13,6 +13,8 @@ export type BrandListItem = {
 
 export type BrandRateDetail = {
   id: string;
+  acquisitionCurrency: string | null;
+  acquisitionRatePerCardDollar: number | null;
   marketRateUsd: number;
   customerRateUsd: number;
   markupUsd: number;
