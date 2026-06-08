@@ -10,29 +10,34 @@ export type WithdrawalStatus =
 
 export type ApprovalMethod = "Provider" | "Manual";
 
+// Returned by GET /api/admin/Withdrawals (list)
 export type AdminWithdrawal = {
   withdrawalId: string;
-  walletId?: string;
-  userId?: string;
-  userName?: string;
+  walletId: string;
+  userId: string;
+  userName: string | null;
   status: WithdrawalStatus;
   amount: number;
   fee: number;
   totalAmount: number;
   currency: string;
   reference: string;
-  providerReference?: string | null;
-  bankCode?: string;
-  bankName?: string;
-  accountNumber?: string;
-  accountName?: string | null;
-  failureReason?: string | null;
-  approvalMethod?: ApprovalMethod | null;
-  settledBy?: string | null;
-  createdAt?: string;
-  completedAt?: string | null;
-  walletBalance?: number;
-  estimatedArrival?: string;
+  providerReference: string | null;
+  bankCode: string;
+  bankName: string;
+  accountNumber: string;
+  accountName: string | null;
+  failureReason: string | null;
+  approvalMethod: ApprovalMethod | null;
+  settledBy: string | null;
+  createdAt: string;
+  completedAt: string | null;
+};
+
+// Returned by GET /api/admin/Withdrawals/{withdrawalId} (detail) — superset of AdminWithdrawal
+export type AdminWithdrawalDetail = AdminWithdrawal & {
+  walletBalance: number;
+  estimatedArrival: string | null;
 };
 
 export type WithdrawalsSummary = {

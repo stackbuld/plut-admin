@@ -34,13 +34,20 @@ function WithdrawalsList() {
   const { status = "All" } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const qc = useQueryClient();
-  const [query, setQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [query, setQuery] = useState(""); // debounced search sent to API
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [toApprove, setToApprove] = useState<AdminWithdrawal | null>(null);
   const [toReject, setToReject] = useState<AdminWithdrawal | null>(null);
+
+  // Debounce search input → query (400ms)
+  useEffect(() => {
+    const t = setTimeout(() => { setQuery(searchInput); setPage(1); }, 400);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   // Reset to page 1 when filters change
   useEffect(() => { setPage(1); }, [status, dateFrom, dateTo]);
@@ -49,6 +56,7 @@ function WithdrawalsList() {
     status,
     page,
     pageSize,
+    ...(query ? { query } : {}),
     ...(dateFrom ? { dateFrom: new Date(dateFrom).toISOString() } : {}),
     ...(dateTo ? { dateTo: new Date(dateTo + "T23:59:59").toISOString() } : {}),
   };
@@ -60,10 +68,10 @@ function WithdrawalsList() {
 
   // Prefetch next page
   useEffect(() => {
-    if (data && page < data.totalPages) {
+    if (data && page < (data.totalPages ?? 1)) {
       qc.prefetchQuery(withdrawalQueries.list({ ...listParams, page: page + 1 }));
     }
-  }, [data, page, pageSize, status, dateFrom, dateTo, qc]);
+  }, [data, page, pageSize, status, query, dateFrom, dateTo, qc]);
 
   const counts: Record<WithdrawalStatus | "All", number> = useMemo(() => ({
     All: summary?.totalCount ?? 0,
@@ -77,18 +85,7 @@ function WithdrawalsList() {
     Reversed: 0,
   }), [summary]);
 
-  const items = useMemo(() => {
-    const all = data?.items ?? [];
-    if (!query) return all;
-    const q = query.toLowerCase();
-    return all.filter(
-      (w) =>
-        w.userName?.toLowerCase().includes(q) ||
-        w.reference.toLowerCase().includes(q) ||
-        w.accountNumber?.includes(q),
-    );
-  }, [data, query]);
-
+  const items = data?.items ?? [];
   const pending = items.filter((w) => w.status === "PendingApproval");
   const others = items.filter((w) => w.status !== "PendingApproval");
 
@@ -131,8 +128,8 @@ function WithdrawalsList() {
         <div className="relative flex-1 min-w-[220px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            value={query}
-            onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search by user, reference or account no."
             className="h-9 pl-9"
           />

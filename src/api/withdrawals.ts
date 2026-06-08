@@ -2,6 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { apiGet, apiPost, buildQs } from "./client";
 import type {
   AdminWithdrawal,
+  AdminWithdrawalDetail,
   ApproveWithdrawalBody,
   ListWithdrawalsParams,
   RejectWithdrawalBody,
@@ -21,13 +22,14 @@ export const listWithdrawals = (p: ListWithdrawalsParams = {}) => {
   if (p.walletId) params.WalletId = p.walletId;
   if (p.dateFrom) params.DateFrom = p.dateFrom;
   if (p.dateTo) params.DateTo = p.dateTo;
+  if (p.query) params.Query = p.query;
   if (p.page) params.Page = p.page;
   if (p.pageSize) params.PageSize = p.pageSize;
   return apiGet<PagedResult<AdminWithdrawal>>(`/api/admin/Withdrawals${buildQs(params)}`);
 };
 
 export const getWithdrawal = (id: string) =>
-  apiGet<AdminWithdrawal>(`/api/admin/Withdrawals/${id}`);
+  apiGet<AdminWithdrawalDetail>(`/api/admin/Withdrawals/${id}`);
 
 export const approveWithdrawal = (id: string, body: ApproveWithdrawalBody) =>
   apiPost<void>(`/api/admin/Withdrawals/${id}/approve`, body);
@@ -62,7 +64,7 @@ export const withdrawalQueries = {
     }),
 
   detail: (id: string) =>
-    queryOptions({
+    queryOptions<AdminWithdrawalDetail>({
       queryKey: withdrawalKeys.detail(id),
       queryFn: () => getWithdrawal(id),
       staleTime: 15_000,
