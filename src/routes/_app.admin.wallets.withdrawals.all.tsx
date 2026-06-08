@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Check, Loader2, Search, X } from "lucide-react";
+import { Check, CalendarIcon, Loader2, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { withdrawalQueries } from "@/api/withdrawals";
@@ -35,25 +35,35 @@ function WithdrawalsList() {
   const navigate = useNavigate({ from: Route.fullPath });
   const qc = useQueryClient();
   const [query, setQuery] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [toApprove, setToApprove] = useState<AdminWithdrawal | null>(null);
   const [toReject, setToReject] = useState<AdminWithdrawal | null>(null);
 
-  // Reset to page 1 when filter changes
-  useEffect(() => { setPage(1); }, [status]);
+  // Reset to page 1 when filters change
+  useEffect(() => { setPage(1); }, [status, dateFrom, dateTo]);
+
+  const listParams = {
+    status,
+    page,
+    pageSize,
+    ...(dateFrom ? { dateFrom: new Date(dateFrom).toISOString() } : {}),
+    ...(dateTo ? { dateTo: new Date(dateTo + "T23:59:59").toISOString() } : {}),
+  };
 
   const { data, isLoading, isFetching } = useQuery(
-    withdrawalQueries.list({ status, page, pageSize }),
+    withdrawalQueries.list(listParams),
   );
   const { data: summary } = useQuery(withdrawalQueries.summary());
 
   // Prefetch next page
   useEffect(() => {
     if (data && page < data.totalPages) {
-      qc.prefetchQuery(withdrawalQueries.list({ status, page: page + 1, pageSize }));
+      qc.prefetchQuery(withdrawalQueries.list({ ...listParams, page: page + 1 }));
     }
-  }, [data, page, pageSize, status, qc]);
+  }, [data, page, pageSize, status, dateFrom, dateTo, qc]);
 
   const counts: Record<WithdrawalStatus | "All", number> = useMemo(() => ({
     All: summary?.totalCount ?? 0,
@@ -126,6 +136,37 @@ function WithdrawalsList() {
             placeholder="Search by user, reference or account no."
             className="h-9 pl-9"
           />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="h-9 w-[140px] text-xs"
+            title="From date"
+          />
+          <span className="text-xs text-muted-foreground">–</span>
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            min={dateFrom || undefined}
+            className="h-9 w-[140px] text-xs"
+            title="To date"
+          />
+          {(dateFrom || dateTo) && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={() => { setDateFrom(""); setDateTo(""); }}
+              title="Clear date filter"
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
 
         <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">

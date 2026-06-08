@@ -1,5 +1,4 @@
 import { queryOptions } from "@tanstack/react-query";
-import { mockGetSummary } from "@/data/mock-withdrawals";
 import { apiGet, apiPost, buildQs } from "./client";
 import type {
   AdminWithdrawal,
@@ -12,9 +11,8 @@ import type { PagedResult } from "./types";
 
 // ── Fetchers ──────────────────────────────────────────────────────────────────
 
-// No summary endpoint yet — still mocked
 export const fetchWithdrawalsSummary = (): Promise<WithdrawalsSummary> =>
-  mockGetSummary();
+  apiGet<WithdrawalsSummary>("/api/admin/Withdrawals/summary");
 
 export const listWithdrawals = (p: ListWithdrawalsParams = {}) => {
   const params: Record<string, unknown> = {};
