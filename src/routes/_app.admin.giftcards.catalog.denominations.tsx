@@ -99,8 +99,8 @@ function DenominationsTab() {
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <FilterSelect value={brandFilter} onChange={(v) => { setBrandFilter(v); resetPage(); }} placeholder="Brand"
-          options={[{ v: "All", l: "All brands" }, ...(brands ?? []).map((b) => ({ v: b.id, l: b.name }))]} />
+        <FilterSelect value={brandFilter} onChange={(v) => { setBrandFilter(v); resetPage(); }} placeholder="Card"
+          options={[{ v: "All", l: "All cards" }, ...(brands ?? []).map((b) => ({ v: b.id, l: b.name }))]} />
         <FilterSelect value={countryFilter} onChange={(v) => { setCountryFilter(v); resetPage(); }} placeholder="Country"
           options={[{ v: "All", l: "All countries" }, ...(countries ?? []).map((c) => ({ v: c.id, l: c.name }))]} />
         <FilterSelect value={typeFilter} onChange={(v) => { setTypeFilter(v); resetPage(); }} placeholder="Type"
@@ -116,7 +116,7 @@ function DenominationsTab() {
             <table className="w-full min-w-[640px] text-sm">
               <thead className="bg-secondary/60">
                 <tr className="text-left">
-                  {["Brand", "Country", "Amount", "Currency", "Type", "Status", ""].map((h) => (
+                  {["Card", "Country", "Amount", "Currency", "Type", "Status", ""].map((h) => (
                     <th key={h} className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
                   ))}
                 </tr>

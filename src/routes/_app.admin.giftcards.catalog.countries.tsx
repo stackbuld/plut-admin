@@ -68,7 +68,7 @@ function CountriesTab() {
             <table className="w-full min-w-[640px] text-sm">
               <thead className="bg-secondary/60">
                 <tr className="text-left">
-                  {["Name", "Code", "Currency", "Brands Linked"].map((h) => (
+                  {["Name", "Code", "Currency", "Cards Linked"].map((h) => (
                     <th key={h} className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
                   ))}
                 </tr>
@@ -94,7 +94,7 @@ function CountriesTab() {
                           <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">+{c.linkedBrands.length - 3}</span>
                         )}
                         {c.linkedBrands.length === 0 && (
-                          <span className="text-xs text-muted-foreground">No brands yet</span>
+                          <span className="text-xs text-muted-foreground">No cards yet</span>
                         )}
                       </div>
                     </td>

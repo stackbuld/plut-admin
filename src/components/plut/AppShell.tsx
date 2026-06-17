@@ -48,7 +48,7 @@ function useGiftcardNav(): NavItem[] {
   return [
     { to: "/admin/giftcards/dashboard", label: "Dashboard", icon: LayoutGrid },
     { to: "/admin/giftcards/trades", label: "Trades", icon: ArrowLeftRight, badge: pending || undefined, matchPrefix: "/admin/giftcards/trades" },
-    { to: "/admin/giftcards/brands", label: "Brands", icon: Gift, matchPrefix: "/admin/giftcards/brands" },
+    { to: "/admin/giftcards/brands", label: "Cards", icon: Gift, matchPrefix: "/admin/giftcards/brands" },
     { to: "/admin/giftcards/catalog", label: "Catalog", icon: BookOpen, matchPrefix: "/admin/giftcards/catalog", children: CATALOG_CHILDREN },
     { to: "/admin/giftcards/users", label: "Users", icon: Users, matchPrefix: "/admin/giftcards/users" },
   ];
@@ -237,7 +237,7 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
 
 function deriveTitle(pathname: string): string {
   if (pathname.startsWith("/admin/giftcards/trades")) return "Giftcard Trades";
-  if (pathname.startsWith("/admin/giftcards/brands")) return "Brand Management";
+  if (pathname.startsWith("/admin/giftcards/brands")) return "Card Management";
   if (pathname.startsWith("/admin/giftcards/catalog")) return "Catalog";
   if (pathname.startsWith("/admin/giftcards/users")) return "User Management";
   if (pathname.startsWith("/admin/giftcards/dashboard")) return "Dashboard";

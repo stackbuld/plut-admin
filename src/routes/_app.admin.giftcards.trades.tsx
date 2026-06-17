@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, Filter, Loader2 } from "lucide-react";
 import { StatusBadge } from "@/components/plut/StatusBadge";
 import { SlaIndicator } from "@/components/plut/SlaIndicator";
+import { UserRef } from "@/components/plut/UserSummaryModal";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { tradeQueries, type TradeStatus } from "@/api";
@@ -107,7 +108,9 @@ function TradesLayout() {
                       <td className="px-6 py-3.5">
                         <Link to="/admin/giftcards/trades/$tradeId" params={{ tradeId: t.id }} className="font-mono text-xs hover:text-primary">{truncId(t.id)}</Link>
                       </td>
-                      <td className="px-6 py-3.5 font-mono text-xs text-muted-foreground">{truncId(t.customerId)}</td>
+                      <td className="px-6 py-3.5 font-mono text-xs text-muted-foreground">
+                        <UserRef userId={t.customerId}>{truncId(t.customerId)}</UserRef>
+                      </td>
                       <td className="px-6 py-3.5 text-muted-foreground">{t.itemCount}</td>
                       <td className="px-6 py-3.5 font-mono">${t.totalCardValueUsd.toFixed(2)}</td>
                       <td className="px-6 py-3.5 font-mono font-semibold text-right">{t.totalCustomerPayoutAmount.toLocaleString()} {t.payoutCurrency}</td>

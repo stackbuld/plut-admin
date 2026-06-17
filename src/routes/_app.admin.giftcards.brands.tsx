@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/admin/giftcards/brands")({
-  head: () => ({ meta: [{ title: "Brands — Plut Admin" }] }),
+  head: () => ({ meta: [{ title: "Cards — Plut Admin" }] }),
   component: BrandsLayout,
 });
 
@@ -35,7 +35,7 @@ function BrandsLayout() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[220px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search brands…" className="h-9 pl-9" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search cards…" className="h-9 pl-9" />
         </div>
         <Select value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
           <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
@@ -43,7 +43,7 @@ function BrandsLayout() {
             {["All", "Active", "Paused"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Button onClick={() => setOpen(true)} className="ml-auto"><Plus className="h-4 w-4" /> Create Brand</Button>
+        <Button onClick={() => setOpen(true)} className="ml-auto"><Plus className="h-4 w-4" /> Create Card</Button>
       </div>
 
       {isLoading ? (
@@ -65,7 +65,7 @@ function BrandsLayout() {
                 </div>
               </Link>
             ))}
-            {list.length === 0 && <div className="rounded-2xl border bg-card px-4 py-10 text-center text-sm text-muted-foreground">No brands found.</div>}
+            {list.length === 0 && <div className="rounded-2xl border bg-card px-4 py-10 text-center text-sm text-muted-foreground">No cards found.</div>}
           </div>
 
           {/* Desktop */}
@@ -73,7 +73,7 @@ function BrandsLayout() {
             <table className="w-full text-sm">
               <thead className="bg-secondary/60">
                 <tr className="text-left">
-                  {["Brand", "Code", "Status", "Countries", "Denominations", "Created"].map((h) => (
+                  {["Card", "Code", "Status", "Countries", "Denominations", "Created"].map((h) => (
                     <th key={h} className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
                   ))}
                 </tr>
@@ -98,7 +98,7 @@ function BrandsLayout() {
                   </tr>
                 ))}
                 {list.length === 0 && (
-                  <tr><td colSpan={6} className="px-6 py-12 text-center text-sm text-muted-foreground">No brands found.</td></tr>
+                  <tr><td colSpan={6} className="px-6 py-12 text-center text-sm text-muted-foreground">No cards found.</td></tr>
                 )}
               </tbody>
             </table>
@@ -146,7 +146,7 @@ function CreateBrandDialog({ open, onClose }: { open: boolean; onClose: () => vo
       return createBrand({ name: name.trim(), code: code.trim().toUpperCase(), imageUrl: resolvedImageUrl });
     },
     onSuccess: () => {
-      toast.success("Brand created.");
+      toast.success("Card created.");
       qc.invalidateQueries({ queryKey: queryKeys.brands.all() });
       reset();
       onClose();
@@ -156,20 +156,20 @@ function CreateBrandDialog({ open, onClose }: { open: boolean; onClose: () => vo
 
   const statusText = mutation.isPending
     ? imageFile ? "Uploading image…" : "Creating…"
-    : "Create Brand";
+    : "Create Card";
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) { reset(); onClose(); } }}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Brand</DialogTitle>
-          <DialogDescription>Add a new gift card brand to the catalog.</DialogDescription>
+          <DialogTitle>Create Card</DialogTitle>
+          <DialogDescription>Add a new gift card to the catalog.</DialogDescription>
         </DialogHeader>
         <div className="flex gap-4">
           <ImageUploadField preview={imagePreview} onChange={(file, preview) => { setImageFile(file); setImagePreview(preview); }} />
           <div className="flex-1 space-y-3">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Brand name *</label>
+              <label className="text-sm font-medium">Card name *</label>
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Apple" />
             </div>
             <div className="space-y-1.5">

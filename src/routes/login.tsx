@@ -127,7 +127,7 @@ function LoginPage() {
             Back-office for every Plut product.
           </h2>
           <p className="text-white/70">
-            Review trades, manage brands, set rates and keep operations sharp. One console, every product.
+            Review trades, manage cards, set rates and keep operations sharp. One console, every product.
           </p>
           <div className="flex items-center gap-2 pt-4 text-xs text-white/50">
             <ShieldCheck className="h-4 w-4" />

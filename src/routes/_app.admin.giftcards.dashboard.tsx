@@ -44,7 +44,7 @@ function Dashboard() {
           cta={{ to: "/admin/giftcards/trades", label: "View Now" }} icon={AlertTriangle} pulse />
         <StatCard label="Total Paid" value={String(paidCount)} icon={CheckCircle2} sublabel="all time" />
         <StatCard label="Total Rejected" value={String(rejectedCount)} icon={XCircle} sublabel="all time" />
-        <StatCard label="Active Brands" value={String(activeBrands)} icon={Gift} sublabel="live brands" />
+        <StatCard label="Active Cards" value={String(activeBrands)} icon={Gift} sublabel="live cards" />
         <StatCard label="Avg Review Time" value={avgReviewMin} icon={Activity} sublabel="last completed trades" />
       </div>
 

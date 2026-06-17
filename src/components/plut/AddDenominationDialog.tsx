@@ -91,6 +91,7 @@ export function AddDenominationDialog({
       toast.success(`Added ${resolvedCurrency} ${face} ${cardType} for ${resolvedBrandName} · ${resolvedCountryName}${setInitial ? " (with rate)" : ""}.`);
       qc.invalidateQueries({ queryKey: queryKeys.brands.all() });
       qc.invalidateQueries({ queryKey: queryKeys.denominations.all() });
+      qc.invalidateQueries({ queryKey: queryKeys.rates.all() });
       onClose();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -109,12 +110,12 @@ export function AddDenominationDialog({
         </DialogHeader>
 
         <div className="space-y-3">
-          <Field label="Brand *">
+          <Field label="Card *">
             {lockBrand ? (
               <div className="rounded-md border bg-secondary/40 px-3 py-2 text-sm">{resolvedBrandName}</div>
             ) : (
               <Select value={bId} onValueChange={setBId}>
-                <SelectTrigger><SelectValue placeholder="Choose brand" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Choose card" /></SelectTrigger>
                 <SelectContent>
                   {(brands ?? []).map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
                 </SelectContent>

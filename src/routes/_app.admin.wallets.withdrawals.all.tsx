@@ -12,6 +12,7 @@ import { RejectWithdrawalDialog } from "@/components/plut/withdrawals/RejectWith
 import { relativeTime, truncId } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { TablePager } from "@/components/plut/catalog-shared";
+import { UserRef } from "@/components/plut/UserSummaryModal";
 
 const STATUS_OPTIONS: (WithdrawalStatus | "All")[] = [
   "All", "PendingApproval", "PendingProvider", "Successful", "Failed", "Rejected",
@@ -19,19 +20,20 @@ const STATUS_OPTIONS: (WithdrawalStatus | "All")[] = [
 
 const DEFAULT_PAGE_SIZE = 20;
 
-type SearchState = { status?: WithdrawalStatus | "All" };
+type SearchState = { status?: WithdrawalStatus | "All"; userId?: string };
 
 export const Route = createFileRoute("/_app/admin/wallets/withdrawals/all")({
   validateSearch: (s: Record<string, unknown>): SearchState => ({
     status: (STATUS_OPTIONS as string[]).includes(s.status as string)
       ? (s.status as WithdrawalStatus | "All")
       : "All",
+    userId: typeof s.userId === "string" && s.userId ? s.userId : undefined,
   }),
   component: WithdrawalsList,
 });
 
 function WithdrawalsList() {
-  const { status = "All" } = Route.useSearch();
+  const { status = "All", userId } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const qc = useQueryClient();
   const [searchInput, setSearchInput] = useState("");
@@ -50,12 +52,13 @@ function WithdrawalsList() {
   }, [searchInput]);
 
   // Reset to page 1 when filters change
-  useEffect(() => { setPage(1); }, [status, dateFrom, dateTo]);
+  useEffect(() => { setPage(1); }, [status, dateFrom, dateTo, userId]);
 
   const listParams = {
     status,
     page,
     pageSize,
+    ...(userId ? { userId } : {}),
     ...(query ? { query } : {}),
     ...(dateFrom ? { dateFrom: new Date(dateFrom).toISOString() } : {}),
     ...(dateTo ? { dateTo: new Date(dateTo + "T23:59:59").toISOString() } : {}),
@@ -71,7 +74,7 @@ function WithdrawalsList() {
     if (data && page < (data.totalPages ?? 1)) {
       qc.prefetchQuery(withdrawalQueries.list({ ...listParams, page: page + 1 }));
     }
-  }, [data, page, pageSize, status, query, dateFrom, dateTo, qc]);
+  }, [data, page, pageSize, status, query, dateFrom, dateTo, userId, qc]);
 
   const counts: Record<WithdrawalStatus | "All", number> = useMemo(() => ({
     All: summary?.totalCount ?? 0,
@@ -172,6 +175,20 @@ function WithdrawalsList() {
         </span>
       </div>
 
+      {userId && (
+        <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+          <span className="text-muted-foreground">Filtered to user</span>
+          <UserRef userId={userId} className="font-mono font-semibold text-foreground">{truncId(userId, 20)}</UserRef>
+          <button
+            type="button"
+            onClick={() => navigate({ search: { status } })}
+            className="ml-auto inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-3 w-3" /> Clear
+          </button>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -251,27 +268,35 @@ function Row({
       )}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <UserRef userId={w.userId} className="truncate text-sm font-semibold">
+              {w.userName ?? truncId(w.userId)}
+            </UserRef>
+            <WithdrawalStatusBadge status={w.status} />
+          </div>
+          <Link
+            to="/admin/wallets/withdrawals/$withdrawalId"
+            params={{ withdrawalId: w.withdrawalId }}
+            className="block"
+          >
+            <p className="mt-1 text-xs text-muted-foreground">
+              {w.bankName ?? "—"} · {w.accountNumber ? maskAccount(w.accountNumber) : "—"}
+            </p>
+            <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+              {truncId(w.reference, 22)} · {w.createdAt ? relativeTime(w.createdAt) : "—"}
+            </p>
+          </Link>
+        </div>
+
         <Link
           to="/admin/wallets/withdrawals/$withdrawalId"
           params={{ withdrawalId: w.withdrawalId }}
-          className="min-w-0 flex-1"
+          className="text-right"
         >
-          <div className="flex items-center gap-2">
-            <p className="truncate text-sm font-semibold">{w.userName}</p>
-            <WithdrawalStatusBadge status={w.status} />
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {w.bankName ?? "—"} · {w.accountNumber ? maskAccount(w.accountNumber) : "—"}
-          </p>
-          <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-            {truncId(w.reference, 22)} · {w.createdAt ? relativeTime(w.createdAt) : "—"}
-          </p>
-        </Link>
-
-        <div className="text-right">
           <p className="font-mono text-base font-semibold">{formatNgn(w.totalAmount)}</p>
           <p className="text-[11px] text-muted-foreground">fee {formatNgn(w.fee)}</p>
-        </div>
+        </Link>
       </div>
 
       {isPending && onApprove && onReject && (

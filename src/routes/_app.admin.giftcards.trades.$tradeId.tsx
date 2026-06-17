@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StatusBadge } from "@/components/plut/StatusBadge";
 import { SlaIndicator } from "@/components/plut/SlaIndicator";
+import { UserRef } from "@/components/plut/UserSummaryModal";
 import { tradeQueries, userQueries, acceptTrade, rejectTrade, approveTradeItem, rejectTradeItem, queryKeys } from "@/api";
 import { formatDateTime } from "@/lib/format";
 import type { TradeItem, KycTier, UserStatus } from "@/api/types";
@@ -117,6 +118,23 @@ function TradeDetailPage() {
   // Derive brand/country from first item for the rate-lock panel
   const firstItem = trade.items[0];
 
+  // ── Totals reflect only non-rejected line items ──
+  // Rejecting one item must drop it from the trade total. We recompute the headline
+  // figures from the live (non-rejected) items so the UI updates immediately; the
+  // backend is expected to persist the same recalculation on reject (see backend MD).
+  const liveItems = trade.items.filter((i) => i.status !== "Rejected");
+  const rejectedCount = trade.items.length - liveItems.length;
+  const sumLive = (f: (i: TradeItem) => number) => liveItems.reduce((s, i) => s + f(i), 0);
+  // The backend does NOT drop rejected items from the trade totals (verified live), so while a
+  // trade is still under review we recompute the headline figures from the surviving items.
+  // For terminal trades we keep the backend totals — they're the historical record of what was paid.
+  const recompute = !isTerminal && rejectedCount > 0;
+  const effCardValueUsd = recompute ? sumLive((i) => i.cardValueUsd) : trade.totalCardValueUsd;
+  const effPayoutAmount = recompute ? sumLive((i) => i.customerPayoutAmount) : trade.totalCustomerPayoutAmount;
+  const effProfitUsd = recompute
+    ? sumLive((i) => i.marketRateUsd * i.cardValueUsd) - sumLive((i) => i.customerPayoutUsd)
+    : trade.totalProfitUsd;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -134,11 +152,19 @@ function TradeDetailPage() {
         {/* Trade Summary — Finding 5: divider separates financials from lifecycle timestamps */}
         <Panel title="Trade Summary">
           <Row label="Payout Currency">{trade.payoutCurrency}</Row>
-          <Row label="Card Value (USD)"><span className="font-mono">${trade.totalCardValueUsd.toFixed(2)}</span></Row>
+          <Row label="Card Value (USD)"><span className="font-mono">${effCardValueUsd.toFixed(2)}</span></Row>
           <Row label="Customer Payout">
-            <span className="font-mono font-semibold">{trade.totalCustomerPayoutAmount.toLocaleString()} {trade.payoutCurrency}</span>
+            <span className="font-mono font-semibold">{effPayoutAmount.toLocaleString()} {trade.payoutCurrency}</span>
           </Row>
-          <Row label="Profit (USD)"><span className="font-mono text-success">${trade.totalProfitUsd.toFixed(2)}</span></Row>
+          <Row label="Profit (USD)"><span className="font-mono text-success">${effProfitUsd.toFixed(2)}</span></Row>
+          {recompute && (
+            <Row label="Adjustment">
+              <span className="text-[11px] text-warning">
+                Excludes {rejectedCount} rejected item{rejectedCount > 1 ? "s" : ""} · was{" "}
+                <span className="font-mono line-through">{trade.totalCustomerPayoutAmount.toLocaleString()} {trade.payoutCurrency}</span>
+              </span>
+            </Row>
+          )}
 
           <div className="my-2 border-t border-border" />
 
@@ -180,7 +206,7 @@ function TradeDetailPage() {
                 )}
                 <Row label="KYC Tier"><KycBadge tier={customer.kycTier} /></Row>
                 <Row label="Status"><UserStatusBadge status={customer.status} /></Row>
-                <Row label="Customer ID"><span className="font-mono text-[11px] break-all text-muted-foreground">{trade.customerId}</span></Row>
+                <Row label="Customer ID"><UserRef userId={trade.customerId} className="font-mono text-[11px] break-all text-muted-foreground">{trade.customerId}</UserRef></Row>
               </div>
 
               <Link to="/admin/giftcards/users/$userId" params={{ userId: trade.customerId }}
@@ -190,7 +216,7 @@ function TradeDetailPage() {
             </div>
           ) : (
             <div className="space-y-1">
-              <Row label="Customer ID"><span className="font-mono text-xs break-all">{trade.customerId}</span></Row>
+              <Row label="Customer ID"><UserRef userId={trade.customerId} className="font-mono text-xs break-all">{trade.customerId}</UserRef></Row>
               <Link to="/admin/giftcards/users/$userId" params={{ userId: trade.customerId }}
                 className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
                 View user profile <ChevronRight className="h-3 w-3" />
@@ -204,7 +230,7 @@ function TradeDetailPage() {
       {firstItem && (
         <Panel title="Rate Lock">
           <div className="grid gap-x-8 gap-y-0 sm:grid-cols-2">
-            <Row label="Brand">{firstItem.brandName}</Row>
+            <Row label="Card">{firstItem.brandName}</Row>
             <Row label="Country">{firstItem.countryName} <span className="ml-1 text-[11px] text-muted-foreground">({firstItem.countryCode})</span></Row>
             <Row label="Payout Currency">{trade.payoutCurrency}</Row>
             {fxRate && (
@@ -236,7 +262,7 @@ function TradeDetailPage() {
           <table className="w-full min-w-[860px] text-sm">
             <thead>
               <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                <th className="py-2 pr-4">Brand</th>
+                <th className="py-2 pr-4">Card</th>
                 <th className="py-2 pr-4">Country</th>
                 <th className="py-2 pr-4">Denomination</th>
                 <th className="py-2 pr-4">Qty</th>
@@ -278,10 +304,20 @@ function TradeDetailPage() {
               ))}
             </tbody>
             <tfoot>
+              {recompute && (
+                <tr>
+                  <td colSpan={7} className="py-1 text-right text-[11px] text-muted-foreground">
+                    Excludes {rejectedCount} rejected item{rejectedCount > 1 ? "s" : ""}
+                  </td>
+                  <td className="py-1 pl-4 text-right font-mono text-[11px] text-muted-foreground line-through">
+                    {trade.totalCustomerPayoutAmount.toLocaleString()} {trade.payoutCurrency}
+                  </td>
+                </tr>
+              )}
               <tr className="border-t border-border">
                 <td colSpan={7} className="py-2 text-right text-sm font-semibold">Total Payout</td>
                 <td className="py-2 pl-4 text-right font-mono text-lg font-bold">
-                  {trade.totalCustomerPayoutAmount.toLocaleString()} {trade.payoutCurrency}
+                  {effPayoutAmount.toLocaleString()} {trade.payoutCurrency}
                 </td>
               </tr>
             </tfoot>
@@ -345,8 +381,13 @@ function TradeDetailPage() {
           <div className="space-y-2 rounded-lg bg-secondary/60 p-3 text-sm">
             <Row label="Trade"><span className="font-mono text-xs">{trade.id}</span></Row>
             <Row label="Payout">
-              <span className="font-mono font-semibold">{trade.totalCustomerPayoutAmount.toLocaleString()} {trade.payoutCurrency}</span>
+              <span className="font-mono font-semibold">{effPayoutAmount.toLocaleString()} {trade.payoutCurrency}</span>
             </Row>
+            {recompute && (
+              <Row label="Note">
+                <span className="text-[11px] text-warning">Excludes {rejectedCount} rejected item{rejectedCount > 1 ? "s" : ""}</span>
+              </Row>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="payout-override" className="text-sm">
@@ -354,7 +395,7 @@ function TradeDetailPage() {
             </Label>
             <div className="flex items-center gap-2">
               <Input id="payout-override" type="number" inputMode="decimal" min={0} step="0.01"
-                placeholder={trade.totalCustomerPayoutAmount.toString()}
+                placeholder={effPayoutAmount.toString()}
                 value={payoutOverride} onChange={(e) => setPayoutOverride(e.target.value)}
                 className="font-mono" />
               <span className="text-sm text-muted-foreground">{trade.payoutCurrency}</span>
