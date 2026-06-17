@@ -116,7 +116,7 @@ function WithdrawalDetail() {
           />
           <Row
             label="Account No."
-            value={w.accountNumber ? maskAccount(w.accountNumber) : undefined}
+            value={w.accountNumber}
             mono
           />
         </Section>
