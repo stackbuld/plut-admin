@@ -287,9 +287,7 @@ function TradeDetailPage() {
                     {item.customerPayoutAmount.toLocaleString()} {item.payoutCurrency}
                   </td>
                   <td className="py-3 pl-4 text-right">
-                    {isTerminal ? (
-                      <ItemStatusBadge status={item.status} />
-                    ) : (
+                    {!isTerminal && item.status === "Pending" ? (
                       <ItemStatusSelect
                         value={item.status}
                         loading={approveItemMutation.isPending && approveItemMutation.variables === item.id}
@@ -298,6 +296,8 @@ function TradeDetailPage() {
                           else setItemRejectTarget(item);
                         }}
                       />
+                    ) : (
+                      <ItemStatusBadge status={item.status} />
                     )}
                   </td>
                 </tr>
