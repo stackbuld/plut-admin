@@ -1,4 +1,5 @@
 const BASE_URL = "https://api-v2.plut.ng";
+
 const SESSION_KEY = "plut-session";
 
 type Session = { accessToken: string; userId: string };
@@ -76,6 +77,12 @@ export const apiPost = <T>(path: string, body?: unknown) =>
 export const apiPatch = <T>(path: string, body?: unknown) =>
   request<T>(path, {
     method: "PATCH",
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+export const apiDelete = <T>(path: string, body?: unknown) =>
+  request<T>(path, {
+    method: "DELETE",
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 

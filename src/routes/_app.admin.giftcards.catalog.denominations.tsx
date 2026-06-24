@@ -3,13 +3,23 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, MoreHorizontal, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { StatusBadge } from "@/components/plut/StatusBadge";
 import { AddDenominationDialog } from "@/components/plut/AddDenominationDialog";
 import { SetRateDialog, type DenomRateContext } from "@/components/plut/SetRateDialog";
 import {
   brandQueries, countryQueries,
-  denominationQueries, activateDenomination, deactivateDenomination,
+  denominationQueries, activateDenomination, deactivateDenomination, deleteDenomination,
   queryKeys,
 } from "@/api";
 import { toast } from "sonner";
@@ -42,6 +52,7 @@ function DenominationsTab() {
   const [addOpen, setAddOpen] = useState(false);
   const [justAdded, setJustAdded] = useState<{ label: string } | null>(null);
   const [rateFor, setRateFor] = useState<DenomRateContext | null>(null);
+  const [deleteFor, setDeleteFor] = useState<{ id: string; label: string } | null>(null);
 
   const params = {
     ...(brandFilter !== "All" && { BrandId: brandFilter }),
@@ -61,6 +72,16 @@ function DenominationsTab() {
     onSuccess: () => {
       toast.success("Updated.");
       qc.invalidateQueries({ queryKey: queryKeys.denominations.all() });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteDenomination(id),
+    onSuccess: () => {
+      toast.success("Denomination deleted.");
+      qc.invalidateQueries({ queryKey: queryKeys.denominations.all() });
+      qc.invalidateQueries({ queryKey: queryKeys.rates.all() });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -149,6 +170,13 @@ function DenominationsTab() {
                             <DropdownMenuItem onClick={() => toggleMutation.mutate({ id: d.id, active: d.isActive })}>
                               {d.isActive ? "Deactivate" : "Activate"}
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => setDeleteFor({ id: d.id, label: `${b?.name ?? "Card"} · ${currencySymbol(d.currencyCode)}${d.amount} ${d.cardType}` })}
+                            >
+                              Delete
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </td>
@@ -172,6 +200,31 @@ function DenominationsTab() {
 
       <AddDenominationDialog open={addOpen} onClose={() => setAddOpen(false)} />
       <SetRateDialog denom={rateFor} onClose={() => setRateFor(null)} />
+
+      <AlertDialog open={!!deleteFor} onOpenChange={(o) => { if (!o) setDeleteFor(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete denomination?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteFor && <span className="font-semibold">{deleteFor.label}</span>} and its rates
+              will be removed from the catalog and can no longer be traded. Existing trades stay
+              intact for audit. This cannot be undone from the dashboard.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteFor) deleteMutation.mutate(deleteFor.id);
+                setDeleteFor(null);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
