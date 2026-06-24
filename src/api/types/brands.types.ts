@@ -6,6 +6,7 @@ export type BrandListItem = {
   code: string;
   imageUrl: string;
   isActive: boolean;
+  confirmationDurationMinutes: number;
   countryCount: number;
   denominationCount: number;
   createdAt: string;
@@ -48,6 +49,7 @@ export type BrandDetail = {
   code: string;
   imageUrl: string;
   isActive: boolean;
+  confirmationDurationMinutes: number;
   createdAt: string;
   updatedAt: string;
   countries: BrandCountryDetail[];

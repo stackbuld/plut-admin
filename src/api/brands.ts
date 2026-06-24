@@ -5,23 +5,32 @@ import type { BrandListItem, BrandDetail } from "./types";
 
 // ── Fetchers ──────────────────────────────────────────────────────────────────
 
-export const listBrands = () =>
-  apiGet<BrandListItem[]>("/giftcards/v1/admin/brands");
+export const listBrands = () => apiGet<BrandListItem[]>("/giftcards/v1/admin/brands");
 
-export const getBrand = (id: string) =>
-  apiGet<BrandDetail>(`/giftcards/v1/admin/brands/${id}`);
+export const getBrand = (id: string) => apiGet<BrandDetail>(`/giftcards/v1/admin/brands/${id}`);
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
 
-export const createBrand = (body: { name: string; code: string; imageUrl?: string }) =>
-  apiPost<{ id: string }>("/giftcards/v1/admin/brands", body);
+export const createBrand = (body: {
+  name: string;
+  code: string;
+  imageUrl?: string;
+  confirmationDurationMinutes?: number;
+}) => apiPost<{ id: string }>("/giftcards/v1/admin/brands", body);
 
 export const updateBrand = (
   id: string,
-  body: { name?: string; isActive?: boolean; imageUrl?: string },
+  body: {
+    name?: string;
+    isActive?: boolean;
+    imageUrl?: string;
+    confirmationDurationMinutes?: number;
+  },
 ) => apiPatch<void>(`/giftcards/v1/admin/brands/${id}`, body);
 
-export const uploadImage = (file: File): Promise<{ relativeUrl: string; absoluteUrl: string }[]> => {
+export const uploadImage = (
+  file: File,
+): Promise<{ relativeUrl: string; absoluteUrl: string }[]> => {
   const fd = new FormData();
   fd.append("files", file);
   return apiUpload("/giftcards/v1/uploads", fd);

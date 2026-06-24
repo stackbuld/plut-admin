@@ -108,7 +108,8 @@ function BrandDetail() {
           <div>
             <h2 className="font-display text-2xl font-bold">{brand.name}</h2>
             <p className="text-xs text-muted-foreground">
-              Code: <span className="font-mono">{brand.code}</span> · Created{" "}
+              Code: <span className="font-mono">{brand.code}</span> · Confirmation:{" "}
+              <span className="font-mono">{brand.confirmationDurationMinutes} min</span> · Created{" "}
               {formatDate(brand.createdAt)}
             </p>
           </div>
@@ -238,20 +239,22 @@ function EditBrandDialog({
   onClose,
 }: {
   open: boolean;
-  brand: { id: string; name: string; imageUrl: string };
+  brand: { id: string; name: string; imageUrl: string; confirmationDurationMinutes: number };
   onClose: () => void;
 }) {
   const qc = useQueryClient();
   const [name, setName] = useState(brand.name);
+  const [confirmMinutes, setConfirmMinutes] = useState(String(brand.confirmationDurationMinutes));
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  // Sync name if brand prop changes while dialog is closed
+  // Sync fields if brand prop changes while dialog is closed
   useEffect(() => {
     if (!open) {
       setName(brand.name);
+      setConfirmMinutes(String(brand.confirmationDurationMinutes));
     }
-  }, [open, brand.name]);
+  }, [open, brand.name, brand.confirmationDurationMinutes]);
 
   const reset = () => {
     if (imagePreview) URL.revokeObjectURL(imagePreview);
@@ -261,13 +264,21 @@ function EditBrandDialog({
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const patch: { name?: string; imageUrl?: string } = {};
+      const patch: { name?: string; imageUrl?: string; confirmationDurationMinutes?: number } = {};
       if (name.trim() && name.trim() !== brand.name) patch.name = name.trim();
+      const minutes = Math.round(Number(confirmMinutes));
+      if (
+        Number.isFinite(minutes) &&
+        minutes > 0 &&
+        minutes !== brand.confirmationDurationMinutes
+      ) {
+        patch.confirmationDurationMinutes = minutes;
+      }
       if (imageFile) {
         const [result] = await uploadImage(imageFile);
         patch.imageUrl = result?.absoluteUrl;
       }
-      if (!patch.name && !patch.imageUrl) return;
+      if (!patch.name && !patch.imageUrl && patch.confirmationDurationMinutes === undefined) return;
       await updateBrand(brand.id, patch);
     },
     onSuccess: () => {
@@ -279,7 +290,10 @@ function EditBrandDialog({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const isDirty = name.trim() !== brand.name || !!imageFile;
+  const minutes = Math.round(Number(confirmMinutes));
+  const minutesDirty =
+    Number.isFinite(minutes) && minutes > 0 && minutes !== brand.confirmationDurationMinutes;
+  const isDirty = name.trim() !== brand.name || !!imageFile || minutesDirty;
 
   return (
     <Dialog
@@ -312,6 +326,19 @@ function EditBrandDialog({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Card name"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Confirmation duration (minutes)</label>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={1}
+                step={1}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 font-mono text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={confirmMinutes}
+                onChange={(e) => setConfirmMinutes(e.target.value)}
+                placeholder="15"
               />
             </div>
             <p className="text-xs text-muted-foreground">Click the logo to change the image.</p>
