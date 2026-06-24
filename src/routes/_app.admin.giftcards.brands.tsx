@@ -35,8 +35,10 @@ function BrandsLayout() {
   const isDetail = useRouterState({
     select: (s) => /^\/admin\/giftcards\/brands\/.+/.test(s.location.pathname),
   });
-  if (isDetail) return <Outlet />;
+  return isDetail ? <Outlet /> : <BrandsList />;
+}
 
+function BrandsList() {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"All" | "Active" | "Paused">("All");
   const [open, setOpen] = useState(false);
