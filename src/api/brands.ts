@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { apiGet, apiPost, apiPatch, apiUpload } from "./client";
+import { apiGet, apiPost, apiPatch, apiDelete, apiUpload } from "./client";
 import { queryKeys } from "./keys";
 import type { BrandListItem, BrandDetail } from "./types";
 
@@ -28,9 +28,20 @@ export const updateBrand = (
   },
 ) => apiPatch<void>(`/giftcards/v1/admin/brands/${id}`, body);
 
-export const uploadImage = (
-  file: File,
-): Promise<{ relativeUrl: string; absoluteUrl: string }[]> => {
+/**
+ * Soft-deletes a card (brand) and cascades the deletion to its denominations and rates.
+ * Returns how many child rows were cascaded.
+ */
+export const deleteBrand = (id: string) =>
+  apiDelete<{
+    id: string;
+    isDeleted: boolean;
+    denominationsDeleted: number;
+    ratesDeleted: number;
+    deletedAt: string;
+  }>(`/giftcards/v1/admin/brands/${id}`);
+
+export const uploadImage = (file: File): Promise<{ relativeUrl: string; absoluteUrl: string }[]> => {
   const fd = new FormData();
   fd.append("files", file);
   return apiUpload("/giftcards/v1/uploads", fd);

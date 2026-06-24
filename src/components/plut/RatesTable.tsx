@@ -13,12 +13,23 @@ import {
 import { SetRateDialog, type DenomRateContext } from "@/components/plut/SetRateDialog";
 import { RateHistoryDrawer } from "@/components/plut/RateHistoryDrawer";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   brandQueries,
   countryQueries,
   rateQueries,
   deactivateRate,
   activateDenomination,
   deactivateDenomination,
+  deleteDenomination,
   fxRateQueries,
   payoutCurrencyQueries,
   queryKeys,
@@ -62,6 +73,7 @@ export function RatesTable({
 
   const [rateFor, setRateFor] = useState<DenomRateContext | null>(null);
   const [historyFor, setHistoryFor] = useState<DenomRateContext | null>(null);
+  const [deleteFor, setDeleteFor] = useState<{ id: string; label: string } | null>(null);
 
   const effectiveBrandId = lockBrandId ?? (brandFilter !== "All" ? brandFilter : undefined);
 
@@ -99,6 +111,17 @@ export function RatesTable({
       active ? deactivateDenomination(id) : activateDenomination(id),
     onSuccess: (_, { active }) => {
       toast.success(`Denomination ${active ? "deactivated" : "activated"}.`);
+      qc.invalidateQueries({ queryKey: queryKeys.rates.all() });
+      qc.invalidateQueries({ queryKey: queryKeys.denominations.all() });
+      qc.invalidateQueries({ queryKey: queryKeys.brands.all() });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteDenomMutation = useMutation({
+    mutationFn: (id: string) => deleteDenomination(id),
+    onSuccess: () => {
+      toast.success("Denomination deleted.");
       qc.invalidateQueries({ queryKey: queryKeys.rates.all() });
       qc.invalidateQueries({ queryKey: queryKeys.denominations.all() });
       qc.invalidateQueries({ queryKey: queryKeys.brands.all() });
@@ -396,6 +419,18 @@ export function RatesTable({
                                         ? "Deactivate denomination"
                                         : "Activate denomination"}
                                     </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      className="text-destructive"
+                                      onClick={() =>
+                                        setDeleteFor({
+                                          id: r.denominationId,
+                                          label: `${r.brandName} · ${currencySymbol(r.currencyCode)}${r.amount} ${r.cardType}`,
+                                        })
+                                      }
+                                    >
+                                      Delete denomination
+                                    </DropdownMenuItem>
                                   </>
                                 )}
                               </DropdownMenuContent>
@@ -443,6 +478,31 @@ export function RatesTable({
           setRateFor(ctx);
         }}
       />
+
+      <AlertDialog open={!!deleteFor} onOpenChange={(o) => { if (!o) setDeleteFor(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete denomination?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteFor && <span className="font-semibold">{deleteFor.label}</span>} and its rates
+              will be removed from the catalog and can no longer be traded. Existing trades stay
+              intact for audit. This cannot be undone from the dashboard.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteFor) deleteDenomMutation.mutate(deleteFor.id);
+                setDeleteFor(null);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

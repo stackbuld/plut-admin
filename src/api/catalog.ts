@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { apiGet, apiPost, apiPatch, buildQs } from "./client";
+import { apiGet, apiPost, apiPatch, apiDelete, buildQs } from "./client";
 import { queryKeys } from "./keys";
 import type {
   PagedResult,
@@ -52,6 +52,15 @@ export const activateDenomination = (id: string) =>
 
 export const deactivateDenomination = (id: string) =>
   apiPatch<void>(`/giftcards/v1/admin/denominations/${id}/deactivate`);
+
+/**
+ * Soft-deletes a denomination and cascades the deletion to its rates. The denomination and
+ * its rates are hidden from all queries and deactivated; nothing is physically removed.
+ */
+export const deleteDenomination = (id: string) =>
+  apiDelete<{ id: string; isDeleted: boolean; deletedAt: string }>(
+    `/giftcards/v1/admin/denominations/${id}`,
+  );
 
 export const denominationQueries = {
   list: (params?: ListDenominationsParams) =>

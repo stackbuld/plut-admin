@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Pause, Plus, Loader2, Camera, Upload } from "lucide-react";
+import { ArrowLeft, Pause, Plus, Loader2, Camera, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { brandQueries, updateBrand, uploadImage, queryKeys } from "@/api";
+import { brandQueries, updateBrand, deleteBrand, uploadImage, queryKeys } from "@/api";
 import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/admin/giftcards/brands/$brandId")({
@@ -36,10 +36,12 @@ export const Route = createFileRoute("/_app/admin/giftcards/brands/$brandId")({
 function BrandDetail() {
   const { brandId } = useParams({ from: "/_app/admin/giftcards/brands/$brandId" });
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const { data: brand, isLoading, isError } = useQuery(brandQueries.detail(brandId));
 
   const [addDenomOpen, setAddDenomOpen] = useState(false);
   const [confirmPause, setConfirmPause] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
 
   const toggleBrandMutation = useMutation({
@@ -47,6 +49,20 @@ function BrandDetail() {
     onSuccess: () => {
       toast.success(`Card ${brand?.isActive ? "paused" : "resumed"}.`);
       qc.invalidateQueries({ queryKey: queryKeys.brands.all() });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteBrandMutation = useMutation({
+    mutationFn: () => deleteBrand(brandId),
+    onSuccess: (result) => {
+      toast.success(
+        `Card deleted — ${result.denominationsDeleted} denomination${result.denominationsDeleted === 1 ? "" : "s"} and ${result.ratesDeleted} rate${result.ratesDeleted === 1 ? "" : "s"} removed.`,
+      );
+      qc.invalidateQueries({ queryKey: queryKeys.brands.all() });
+      qc.invalidateQueries({ queryKey: queryKeys.denominations.all() });
+      qc.invalidateQueries({ queryKey: queryKeys.rates.all() });
+      navigate({ to: "/admin/giftcards/brands" });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -72,6 +88,8 @@ function BrandDetail() {
       </div>
     );
   }
+
+  const denomCount = brand.countries.reduce((n, c) => n + c.denominations.length, 0);
 
   return (
     <div className="space-y-6">
@@ -122,6 +140,14 @@ function BrandDetail() {
           <Button variant="outline" size="sm" onClick={() => setConfirmPause(true)}>
             <Pause className="h-3.5 w-3.5" /> {brand.isActive ? "Pause" : "Resume"}
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-destructive hover:text-destructive"
+            onClick={() => setConfirmDelete(true)}
+          >
+            <Trash2 className="h-3.5 w-3.5" /> Delete
+          </Button>
         </div>
       </div>
 
@@ -169,6 +195,32 @@ function BrandDetail() {
               }}
             >
               Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {brand.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the card from the catalog along with{" "}
+              <span className="font-semibold">all {denomCount} denomination{denomCount === 1 ? "" : "s"} and their rates</span>.
+              They will no longer appear anywhere or be tradable. Existing trades stay intact for
+              audit. This cannot be undone from the dashboard.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                setConfirmDelete(false);
+                deleteBrandMutation.mutate();
+              }}
+            >
+              Delete card
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
