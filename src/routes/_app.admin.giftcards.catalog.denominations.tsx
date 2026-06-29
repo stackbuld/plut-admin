@@ -120,9 +120,9 @@ function DenominationsTab() {
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <FilterSelect value={brandFilter} onChange={(v) => { setBrandFilter(v); resetPage(); }} placeholder="Card"
+        <FilterSelect searchable value={brandFilter} onChange={(v) => { setBrandFilter(v); resetPage(); }} placeholder="Card"
           options={[{ v: "All", l: "All cards" }, ...(brands ?? []).map((b) => ({ v: b.id, l: b.name }))]} />
-        <FilterSelect value={countryFilter} onChange={(v) => { setCountryFilter(v); resetPage(); }} placeholder="Country"
+        <FilterSelect searchable value={countryFilter} onChange={(v) => { setCountryFilter(v); resetPage(); }} placeholder="Country"
           options={[{ v: "All", l: "All countries" }, ...(countries ?? []).map((c) => ({ v: c.id, l: c.name }))]} />
         <FilterSelect value={typeFilter} onChange={(v) => { setTypeFilter(v); resetPage(); }} placeholder="Type"
           options={[{ v: "All", l: "All types" }, { v: "Physical", l: "Physical" }, { v: "ECode", l: "E-code" }]} />

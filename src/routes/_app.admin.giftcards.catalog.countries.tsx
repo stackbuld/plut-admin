@@ -1,15 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Combobox } from "@/components/ui/combobox";
 import { countryQueries, createCountry, queryKeys } from "@/api";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { Field, TabLoader, EmptyRow } from "@/components/plut/catalog-shared";
 import { WORLD_COUNTRIES } from "@/data/countries";
 
@@ -23,7 +21,6 @@ export const Route = createFileRoute("/_app/admin/giftcards/catalog/countries")(
 function CountriesTab() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [pickerOpen, setPickerOpen] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [currencyCode, setCurrencyCode] = useState("");
@@ -45,16 +42,14 @@ function CountriesTab() {
     setName(""); setCode(""); setCurrencyCode("");
   }
 
-  function selectCountry(countryName: string) {
-    const match = WORLD_COUNTRIES.find((c) => c.name === countryName);
+  function selectCountry(countryCode: string) {
+    const match = WORLD_COUNTRIES.find((c) => c.code === countryCode);
     if (!match) return;
     setName(match.name);
     setCode(match.code);
     setCurrencyCode(match.currencyCode);
-    setPickerOpen(false);
   }
 
-  const selectedCountry = WORLD_COUNTRIES.find((c) => c.code === code && c.name === name);
   const valid = name.trim() && code.trim().length === 2 && currencyCode.trim().length === 3;
 
   return (
@@ -116,39 +111,19 @@ function CountriesTab() {
           <div className="space-y-3">
             {/* Searchable country picker */}
             <Field label="Search country">
-              <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" role="combobox" aria-expanded={pickerOpen}
-                    className="w-full justify-between font-normal">
-                    {selectedCountry ? (
-                      <span className="flex items-center gap-2">
-                        <span className="font-mono text-xs text-muted-foreground">{selectedCountry.code}</span>
-                        {selectedCountry.name}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">Select a country…</span>
-                    )}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder="Search countries…" />
-                    <CommandList>
-                      <CommandEmpty>No country found.</CommandEmpty>
-                      <CommandGroup>
-                        {WORLD_COUNTRIES.map((c) => (
-                          <CommandItem key={c.code} value={c.name} onSelect={selectCountry}>
-                            <Check className={cn("mr-2 h-4 w-4 shrink-0", selectedCountry?.code === c.code ? "opacity-100" : "opacity-0")} />
-                            <span className="flex-1">{c.name}</span>
-                            <span className="ml-2 font-mono text-xs text-muted-foreground">{c.code} · {c.currencyCode}</span>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <Combobox
+                value={code}
+                onChange={selectCountry}
+                placeholder="Select a country…"
+                searchPlaceholder="Search countries…"
+                emptyText="No country found."
+                options={WORLD_COUNTRIES.map((c) => ({
+                  value: c.code,
+                  label: c.name,
+                  keywords: `${c.code} ${c.currencyCode}`,
+                  hint: `${c.code} · ${c.currencyCode}`,
+                }))}
+              />
             </Field>
 
             {/* Editable fields — pre-filled from picker, overridable */}

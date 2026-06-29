@@ -209,6 +209,7 @@ export function RatesTable({
         {!locked && (
           <>
             <FilterSelect
+              searchable
               value={brandFilter}
               onChange={(v) => {
                 setBrandFilter(v);
@@ -221,6 +222,7 @@ export function RatesTable({
               ]}
             />
             <FilterSelect
+              searchable
               value={countryFilter}
               onChange={(v) => {
                 setCountryFilter(v);

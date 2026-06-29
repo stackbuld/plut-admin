@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
 import { brandQueries, countryQueries, createDenomination, createRate, queryKeys, type CardType } from "@/api";
 import { cn } from "@/lib/utils";
 
@@ -114,12 +114,14 @@ export function AddDenominationDialog({
             {lockBrand ? (
               <div className="rounded-md border bg-secondary/40 px-3 py-2 text-sm">{resolvedBrandName}</div>
             ) : (
-              <Select value={bId} onValueChange={setBId}>
-                <SelectTrigger><SelectValue placeholder="Choose card" /></SelectTrigger>
-                <SelectContent>
-                  {(brands ?? []).map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Combobox
+                value={bId}
+                onChange={setBId}
+                placeholder="Choose card"
+                searchPlaceholder="Search cards…"
+                emptyText="No card found."
+                options={(brands ?? []).map((b) => ({ value: b.id, label: b.name }))}
+              />
             )}
           </Field>
 
@@ -129,12 +131,19 @@ export function AddDenominationDialog({
                 {resolvedCountryName} {resolvedCountryCode && <span className="font-mono text-xs text-muted-foreground">({resolvedCountryCode} · {resolvedCurrency})</span>}
               </div>
             ) : (
-              <Select value={cId} onValueChange={setCId}>
-                <SelectTrigger><SelectValue placeholder="Choose country" /></SelectTrigger>
-                <SelectContent>
-                  {(countries ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.name} ({c.code})</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Combobox
+                value={cId}
+                onChange={setCId}
+                placeholder="Choose country"
+                searchPlaceholder="Search countries…"
+                emptyText="No country found."
+                options={(countries ?? []).map((c) => ({
+                  value: c.id,
+                  label: c.name,
+                  keywords: `${c.code} ${c.currencyCode}`,
+                  hint: `${c.code} · ${c.currencyCode}`,
+                }))}
+              />
             )}
           </Field>
 

@@ -1,13 +1,28 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
 
-export function FilterSelect({ value, onChange, placeholder, options }: {
+export function FilterSelect({ value, onChange, placeholder, options, searchable }: {
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
   options: { v: string; l: string }[];
+  /** Render a type-to-filter combobox instead of a plain select — for long lists (countries, cards). */
+  searchable?: boolean;
 }) {
+  if (searchable) {
+    return (
+      <Combobox
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        searchPlaceholder={`Search ${placeholder.toLowerCase()}…`}
+        className="h-9 w-[160px]"
+        options={options.map((o) => ({ value: o.v, label: o.l }))}
+      />
+    );
+  }
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="h-9 w-[160px]"><SelectValue placeholder={placeholder} /></SelectTrigger>
