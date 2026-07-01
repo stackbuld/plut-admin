@@ -1,4 +1,5 @@
-const BASE_URL = "https://api-v2.plut.ng";
+//const BASE_URL = "https://api-v2.plut.ng";
+const BASE_URL = "http://localhost:9090";
 
 const SESSION_KEY = "plut-session";
 
