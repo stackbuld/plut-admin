@@ -12,9 +12,10 @@ import { Label } from "@/components/ui/label";
 import { StatusBadge } from "@/components/plut/StatusBadge";
 import { SlaIndicator } from "@/components/plut/SlaIndicator";
 import { UserRef } from "@/components/plut/UserSummaryModal";
+import { AiVerificationBadge, aiVerdictMeta, formatConfidence } from "@/components/plut/AiVerificationBadge";
 import { tradeQueries, userQueries, acceptTrade, rejectTrade, approveTradeItem, rejectTradeItem, queryKeys } from "@/api";
 import { formatDateTime } from "@/lib/format";
-import type { TradeItem, KycTier, UserStatus } from "@/api/types";
+import type { TradeItem, TradeDetail, KycTier, UserStatus } from "@/api/types";
 import { cn } from "@/lib/utils";
 
 const REJECT_REASONS = [
@@ -143,6 +144,7 @@ function TradeDetailPage() {
         </Link>
         <div className="flex items-center gap-3">
           <span className="font-mono text-xs text-muted-foreground">{trade.id}</span>
+          <AiVerificationBadge status={trade.verificationStatus} confidence={trade.verificationConfidence} showConfidence showAiPrefix />
           <StatusBadge status={trade.status} />
         </div>
       </div>
@@ -344,6 +346,8 @@ function TradeDetailPage() {
         </Panel>
       )}
 
+      <AiVerificationPanel trade={trade} />
+
       {trade.status === "Rejected" && trade.rejectionReason && (
         <Panel title="Rejection">
           <div className="flex items-start gap-2 rounded-lg bg-destructive/10 p-3 text-sm">
@@ -526,6 +530,88 @@ function ItemStatusIcon({ status }: { status: ItemStatus }) {
   if (status === "Approved") return <CheckCircle2 className="h-3.5 w-3.5" />;
   if (status === "Rejected") return <XCircle className="h-3.5 w-3.5" />;
   return <Clock className="h-3.5 w-3.5" />;
+}
+
+// ── AI Verification panel ──────────────────────────────────────────────────────
+// Surfaces the advisory verdict from the ai-service worker: the trade-level rollup plus
+// a per-line-item breakdown of what the vision model saw. Purely informational — the
+// admin still approves/rejects manually (the worker never moves money or auto-decides).
+function AiVerificationPanel({ trade }: { trade: TradeDetail }) {
+  const meta = aiVerdictMeta(trade.verificationStatus);
+  const isChecked = meta.key !== "NOTCHECKED" && meta.key !== "INPROGRESS";
+
+  return (
+    <Panel title="AI Verification">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <AiVerificationBadge status={trade.verificationStatus} confidence={trade.verificationConfidence} showConfidence />
+        {trade.verifiedAt ? (
+          <span className="text-xs text-muted-foreground">Verified {formatDateTime(trade.verifiedAt)}</span>
+        ) : meta.key === "INPROGRESS" ? (
+          <span className="text-xs text-muted-foreground">AI is analysing the proof images…</span>
+        ) : meta.key === "NOTCHECKED" ? (
+          <span className="text-xs text-muted-foreground">Not yet processed by the AI.</span>
+        ) : null}
+      </div>
+
+      {/* Attention callout — NotGiftcard / Uncertain trades warrant a closer look before payout */}
+      {meta.needsAttention && (
+        <div
+          className={cn(
+            "mt-3 flex items-start gap-2 rounded-lg p-3 text-sm",
+            meta.key === "NOTGIFTCARD" ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning",
+          )}
+        >
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            {meta.key === "NOTGIFTCARD"
+              ? "The AI flagged one or more images as not a giftcard. Review the proofs carefully before approving."
+              : "The AI was uncertain about one or more images. Verify the proofs manually before approving."}
+          </p>
+        </div>
+      )}
+
+      {/* Per-item breakdown of what the vision model classified */}
+      {isChecked && (
+        <div className="mt-4 space-y-2">
+          {trade.items.map((item) => {
+            const itemMeta = aiVerdictMeta(item.verificationStatus);
+            const conf = formatConfidence(item.verificationConfidence);
+            return (
+              <div key={item.id} className="rounded-lg border border-border p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-sm font-medium">
+                    {item.brandName}
+                    <span className="ml-1.5 font-mono text-xs text-muted-foreground">
+                      {item.denominationCurrency} {item.denominationAmount} × {item.quantity}
+                    </span>
+                  </span>
+                  <AiVerificationBadge status={item.verificationStatus} confidence={item.verificationConfidence} showConfidence />
+                </div>
+                {(item.isGiftcardImage != null || item.imageType) && (
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    {item.isGiftcardImage != null &&
+                      (item.isGiftcardImage ? "Looks like a giftcard" : "Does not look like a giftcard")}
+                    {item.imageType && <span> · {item.imageType}</span>}
+                    {conf && <span> · {conf} confidence</span>}
+                  </p>
+                )}
+                {item.verificationNotes && (
+                  <p className="mt-1 text-xs italic text-muted-foreground">“{item.verificationNotes}”</p>
+                )}
+                {itemMeta.key === "NOTCHECKED" && !item.verificationNotes && item.isGiftcardImage == null && (
+                  <p className="mt-1 text-xs text-muted-foreground">Not checked.</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <p className="mt-3 text-[11px] text-muted-foreground">
+        AI checks are advisory — they never approve, reject, or move money. Use your judgement.
+      </p>
+    </Panel>
+  );
 }
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {

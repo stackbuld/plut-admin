@@ -1,14 +1,26 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Filter, Loader2 } from "lucide-react";
+import { Search, Filter, Loader2, Sparkles } from "lucide-react";
 import { StatusBadge } from "@/components/plut/StatusBadge";
 import { SlaIndicator } from "@/components/plut/SlaIndicator";
+import { AiVerificationBadge } from "@/components/plut/AiVerificationBadge";
 import { UserRef } from "@/components/plut/UserSummaryModal";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { tradeQueries, type TradeStatus } from "@/api";
 import { formatDate, formatTime, truncId } from "@/lib/format";
+
+// AI verification filter options. `value` is the backend enum name (bound case-insensitively);
+// "All" clears the filter. Order surfaces the actionable states (flagged / uncertain) first.
+const AI_FILTERS: { value: string; label: string }[] = [
+  { value: "All", label: "AI: All" },
+  { value: "NotGiftcard", label: "AI: Not a giftcard" },
+  { value: "Uncertain", label: "AI: Uncertain" },
+  { value: "Giftcard", label: "AI: Giftcard" },
+  { value: "InProgress", label: "AI: Checking" },
+  { value: "NotChecked", label: "AI: Not checked" },
+];
 
 export const Route = createFileRoute("/_app/admin/giftcards/trades")({
   head: () => ({ meta: [{ title: "Trades — Plut Admin" }] }),
@@ -20,9 +32,14 @@ function TradesLayout() {
   if (isDetail) return <Outlet />;
 
   const [status, setStatus] = useState<TradeStatus | "All">("Submitted");
+  const [aiStatus, setAiStatus] = useState<string>("All");
   const [query, setQuery] = useState("");
 
-  const params = status !== "All" ? { Status: status, PageSize: 100 } : { PageSize: 100 };
+  const params = {
+    PageSize: 100,
+    ...(status !== "All" ? { Status: status } : {}),
+    ...(aiStatus !== "All" ? { VerificationStatus: aiStatus } : {}),
+  };
   const { data, isLoading } = useQuery(tradeQueries.list(params));
 
   const list = useMemo(() => {
@@ -40,6 +57,14 @@ function TradesLayout() {
           <SelectContent>
             {["All", "Submitted", "Approved", "Accepted", "Paid", "Rejected", "Cancelled"].map((s) => (
               <SelectItem key={s} value={s}>{s}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={aiStatus} onValueChange={setAiStatus}>
+          <SelectTrigger className="h-9 w-[190px]"><Sparkles className="h-3.5 w-3.5" /> <SelectValue /></SelectTrigger>
+          <SelectContent>
+            {AI_FILTERS.map((f) => (
+              <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -70,6 +95,9 @@ function TradesLayout() {
                   </div>
                   <StatusBadge status={t.status} />
                 </div>
+                <div className="mt-2">
+                  <AiVerificationBadge status={t.verificationStatus} confidence={t.verificationConfidence} showConfidence />
+                </div>
                 <div className="mt-3 flex items-end justify-between">
                   <p className="text-xs text-muted-foreground">{t.itemCount} item{t.itemCount !== 1 ? "s" : ""}</p>
                   <div className="text-right">
@@ -97,7 +125,7 @@ function TradesLayout() {
               <table className="w-full text-sm">
                 <thead className="bg-secondary/60">
                   <tr className="text-left">
-                    {["Trade ID", "Customer", "Items", "USD Value", "Payout", "Submitted", "SLA", "Status"].map((h) => (
+                    {["Trade ID", "Customer", "Items", "USD Value", "Payout", "Submitted", "SLA", "AI", "Status"].map((h) => (
                       <th key={h} className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
                     ))}
                   </tr>
@@ -119,11 +147,14 @@ function TradesLayout() {
                         <p className="text-[11px] text-muted-foreground">{formatDate(t.submittedAt)}</p>
                       </td>
                       <td className="px-6 py-3.5">{t.status === "Submitted" ? <SlaIndicator deadlineIso={t.slaDeadlineAt} /> : <span className="text-xs text-muted-foreground">—</span>}</td>
+                      <td className="px-6 py-3.5">
+                        <AiVerificationBadge status={t.verificationStatus} confidence={t.verificationConfidence} showConfidence />
+                      </td>
                       <td className="px-6 py-3.5"><StatusBadge status={t.status} /></td>
                     </tr>
                   ))}
                   {list.length === 0 && (
-                    <tr><td colSpan={8} className="px-6 py-12 text-center text-sm text-muted-foreground">No trades match these filters.</td></tr>
+                    <tr><td colSpan={9} className="px-6 py-12 text-center text-sm text-muted-foreground">No trades match these filters.</td></tr>
                   )}
                 </tbody>
               </table>
