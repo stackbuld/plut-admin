@@ -35,7 +35,9 @@ export type ListDenominationsParams = {
 
 // ── Rates ─────────────────────────────────────────────────────────────────────
 
-export type MarkupType = "FixedUsd" | "Percentage";
+// TargetCustomerRate pins the customer rate (markupValue = customer USD rate); the backend derives
+// the markup from the live market so the admin's chosen payout is honoured exactly.
+export type MarkupType = "FixedUsd" | "Percentage" | "TargetCustomerRate";
 export type RateSource = "System" | "Admin";
 
 export type RateListItem = {

@@ -19,6 +19,8 @@ import { Route as AppAdminGiftcardsTradesRouteImport } from './routes/_app.admin
 import { Route as AppAdminGiftcardsDashboardRouteImport } from './routes/_app.admin.giftcards.dashboard'
 import { Route as AppAdminGiftcardsCatalogRouteImport } from './routes/_app.admin.giftcards.catalog'
 import { Route as AppAdminGiftcardsBrandsRouteImport } from './routes/_app.admin.giftcards.brands'
+import { Route as AppAdminAiDashboardRouteImport } from './routes/_app.admin.ai.dashboard'
+import { Route as AppAdminAiConversationsRouteImport } from './routes/_app.admin.ai.conversations'
 import { Route as AppAdminWalletsWithdrawalsIndexRouteImport } from './routes/_app.admin.wallets.withdrawals.index'
 import { Route as AppAdminGiftcardsCatalogIndexRouteImport } from './routes/_app.admin.giftcards.catalog.index'
 import { Route as AppAdminWalletsWithdrawalsAllRouteImport } from './routes/_app.admin.wallets.withdrawals.all'
@@ -31,6 +33,7 @@ import { Route as AppAdminGiftcardsCatalogFxRouteImport } from './routes/_app.ad
 import { Route as AppAdminGiftcardsCatalogDenominationsRouteImport } from './routes/_app.admin.giftcards.catalog.denominations'
 import { Route as AppAdminGiftcardsCatalogCountriesRouteImport } from './routes/_app.admin.giftcards.catalog.countries'
 import { Route as AppAdminGiftcardsBrandsBrandIdRouteImport } from './routes/_app.admin.giftcards.brands.$brandId'
+import { Route as AppAdminAiConversationsConversationIdRouteImport } from './routes/_app.admin.ai.conversations.$conversationId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -82,6 +85,16 @@ const AppAdminGiftcardsCatalogRoute =
 const AppAdminGiftcardsBrandsRoute = AppAdminGiftcardsBrandsRouteImport.update({
   id: '/admin/giftcards/brands',
   path: '/admin/giftcards/brands',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminAiDashboardRoute = AppAdminAiDashboardRouteImport.update({
+  id: '/admin/ai/dashboard',
+  path: '/admin/ai/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminAiConversationsRoute = AppAdminAiConversationsRouteImport.update({
+  id: '/admin/ai/conversations',
+  path: '/admin/ai/conversations',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAdminWalletsWithdrawalsIndexRoute =
@@ -156,17 +169,26 @@ const AppAdminGiftcardsBrandsBrandIdRoute =
     path: '/$brandId',
     getParentRoute: () => AppAdminGiftcardsBrandsRoute,
   } as any)
+const AppAdminAiConversationsConversationIdRoute =
+  AppAdminAiConversationsConversationIdRouteImport.update({
+    id: '/$conversationId',
+    path: '/$conversationId',
+    getParentRoute: () => AppAdminAiConversationsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/admin/ai/conversations': typeof AppAdminAiConversationsRouteWithChildren
+  '/admin/ai/dashboard': typeof AppAdminAiDashboardRoute
   '/admin/giftcards/brands': typeof AppAdminGiftcardsBrandsRouteWithChildren
   '/admin/giftcards/catalog': typeof AppAdminGiftcardsCatalogRouteWithChildren
   '/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
   '/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
+  '/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
   '/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
   '/admin/giftcards/catalog/denominations': typeof AppAdminGiftcardsCatalogDenominationsRoute
@@ -184,10 +206,13 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/': typeof AppIndexRoute
+  '/admin/ai/conversations': typeof AppAdminAiConversationsRouteWithChildren
+  '/admin/ai/dashboard': typeof AppAdminAiDashboardRoute
   '/admin/giftcards/brands': typeof AppAdminGiftcardsBrandsRouteWithChildren
   '/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
+  '/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
   '/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
   '/admin/giftcards/catalog/denominations': typeof AppAdminGiftcardsCatalogDenominationsRoute
@@ -207,12 +232,15 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/admin/ai/conversations': typeof AppAdminAiConversationsRouteWithChildren
+  '/_app/admin/ai/dashboard': typeof AppAdminAiDashboardRoute
   '/_app/admin/giftcards/brands': typeof AppAdminGiftcardsBrandsRouteWithChildren
   '/_app/admin/giftcards/catalog': typeof AppAdminGiftcardsCatalogRouteWithChildren
   '/_app/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/_app/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/_app/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
   '/_app/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
+  '/_app/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
   '/_app/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/_app/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
   '/_app/admin/giftcards/catalog/denominations': typeof AppAdminGiftcardsCatalogDenominationsRoute
@@ -232,12 +260,15 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/auth/callback'
+    | '/admin/ai/conversations'
+    | '/admin/ai/dashboard'
     | '/admin/giftcards/brands'
     | '/admin/giftcards/catalog'
     | '/admin/giftcards/dashboard'
     | '/admin/giftcards/trades'
     | '/admin/giftcards/users'
     | '/admin/wallets/withdrawals'
+    | '/admin/ai/conversations/$conversationId'
     | '/admin/giftcards/brands/$brandId'
     | '/admin/giftcards/catalog/countries'
     | '/admin/giftcards/catalog/denominations'
@@ -255,10 +286,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/auth/callback'
     | '/'
+    | '/admin/ai/conversations'
+    | '/admin/ai/dashboard'
     | '/admin/giftcards/brands'
     | '/admin/giftcards/dashboard'
     | '/admin/giftcards/trades'
     | '/admin/giftcards/users'
+    | '/admin/ai/conversations/$conversationId'
     | '/admin/giftcards/brands/$brandId'
     | '/admin/giftcards/catalog/countries'
     | '/admin/giftcards/catalog/denominations'
@@ -277,12 +311,15 @@ export interface FileRouteTypes {
     | '/login'
     | '/auth/callback'
     | '/_app/'
+    | '/_app/admin/ai/conversations'
+    | '/_app/admin/ai/dashboard'
     | '/_app/admin/giftcards/brands'
     | '/_app/admin/giftcards/catalog'
     | '/_app/admin/giftcards/dashboard'
     | '/_app/admin/giftcards/trades'
     | '/_app/admin/giftcards/users'
     | '/_app/admin/wallets/withdrawals'
+    | '/_app/admin/ai/conversations/$conversationId'
     | '/_app/admin/giftcards/brands/$brandId'
     | '/_app/admin/giftcards/catalog/countries'
     | '/_app/admin/giftcards/catalog/denominations'
@@ -375,6 +412,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminGiftcardsBrandsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/ai/dashboard': {
+      id: '/_app/admin/ai/dashboard'
+      path: '/admin/ai/dashboard'
+      fullPath: '/admin/ai/dashboard'
+      preLoaderRoute: typeof AppAdminAiDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/ai/conversations': {
+      id: '/_app/admin/ai/conversations'
+      path: '/admin/ai/conversations'
+      fullPath: '/admin/ai/conversations'
+      preLoaderRoute: typeof AppAdminAiConversationsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/wallets/withdrawals/': {
       id: '/_app/admin/wallets/withdrawals/'
       path: '/'
@@ -459,8 +510,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminGiftcardsBrandsBrandIdRouteImport
       parentRoute: typeof AppAdminGiftcardsBrandsRoute
     }
+    '/_app/admin/ai/conversations/$conversationId': {
+      id: '/_app/admin/ai/conversations/$conversationId'
+      path: '/$conversationId'
+      fullPath: '/admin/ai/conversations/$conversationId'
+      preLoaderRoute: typeof AppAdminAiConversationsConversationIdRouteImport
+      parentRoute: typeof AppAdminAiConversationsRoute
+    }
   }
 }
+
+interface AppAdminAiConversationsRouteChildren {
+  AppAdminAiConversationsConversationIdRoute: typeof AppAdminAiConversationsConversationIdRoute
+}
+
+const AppAdminAiConversationsRouteChildren: AppAdminAiConversationsRouteChildren =
+  {
+    AppAdminAiConversationsConversationIdRoute:
+      AppAdminAiConversationsConversationIdRoute,
+  }
+
+const AppAdminAiConversationsRouteWithChildren =
+  AppAdminAiConversationsRoute._addFileChildren(
+    AppAdminAiConversationsRouteChildren,
+  )
 
 interface AppAdminGiftcardsBrandsRouteChildren {
   AppAdminGiftcardsBrandsBrandIdRoute: typeof AppAdminGiftcardsBrandsBrandIdRoute
@@ -551,6 +624,8 @@ const AppAdminWalletsWithdrawalsRouteWithChildren =
 
 interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
+  AppAdminAiConversationsRoute: typeof AppAdminAiConversationsRouteWithChildren
+  AppAdminAiDashboardRoute: typeof AppAdminAiDashboardRoute
   AppAdminGiftcardsBrandsRoute: typeof AppAdminGiftcardsBrandsRouteWithChildren
   AppAdminGiftcardsCatalogRoute: typeof AppAdminGiftcardsCatalogRouteWithChildren
   AppAdminGiftcardsDashboardRoute: typeof AppAdminGiftcardsDashboardRoute
@@ -561,6 +636,8 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
+  AppAdminAiConversationsRoute: AppAdminAiConversationsRouteWithChildren,
+  AppAdminAiDashboardRoute: AppAdminAiDashboardRoute,
   AppAdminGiftcardsBrandsRoute: AppAdminGiftcardsBrandsRouteWithChildren,
   AppAdminGiftcardsCatalogRoute: AppAdminGiftcardsCatalogRouteWithChildren,
   AppAdminGiftcardsDashboardRoute: AppAdminGiftcardsDashboardRoute,

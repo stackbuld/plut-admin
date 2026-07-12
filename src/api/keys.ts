@@ -1,4 +1,4 @@
-import type { ListTradesParams, ListDenominationsParams, ListRatesParams, ListUsersParams, ListImageBlacklistParams } from "./types";
+import type { ListTradesParams, ListDenominationsParams, ListRatesParams, ListUsersParams, ListImageBlacklistParams, ListAiConversationsParams } from "./types";
 
 /**
  * Centralized query key factory.
@@ -67,5 +67,13 @@ export const queryKeys = {
 
   stats: {
     dashboard: () => ["admin", "stats", "dashboard"] as const,
+  },
+
+  ai: {
+    all: () => ["admin", "ai"] as const,
+    conversationsList: () => [...queryKeys.ai.all(), "conversations"] as const,
+    conversations: (params?: ListAiConversationsParams) => [...queryKeys.ai.conversationsList(), params] as const,
+    conversation: (id: string) => [...queryKeys.ai.all(), "conversation", id] as const,
+    stats: (days: number) => [...queryKeys.ai.all(), "stats", days] as const,
   },
 } as const;

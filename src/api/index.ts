@@ -7,3 +7,4 @@ export * from "./catalog";
 export * from "./users";
 export * from "./withdrawals";
 export * from "./wallets";
+export * from "./ai";

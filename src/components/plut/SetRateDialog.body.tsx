@@ -107,14 +107,26 @@ export function SetRateDialogBody({ denom, onClose }: { denom: DenomRateContext 
       if (fxFailures.length > 0) {
         throw new Error(`Failed to save FX rate(s): ${fxFailures.join(", ")}. Rate not updated.`);
       }
+      // Encode the customer rate faithfully to the chosen mode so the backend re-derives the SAME
+      // value it stores — rather than collapsing everything to a percentage that floats when the
+      // backend recomputes the market rate live:
+      //  • Target Payout → pin the customer USD rate (markup floats with the market)
+      //  • Profit Goal   → pin the USD margin (customer floats with the market)
+      //  • Markup %      → pin the percentage
+      const markup =
+        custMode === "payout"
+          ? { markupType: "TargetCustomerRate" as const, markupValue: Number(customerRateUsd.toFixed(6)) }
+          : custMode === "profit"
+            ? { markupType: "FixedUsd" as const, markupValue: Number(marginUsd.toFixed(6)) }
+            : { markupType: "Percentage" as const, markupValue: Number((parseFloat(markupPct) || 0).toFixed(6)) };
+
       // Create the rate — send only the fields for the active mode (XOR enforced by backend)
       await createRate({
         denominationId: denom.id,
         marketRateUsd: acqCode === "USD" ? marketRateUsd : null,
         acquisitionCurrency: acqCode !== "USD" ? acqCode : null,
         acquisitionRatePerCardDollar: acqCode !== "USD" ? supplierNum : null,
-        markupType: "Percentage",
-        markupValue: Number(marginPctCalc.toFixed(6)),
+        ...markup,
         source: "Admin",
       });
     },
