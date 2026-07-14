@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Check, X, AlertTriangle, ChevronRight, Clock, Loader2, CheckCircle2, XCircle, Copy } from "lucide-react";
+import { ArrowLeft, Check, X, AlertTriangle, ChevronRight, Clock, Loader2, CheckCircle2, XCircle, Copy, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -13,7 +13,7 @@ import { StatusBadge } from "@/components/plut/StatusBadge";
 import { SlaIndicator } from "@/components/plut/SlaIndicator";
 import { UserRef } from "@/components/plut/UserSummaryModal";
 import { AiVerificationBadge, aiVerdictMeta, formatConfidence } from "@/components/plut/AiVerificationBadge";
-import { tradeQueries, userQueries, acceptTrade, rejectTrade, approveTradeItem, rejectTradeItem, queryKeys } from "@/api";
+import { tradeQueries, userQueries, denominationQueries, acceptTrade, rejectTrade, approveTradeItem, rejectTradeItem, editTradeItem, queryKeys } from "@/api";
 import { formatDateTime } from "@/lib/format";
 import type { TradeItem, TradeDetail, KycTier, UserStatus } from "@/api/types";
 import { cn } from "@/lib/utils";
@@ -50,10 +50,13 @@ function TradeDetailPage() {
   const [openReject, setOpenReject] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [payoutOverride, setPayoutOverride] = useState("");
+  const [approveComment, setApproveComment] = useState("");
   const [itemRejectTarget, setItemRejectTarget] = useState<TradeItem | null>(null);
+  const [itemEditTarget, setItemEditTarget] = useState<TradeItem | null>(null);
 
   const approveMutation = useMutation({
-    mutationFn: (override?: number) => acceptTrade(tradeId, override),
+    mutationFn: ({ override, comment }: { override?: number; comment?: string }) =>
+      acceptTrade(tradeId, override, comment),
     onSuccess: () => {
       toast.success("Trade approved. Payout in progress.");
       qc.invalidateQueries({ queryKey: queryKeys.trades.all() });
@@ -87,6 +90,17 @@ function TradeDetailPage() {
     onSuccess: () => {
       toast.success("Item rejected.");
       setItemRejectTarget(null);
+      qc.invalidateQueries({ queryKey: queryKeys.trades.detail(tradeId) });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const editItemMutation = useMutation({
+    mutationFn: ({ itemId, changes }: { itemId: string; changes: { denominationId?: string; quantity?: number } }) =>
+      editTradeItem(tradeId, itemId, changes),
+    onSuccess: () => {
+      toast.success("Item updated.");
+      setItemEditTarget(null);
       qc.invalidateQueries({ queryKey: queryKeys.trades.detail(tradeId) });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -175,6 +189,11 @@ function TradeDetailPage() {
           {trade.approvedAt && <Row label="Approved">{formatDateTime(trade.approvedAt)}</Row>}
           {trade.paidAt && <Row label="Paid">{formatDateTime(trade.paidAt)}</Row>}
           {trade.rejectedAt && <Row label="Rejected">{formatDateTime(trade.rejectedAt)}</Row>}
+          {trade.adminComment && (
+            <Row label="Admin note">
+              <span className="text-xs italic text-muted-foreground">“{trade.adminComment}”</span>
+            </Row>
+          )}
         </Panel>
 
         {/* Customer — Finding 1: fetch and display customer details */}
@@ -289,18 +308,30 @@ function TradeDetailPage() {
                     {item.customerPayoutAmount.toLocaleString()} {item.payoutCurrency}
                   </td>
                   <td className="py-3 pl-4 text-right">
-                    {!isTerminal && item.status === "Pending" ? (
-                      <ItemStatusSelect
-                        value={item.status}
-                        loading={approveItemMutation.isPending && approveItemMutation.variables === item.id}
-                        onChange={(next) => {
-                          if (next === "Approved") approveItemMutation.mutate(item.id);
-                          else setItemRejectTarget(item);
-                        }}
-                      />
-                    ) : (
-                      <ItemStatusBadge status={item.status} />
-                    )}
+                    <div className="flex items-center justify-end gap-2">
+                      {!isTerminal && item.status !== "Rejected" && (
+                        <button
+                          type="button"
+                          onClick={() => setItemEditTarget(item)}
+                          title="Edit denomination / quantity"
+                          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                      {!isTerminal && item.status === "Pending" ? (
+                        <ItemStatusSelect
+                          value={item.status}
+                          loading={approveItemMutation.isPending && approveItemMutation.variables === item.id}
+                          onChange={(next) => {
+                            if (next === "Approved") approveItemMutation.mutate(item.id);
+                            else setItemRejectTarget(item);
+                          }}
+                        />
+                      ) : (
+                        <ItemStatusBadge status={item.status} />
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -376,7 +407,7 @@ function TradeDetailPage() {
       )}
 
       {/* Trade-level approve */}
-      <Dialog open={openApprove} onOpenChange={(o) => { setOpenApprove(o); if (!o) setPayoutOverride(""); }}>
+      <Dialog open={openApprove} onOpenChange={(o) => { setOpenApprove(o); if (!o) { setPayoutOverride(""); setApproveComment(""); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Approval</DialogTitle>
@@ -406,14 +437,23 @@ function TradeDetailPage() {
             </div>
             <p className="text-xs text-muted-foreground">Leave blank to credit the calculated amount.</p>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="approve-comment" className="text-sm">
+              Comment <span className="font-normal text-muted-foreground">(optional)</span>
+            </Label>
+            <Textarea id="approve-comment" rows={2} maxLength={1000}
+              placeholder="Internal note — e.g. why an override was applied"
+              value={approveComment} onChange={(e) => setApproveComment(e.target.value)} />
+          </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpenApprove(false)}>Cancel</Button>
             <Button onClick={() => {
+              const comment = approveComment.trim() || undefined;
               const t = payoutOverride.trim();
-              if (t === "") return approveMutation.mutate(undefined);
+              if (t === "") return approveMutation.mutate({ comment });
               const n = Number(t);
               if (!Number.isFinite(n) || n < 0) { toast.error("Enter a valid payout amount"); return; }
-              approveMutation.mutate(n);
+              approveMutation.mutate({ override: n, comment });
             }} disabled={approveMutation.isPending}>
               {approveMutation.isPending ? "Approving…" : "Confirm Approve"}
             </Button>
@@ -436,6 +476,14 @@ function TradeDetailPage() {
         description="Only this item will be marked rejected. Other items are unaffected."
         onSubmit={(r) => itemRejectTarget && rejectItemMutation.mutate({ itemId: itemRejectTarget.id, reason: r })}
         submitting={rejectItemMutation.isPending} />
+
+      {/* Per-item edit — denomination / quantity */}
+      <EditItemDialog
+        item={itemEditTarget}
+        payoutCurrency={trade.payoutCurrency}
+        onOpenChange={(o) => !o && setItemEditTarget(null)}
+        onSubmit={(changes) => itemEditTarget && editItemMutation.mutate({ itemId: itemEditTarget.id, changes })}
+        submitting={editItemMutation.isPending} />
 
       {/* Lightbox */}
       <Dialog open={!!lightbox} onOpenChange={(o) => !o && setLightbox(null)}>
@@ -682,6 +730,119 @@ function RejectDialog({ open, onOpenChange, title, description, onSubmit, submit
             onClick={() => { if (!reason) { toast.error("Pick a rejection reason."); return; } onSubmit(`${reason}${notes ? `: ${notes}` : ""}`); }}
             disabled={submitting}>
             {submitting ? "Rejecting…" : "Confirm Reject"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
+function EditItemDialog({ item, payoutCurrency, onOpenChange, onSubmit, submitting }: {
+  item: TradeItem | null;
+  payoutCurrency: string;
+  onOpenChange: (o: boolean) => void;
+  onSubmit: (changes: { denominationId?: string; quantity?: number }) => void;
+  submitting: boolean;
+}) {
+  const [denominationId, setDenominationId] = useState("");
+  const [quantity, setQuantity] = useState("");
+
+  useEffect(() => {
+    if (item) {
+      setDenominationId(item.denominationId);
+      setQuantity(String(item.quantity));
+    }
+  }, [item]);
+
+  const { data: denomPage, isLoading: denomsLoading } = useQuery({
+    ...denominationQueries.list({ BrandId: item?.brandId, CountryId: item?.countryId, PageSize: 100 }),
+    enabled: !!item,
+  });
+
+  const options = (() => {
+    if (!item) return [];
+    const list = (denomPage?.items ?? []).filter(
+      (d) => d.isActive && d.cardType === item.cardFormat,
+    );
+    if (!list.some((d) => d.id === item.denominationId)) {
+      list.unshift({
+        id: item.denominationId,
+        brandId: item.brandId,
+        countryId: item.countryId,
+        amount: item.denominationAmount,
+        currencyCode: item.denominationCurrency,
+        cardType: item.cardFormat as "Physical" | "ECode",
+        isActive: true,
+      });
+    }
+    return [...list].sort((a, b) => a.amount - b.amount);
+  })();
+
+  const qtyNum = Number(quantity);
+  const qtyValid = Number.isInteger(qtyNum) && qtyNum >= 1 && qtyNum <= 20;
+  const denomChanged = !!item && denominationId !== item.denominationId;
+  const qtyChanged = !!item && qtyNum !== item.quantity;
+  const dirty = denomChanged || qtyChanged;
+
+  return (
+    <Dialog open={!!item} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Item</DialogTitle>
+          <DialogDescription>
+            Change the denomination and/or quantity. The trade total is recalculated. Changing the
+            denomination re-prices at the current rate, so the payout may differ slightly.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label className="text-sm">Denomination</Label>
+            <Select value={denominationId} onValueChange={setDenominationId} disabled={denomsLoading}>
+              <SelectTrigger>
+                <SelectValue placeholder={denomsLoading ? "Loading…" : "Select denomination…"} />
+              </SelectTrigger>
+              <SelectContent>
+                {options.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.currencyCode} {d.amount} · {d.cardType}
+                    {d.id === item?.denominationId ? " (current)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-qty" className="text-sm">Quantity</Label>
+            <Input id="edit-qty" type="number" inputMode="numeric" min={1} max={20} step={1}
+              value={quantity} onChange={(e) => setQuantity(e.target.value)} className="font-mono" />
+            <p className="text-xs text-muted-foreground">Between 1 and 20 cards.</p>
+          </div>
+
+          {item && (
+            <p className="text-xs text-muted-foreground">
+              Current line total:{" "}
+              <span className="font-mono">{item.customerPayoutAmount.toLocaleString()} {payoutCurrency}</span>
+            </p>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              if (!qtyValid) { toast.error("Quantity must be between 1 and 20."); return; }
+              if (!dirty) { toast.error("Change the denomination or quantity first."); return; }
+              onSubmit({
+                ...(denomChanged ? { denominationId } : {}),
+                ...(qtyChanged ? { quantity: qtyNum } : {}),
+              });
+            }}
+            disabled={submitting || !dirty || !qtyValid}
+          >
+            {submitting ? "Saving…" : "Save Changes"}
           </Button>
         </DialogFooter>
       </DialogContent>
