@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontal, History } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { MoreHorizontal, History, Sparkles } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SetRateDialog, type DenomRateContext } from "@/components/plut/SetRateDialog";
-import { RateHistoryDrawer } from "@/components/plut/RateHistoryDrawer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,6 +62,7 @@ export function RatesTable({
   enableDenomActions?: boolean;
 }) {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const locked = !!lockBrandId;
 
   const [brandFilter, setBrandFilter] = useState("All");
@@ -72,7 +73,6 @@ export function RatesTable({
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const [rateFor, setRateFor] = useState<DenomRateContext | null>(null);
-  const [historyFor, setHistoryFor] = useState<DenomRateContext | null>(null);
   const [deleteFor, setDeleteFor] = useState<{ id: string; label: string } | null>(null);
 
   const effectiveBrandId = lockBrandId ?? (brandFilter !== "All" ? brandFilter : undefined);
@@ -366,17 +366,29 @@ export function RatesTable({
 
                       <td className="px-6 py-3.5 text-right">
                         <div className="inline-flex items-center gap-1">
+                          {r.hasPendingFxUpdate && (
+                            <span
+                              title="A newer FX rate has been staged for this rate — review it on the FX Rates tab"
+                              className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400"
+                            >
+                              <Sparkles className="h-3 w-3" /> New rate
+                            </span>
+                          )}
                           {r.hasRate && (
                             <Button
                               size="sm"
                               variant="ghost"
                               className="h-8 gap-1 text-xs"
-                              onMouseEnter={() =>
-                                qc.prefetchQuery(
-                                  rateQueries.list({ DenominationId: r.denominationId }),
-                                )
+                              onMouseEnter={() => {
+                                qc.prefetchQuery(rateQueries.history(r.denominationId));
+                                qc.prefetchQuery(rateQueries.payouts(r.denominationId));
+                              }}
+                              onClick={() =>
+                                navigate({
+                                  to: "/admin/giftcards/catalog/rate-history/$denominationId",
+                                  params: { denominationId: r.denominationId },
+                                })
                               }
-                              onClick={() => setHistoryFor(ctx)}
                             >
                               <History className="h-3.5 w-3.5" /> History
                             </Button>
@@ -470,15 +482,6 @@ export function RatesTable({
           qc.invalidateQueries({ queryKey: queryKeys.rates.all() });
         }}
       />
-      <RateHistoryDrawer
-        denom={historyFor}
-        onClose={() => setHistoryFor(null)}
-        onSetNew={(ctx) => {
-          setHistoryFor(null);
-          setRateFor(ctx);
-        }}
-      />
-
       <AlertDialog open={!!deleteFor} onOpenChange={(o) => { if (!o) setDeleteFor(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>

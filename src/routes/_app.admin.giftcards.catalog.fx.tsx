@@ -10,11 +10,13 @@ import { fxRateQueries, setFxRate, payoutCurrencyQueries, queryKeys } from "@/ap
 import { toast } from "sonner";
 import { formatDateTime, currencySymbol } from "@/lib/format";
 import { Field, TabLoader, EmptyRow } from "@/components/plut/catalog-shared";
+import { StagedFxRates } from "@/components/plut/StagedFxRates";
 
 export const Route = createFileRoute("/_app/admin/giftcards/catalog/fx")({
   loader: ({ context }) => {
     const qc = context.queryClient;
     qc.prefetchQuery(fxRateQueries.current());
+    qc.prefetchQuery(fxRateQueries.staged());
     qc.prefetchQuery(payoutCurrencyQueries.list());
   },
   component: FxTab,
@@ -58,6 +60,8 @@ function FxTab() {
         </p>
         <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Set FX Rate</Button>
       </div>
+
+      <StagedFxRates />
 
       {isLoading ? <TabLoader /> : (
         <div className="rounded-2xl border bg-card overflow-hidden">
