@@ -62,6 +62,82 @@ export type RateListItem = {
   markupValue: number;
   rateSource: RateSource | null;
   rateValidFrom: string | null;
+  // True when a newer FX rate has been staged (fetched from the feed, not yet applied) for a pair
+  // this denomination's rate is derived from — drives the "new rate available" indicator.
+  hasPendingFxUpdate: boolean;
+};
+
+// ── Denomination rate history (dedicated page) ─────────────────────────────────
+
+export type DenominationRateHistoryItem = {
+  rateId: string;
+  marketRateUsd: number;
+  customerRateUsd: number;
+  markupUsd: number;
+  markupType: MarkupType;
+  markupValue: number;
+  acquisitionCurrency: string | null;
+  acquisitionRatePerCardDollar: number | null;
+  source: RateSource;
+  isActive: boolean;
+  validFrom: string;
+  validTo: string | null;
+};
+
+export type DenominationRateHistorySummary = {
+  denominationId: string;
+  brandId: string;
+  brandName: string;
+  brandImageUrl: string;
+  countryId: string;
+  countryName: string;
+  amount: number;
+  currencyCode: string;
+  currencySymbol: string;
+  cardType: CardType;
+  denominationIsActive: boolean;
+  hasActiveRate: boolean;
+  currentMarketRateUsd: number | null;
+  currentCustomerRateUsd: number | null;
+  currentMarkupUsd: number | null;
+  currentSource: RateSource | null;
+  currentValidFrom: string | null;
+  totalChanges: number;
+  firstRecordedAt: string | null;
+  lastChangedAt: string | null;
+};
+
+export type DenominationRateHistoryResult = {
+  summary: DenominationRateHistorySummary;
+  items: DenominationRateHistoryItem[];
+};
+
+// ── Denomination rate payouts (per payout currency) ────────────────────────────
+
+export type PayoutCurrencyRate = {
+  currency: string;
+  symbol: string;
+  name: string;
+  hasFxRate: boolean;
+  // Units of this payout currency per $1 (rate per 1$ of the payout currency).
+  fxRatePerUsd: number | null;
+  // Customer payout per $1 of card face value, in this payout currency.
+  customerRatePerCardDollar: number | null;
+  // Total customer payout for the denomination, in this payout currency.
+  customerPayoutAmount: number | null;
+};
+
+export type DenominationRatePayouts = {
+  denominationId: string;
+  brandId: string;
+  countryId: string;
+  amount: number;
+  denominationCurrency: string;
+  denominationCurrencySymbol: string;
+  marketRateUsd: number;
+  customerRateUsd: number;
+  markupUsd: number;
+  payouts: PayoutCurrencyRate[];
 };
 
 export type CreateRateBody = {
@@ -105,6 +181,21 @@ export type FxRateHistoryItem = {
   validFrom: string;
   validTo: string | null;
   isCurrent: boolean;
+};
+
+// ── Staged FX Rates (fetched from feed, awaiting manual apply) ─────────────────
+
+export type StagedFxRateItem = {
+  id: string;
+  baseCurrency: string;
+  quoteCurrency: string;
+  rateType: string;
+  stagedRate: number;
+  currentRate: number | null;
+  delta: number | null;
+  deltaPercent: number | null;
+  source: string | null;
+  fetchedAt: string;
 };
 
 // ── Payout Currencies ─────────────────────────────────────────────────────────

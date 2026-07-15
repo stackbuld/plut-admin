@@ -66,6 +66,10 @@ export function SetRateDialogBody({ denom, onClose }: { denom: DenomRateContext 
     for (const p of allPayouts) if (p.code !== "NGN") next[fxKey("USD", p.code)] = getFxFromApi("USD", p.code);
     setFx(next);
 
+    // Clear all three customer-rate inputs first, then restore only the one matching how the rate was
+    // stored. Reopening a saved rate must show the SAME value that was saved.
+    setProfitNgn(""); setTargetNgn(""); setMarkupPct("");
+
     const r = denom?.activeRate;
     if (r) {
       const restoredCode = r.acquisitionCurrency ?? "CNY";
@@ -75,15 +79,27 @@ export function SetRateDialogBody({ denom, onClose }: { denom: DenomRateContext 
           ? String(r.acquisitionRatePerCardDollar)
           : String(r.marketRateUsd),
       );
-      setCustMode("markup");
-      setMarkupPct(String(r.markupValue));
+      // Restore the tab that matches markupType and back-convert the stored USD values into the ₦
+      // inputs each tab expects. Without this branch every rate reopened as "Markup %" and fed its
+      // stored value into the percentage formula — so a Target Payout saved as a USD customer rate
+      // (e.g. 0.78) read back as 0.78% and the displayed payout changed after leaving the page.
+      const usdNgnNow = getFxFromApi("USD", "NGN");
+      if (r.markupType === "TargetCustomerRate") {
+        setCustMode("payout");
+        setTargetNgn(usdNgnNow ? (r.customerRateUsd * usdNgnNow).toFixed(0) : "");
+      } else if (r.markupType === "FixedUsd") {
+        setCustMode("profit");
+        setProfitNgn(usdNgnNow ? (r.markupValue * usdNgnNow).toFixed(0) : "");
+      } else {
+        setCustMode("markup");
+        setMarkupPct(String(r.markupValue));
+      }
     } else {
       setAcqCode("CNY");
       setSupplierInput("");
       setCustMode("markup");
       setMarkupPct("8");
     }
-    setProfitNgn(""); setTargetNgn("");
     setPreviewCodes(["NGN"]);
   }, [denom?.id, open, fxRatesData]); // eslint-disable-line react-hooks/exhaustive-deps
 
