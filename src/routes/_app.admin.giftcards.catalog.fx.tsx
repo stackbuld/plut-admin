@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, AlertTriangle, Loader2, History } from "lucide-react";
+import { Plus, AlertTriangle, Loader2, History, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { fxRateQueries, setFxRate, payoutCurrencyQueries, queryKeys } from "@/api";
+import { fxRateQueries, setFxRate, refreshFxRates, payoutCurrencyQueries, queryKeys } from "@/api";
 import { toast } from "sonner";
 import { formatDateTime, currencySymbol } from "@/lib/format";
 import { Field, TabLoader, EmptyRow } from "@/components/plut/catalog-shared";
@@ -51,6 +51,23 @@ function FxTab() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Manual trigger: pull the provider feed now and stage any rates that differ from the live ones.
+  const refreshMutation = useMutation({
+    mutationFn: refreshFxRates,
+    onSuccess: (res) => {
+      const n = res?.staged ?? 0;
+      if (n > 0) {
+        toast.success(`${n} new FX rate${n === 1 ? "" : "s"} staged for review.`, {
+          description: res.stagedPairs?.length ? res.stagedPairs.join(", ") : undefined,
+        });
+      } else {
+        toast.info("Feed matches the live rates — nothing new to review.");
+      }
+      qc.invalidateQueries({ queryKey: queryKeys.fxRates.all() });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -58,7 +75,15 @@ function FxTab() {
           Two types live here: <b>Payout rates</b> (USD → local currency) and <b>Acquisition rates</b> (CNY → NGN).
           Old rates are archived as immutable history.
         </p>
-        <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Set FX Rate</Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => refreshMutation.mutate()} disabled={refreshMutation.isPending}>
+            {refreshMutation.isPending
+              ? <Loader2 className="h-4 w-4 animate-spin" />
+              : <RefreshCw className="h-4 w-4" />}
+            Refresh from provider
+          </Button>
+          <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Set FX Rate</Button>
+        </div>
       </div>
 
       <StagedFxRates />
