@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Loader2, MessagesSquare, Zap, Coins, Bot, User as UserIcon, Wrench, ChevronRight } from "lucide-react";
+import { ArrowLeft, Loader2, MessagesSquare, Zap, Coins, Bot, User as UserIcon, Wrench, ChevronRight, Paperclip, Terminal } from "lucide-react";
 import { UserRef } from "@/components/plut/UserSummaryModal";
 import { aiQueries } from "@/api";
 import type { AiMessage, AiAction } from "@/api/types";
@@ -103,15 +103,20 @@ function MessageBubble({ message }: { message: AiMessage }) {
   const role = message.role.toLowerCase();
   const isUser = role === "user";
   const isTool = role === "tool";
-  const attachments = safeParse<{ type: string; url: string }[]>(message.attachmentsJson) ?? [];
+  const attachments = safeParse<{ type: string; url: string; name?: string }[]>(message.attachmentsJson) ?? [];
   const images = attachments.filter((a) => a.type?.toLowerCase() === "image");
+  const files = attachments.filter((a) => a.type?.toLowerCase() !== "image");
+  const toolCalls = safeParse<ToolCall[]>(message.toolCallsJson) ?? [];
 
   if (isTool) {
     return (
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Wrench className="h-3.5 w-3.5" />
-        <span className="italic">Tool step</span>
-        <span className="truncate font-mono">{message.content}</span>
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Wrench className="h-3.5 w-3.5" />
+          <span className="italic">Tool step</span>
+          <span className="truncate font-mono">{message.content}</span>
+        </div>
+        {toolCalls.length > 0 && <ToolCalls calls={toolCalls} />}
       </div>
     );
   }
@@ -139,6 +144,22 @@ function MessageBubble({ message }: { message: AiMessage }) {
                 <img src={img.url} alt={`Attachment ${i + 1}`} className="h-full w-full object-cover" />
               </a>
             ))}
+          </div>
+        )}
+        {files.length > 0 && (
+          <div className={cn("flex flex-wrap gap-1.5", isUser && "justify-end")}>
+            {files.map((f, i) => (
+              <a key={i} href={f.url} target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border bg-secondary/40 px-2.5 py-1.5 text-xs hover:bg-secondary">
+                <Paperclip className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <span className="max-w-[180px] truncate">{f.name || f.type || "file"}</span>
+              </a>
+            ))}
+          </div>
+        )}
+        {toolCalls.length > 0 && (
+          <div className={cn(isUser && "flex flex-col items-end")}>
+            <ToolCalls calls={toolCalls} />
           </div>
         )}
         <div className={cn("flex items-center gap-2 text-[11px] text-muted-foreground", isUser && "justify-end")}>
@@ -194,6 +215,73 @@ const ACTION_STATUS_STYLES: Record<string, string> = {
 function ActionStatusBadge({ status }: { status: string }) {
   const cls = ACTION_STATUS_STYLES[status.toLowerCase()] ?? "bg-secondary text-secondary-foreground";
   return <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold", cls)}>{status}</span>;
+}
+
+// ── Tool calls (the results the assistant generated) ────────────────────────────
+
+type ToolCall = {
+  name?: string;
+  tool?: string;
+  function?: string;
+  args?: unknown;
+  arguments?: unknown;
+  input?: unknown;
+  result?: unknown;
+  output?: unknown;
+  response?: unknown;
+  error?: unknown;
+};
+
+function ToolCalls({ calls }: { calls: ToolCall[] }) {
+  return (
+    <div className="w-full space-y-1.5">
+      {calls.map((c, i) => <ToolCallCard key={i} call={c} />)}
+    </div>
+  );
+}
+
+function ToolCallCard({ call }: { call: ToolCall }) {
+  const name = call.name ?? call.tool ?? call.function ?? "tool";
+  const args = call.args ?? call.arguments ?? call.input;
+  const result = call.result ?? call.output ?? call.response;
+  return (
+    <div className="rounded-lg border bg-secondary/30 px-3 py-2 text-left">
+      <div className="flex items-center gap-1.5">
+        <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="font-mono text-xs font-semibold">{name}</span>
+      </div>
+      {args != null && <JsonBlock label="args" value={args} />}
+      {result != null && <JsonBlock label="result" value={result} />}
+      {call.error != null && <JsonBlock label="error" value={call.error} danger />}
+    </div>
+  );
+}
+
+function JsonBlock({ label, value, danger }: { label: string; value: unknown; danger?: boolean }) {
+  const text = typeof value === "string" ? value : safeStringify(value);
+  return (
+    <details className="group mt-1.5">
+      <summary className={cn(
+        "flex cursor-pointer list-none items-center gap-1 text-[10px] font-semibold uppercase tracking-wider",
+        danger ? "text-destructive" : "text-muted-foreground",
+      )}>
+        <ChevronRight className="h-3 w-3 transition-transform group-open:rotate-90" />
+        {label}
+      </summary>
+      <pre className={cn(
+        "mt-1 max-h-56 overflow-auto rounded-md border bg-card px-2 py-1.5 text-[11px] leading-relaxed",
+        danger && "border-destructive/30",
+      )}>{text}</pre>
+    </details>
+  );
+}
+
+function safeStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
 }
 
 // ── Shared bits ────────────────────────────────────────────────────────────────

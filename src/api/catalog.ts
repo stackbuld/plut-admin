@@ -15,6 +15,7 @@ import type {
   FxRateItem,
   FxRateHistoryItem,
   StagedFxRateItem,
+  FxRefreshResult,
   PayoutCurrencyItem,
 } from "./types";
 
@@ -139,6 +140,11 @@ export const getFxRateHistory = (currency = "NGN") =>
 // changes the live rate — an admin applies (as-is), overrides (with a manual value), or discards each.
 export const listStagedFxRates = () =>
   apiGet<StagedFxRateItem[]>("/giftcards/v1/admin/fx-rate/staged");
+
+// Manual "refresh from feed" trigger: fetches the provider rates now and stages any that differ from
+// the live rate. Idempotent — a pending row with the same value is left untouched (staged: 0).
+export const refreshFxRates = () =>
+  apiPost<FxRefreshResult>("/giftcards/v1/admin/fx-rate/refresh");
 
 export const applyStagedFxRate = (id: string) =>
   apiPost<unknown>(`/giftcards/v1/admin/fx-rate/staged/${id}/apply`);

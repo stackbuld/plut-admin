@@ -185,6 +185,12 @@ export type FxRateHistoryItem = {
 
 // ── Staged FX Rates (fetched from feed, awaiting manual apply) ─────────────────
 
+// Result of the manual "refresh from feed" trigger: how many pairs got a new pending staged row.
+export type FxRefreshResult = {
+  staged: number;
+  stagedPairs: string[];
+};
+
 export type StagedFxRateItem = {
   id: string;
   baseCurrency: string;
