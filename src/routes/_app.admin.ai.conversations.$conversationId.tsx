@@ -103,9 +103,19 @@ function MessageBubble({ message }: { message: AiMessage }) {
   const role = message.role.toLowerCase();
   const isUser = role === "user";
   const isTool = role === "tool";
-  const attachments = safeParse<{ type: string; url: string; name?: string }[]>(message.attachmentsJson) ?? [];
-  const images = attachments.filter((a) => a.type?.toLowerCase() === "image");
-  const files = attachments.filter((a) => a.type?.toLowerCase() !== "image");
+  // Attachments are persisted PascalCase ({"Type","Url"}) by the backend but may also arrive camelCase —
+  // read both. Detect images by MIME ("image", "image/png") or by the URL's file extension.
+  const attachments = (safeParse<Record<string, unknown>[]>(message.attachmentsJson) ?? [])
+    .map((a) => ({
+      type: String(a.type ?? a.Type ?? ""),
+      url: String(a.url ?? a.Url ?? ""),
+      name: (a.name ?? a.Name) as string | undefined,
+    }))
+    .filter((a) => a.url);
+  const isImage = (a: { type: string; url: string }) =>
+    a.type.toLowerCase().includes("image") || /\.(png|jpe?g|gif|webp|bmp|svg|avif)(\?|#|$)/i.test(a.url);
+  const images = attachments.filter(isImage);
+  const files = attachments.filter((a) => !isImage(a));
   const toolCalls = safeParse<ToolCall[]>(message.toolCallsJson) ?? [];
 
   if (isTool) {
@@ -149,7 +159,7 @@ function MessageBubble({ message }: { message: AiMessage }) {
         {files.length > 0 && (
           <div className={cn("flex flex-wrap gap-1.5", isUser && "justify-end")}>
             {files.map((f, i) => (
-              <a key={i} href={f.url} target="_blank" rel="noreferrer"
+              <a key={i} href={f.url} target="_blank" rel="noreferrer" download={f.name || undefined}
                 className="inline-flex items-center gap-1.5 rounded-lg border bg-secondary/40 px-2.5 py-1.5 text-xs hover:bg-secondary">
                 <Paperclip className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                 <span className="max-w-[180px] truncate">{f.name || f.type || "file"}</span>
