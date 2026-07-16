@@ -14,7 +14,7 @@ import { SlaIndicator } from "@/components/plut/SlaIndicator";
 import { UserRef } from "@/components/plut/UserSummaryModal";
 import { AiVerificationBadge, aiVerdictMeta, formatConfidence } from "@/components/plut/AiVerificationBadge";
 import { tradeQueries, userQueries, denominationQueries, acceptTrade, rejectTrade, approveTradeItem, rejectTradeItem, editTradeItem, queryKeys } from "@/api";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, currencySymbol } from "@/lib/format";
 import type { TradeItem, TradeDetail, KycTier, UserStatus } from "@/api/types";
 import { cn } from "@/lib/utils";
 
@@ -172,6 +172,11 @@ function TradeDetailPage() {
           <Row label="Customer Payout">
             <span className="font-mono font-semibold">{effPayoutAmount.toLocaleString()} {trade.payoutCurrency}</span>
           </Row>
+          {fxRate ? (
+            <Row label="FX Rate">
+              <span className="font-mono">1 USD = {currencySymbol(trade.payoutCurrency)}{fxRate.toLocaleString()}</span>
+            </Row>
+          ) : null}
           <Row label="Profit (USD)"><span className="font-mono text-success">${effProfitUsd.toFixed(2)}</span></Row>
           {recompute && (
             <Row label="Adjustment">
