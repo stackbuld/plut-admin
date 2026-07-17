@@ -219,8 +219,10 @@ function MessageBubble({ message }: { message: AiMessage }) {
 // ── Actions ────────────────────────────────────────────────────────────────────
 
 function ActionRow({ action }: { action: AiAction }) {
-  const summary = safeParse<{ title?: string; lines?: { label: string; value: string }[]; warnings?: string[] }>(action.summaryJson);
+  const summary = safeParse<{ title?: string; lines?: { label: string; value: string }[]; warnings?: unknown }>(action.summaryJson);
   const title = summary?.title ?? action.type;
+  const rawWarnings = summary?.warnings;
+  const warnings = Array.isArray(rawWarnings) ? rawWarnings.filter((w): w is string => typeof w === "string") : [];
   return (
     <div className="rounded-lg border border-border p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -240,9 +242,9 @@ function ActionRow({ action }: { action: AiAction }) {
           ))}
         </div>
       )}
-      {summary?.warnings && summary.warnings.length > 0 && (
+      {warnings.length > 0 && (
         <div className="mt-2 space-y-1">
-          {summary.warnings.map((w, i) => (
+          {warnings.map((w, i) => (
             <p key={i} className="flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-300">
               <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <span>{w}</span>
@@ -250,7 +252,7 @@ function ActionRow({ action }: { action: AiAction }) {
           ))}
         </div>
       )}
-      <JsonBlock label="payload" value={safeParse<unknown>(action.summaryJson) ?? action.summaryJson} />
+      <JsonBlock label="summary json" value={summary ?? action.summaryJson} />
       <p className="mt-2 text-[11px] text-muted-foreground">
         {formatDateTime(action.createdAt)}
         {action.expiresAtUtc && <span> · expires {formatDateTime(action.expiresAtUtc)}</span>}
