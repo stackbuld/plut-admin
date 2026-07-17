@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Loader2, MessagesSquare, Zap, Coins, Bot, User as UserIcon, Wrench, ChevronRight, Paperclip, Terminal } from "lucide-react";
+import { ArrowLeft, Loader2, MessagesSquare, Zap, Coins, Bot, User as UserIcon, Wrench, ChevronRight, Paperclip, Terminal, TriangleAlert } from "lucide-react";
 import { UserRef } from "@/components/plut/UserSummaryModal";
 import { aiQueries } from "@/api";
 import type { AiMessage, AiAction } from "@/api/types";
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/_app/admin/ai/conversations/$conversation
 function ConversationDetailPage() {
   const { conversationId } = useParams({ from: "/_app/admin/ai/conversations/$conversationId" });
   const { data: convo, isLoading, isError } = useQuery(aiQueries.conversation(conversationId));
+  const thread = convo ? buildThread(convo.messages, convo.actions) : [];
 
   if (isLoading) {
     return (
@@ -77,11 +78,15 @@ function ConversationDetailPage() {
 
       {/* ── Message thread ── */}
       <Panel title="Conversation">
-        {convo.messages.length === 0 ? (
+        {thread.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted-foreground">No messages.</p>
         ) : (
           <div className="space-y-4">
-            {convo.messages.map((m) => <MessageBubble key={m.id} message={m} />)}
+            {thread.map((item) =>
+              item.kind === "message"
+                ? <MessageBubble key={`m-${item.message.id}`} message={item.message} />
+                : <ActionEventBubble key={`a-${item.action.id}`} action={item.action} />,
+            )}
           </div>
         )}
       </Panel>
@@ -98,6 +103,31 @@ function BackLink() {
 }
 
 // ── Message thread ─────────────────────────────────────────────────────────────
+
+type ThreadItem =
+  | { kind: "message"; at: number; message: AiMessage }
+  | { kind: "action"; at: number; action: AiAction };
+
+function buildThread(messages: AiMessage[], actions: AiAction[]): ThreadItem[] {
+  return [
+    ...messages.map((m) => ({ kind: "message" as const, at: Date.parse(m.createdAt) || 0, message: m })),
+    ...actions.map((a) => ({ kind: "action" as const, at: Date.parse(a.createdAt) || 0, action: a })),
+  ].sort((x, y) => x.at - y.at || (x.kind === y.kind ? 0 : x.kind === "message" ? -1 : 1));
+}
+
+function ActionEventBubble({ action }: { action: AiAction }) {
+  return (
+    <div className="flex gap-3">
+      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/12 text-primary">
+        <Zap className="h-4 w-4" />
+      </div>
+      <div className="min-w-0 max-w-[80%] flex-1 space-y-1.5">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Action modal shown to user</p>
+        <ActionRow action={action} />
+      </div>
+    </div>
+  );
+}
 
 function MessageBubble({ message }: { message: AiMessage }) {
   const role = message.role.toLowerCase();
@@ -189,7 +219,7 @@ function MessageBubble({ message }: { message: AiMessage }) {
 // ── Actions ────────────────────────────────────────────────────────────────────
 
 function ActionRow({ action }: { action: AiAction }) {
-  const summary = safeParse<{ title?: string; lines?: { label: string; value: string }[] }>(action.summaryJson);
+  const summary = safeParse<{ title?: string; lines?: { label: string; value: string }[]; warnings?: string[] }>(action.summaryJson);
   const title = summary?.title ?? action.type;
   return (
     <div className="rounded-lg border border-border p-3">
@@ -210,7 +240,21 @@ function ActionRow({ action }: { action: AiAction }) {
           ))}
         </div>
       )}
-      <p className="mt-2 text-[11px] text-muted-foreground">{formatDateTime(action.createdAt)}</p>
+      {summary?.warnings && summary.warnings.length > 0 && (
+        <div className="mt-2 space-y-1">
+          {summary.warnings.map((w, i) => (
+            <p key={i} className="flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-300">
+              <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>{w}</span>
+            </p>
+          ))}
+        </div>
+      )}
+      <JsonBlock label="payload" value={safeParse<unknown>(action.summaryJson) ?? action.summaryJson} />
+      <p className="mt-2 text-[11px] text-muted-foreground">
+        {formatDateTime(action.createdAt)}
+        {action.expiresAtUtc && <span> · expires {formatDateTime(action.expiresAtUtc)}</span>}
+      </p>
     </div>
   );
 }
