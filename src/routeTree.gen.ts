@@ -42,6 +42,7 @@ import { Route as AppAdminGiftcardsCatalogDenominationsRouteImport } from './rou
 import { Route as AppAdminGiftcardsCatalogCountriesRouteImport } from './routes/_app.admin.giftcards.catalog.countries'
 import { Route as AppAdminGiftcardsBrandsBrandIdRouteImport } from './routes/_app.admin.giftcards.brands.$brandId'
 import { Route as AppAdminAiConversationsConversationIdRouteImport } from './routes/_app.admin.ai.conversations.$conversationId'
+import { Route as AppAdminGiftcardsCatalogRateHistoryDenominationIdRouteImport } from './routes/_app.admin.giftcards.catalog.rate-history.$denominationId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -228,6 +229,12 @@ const AppAdminAiConversationsConversationIdRoute =
     path: '/$conversationId',
     getParentRoute: () => AppAdminAiConversationsRoute,
   } as any)
+const AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute =
+  AppAdminGiftcardsCatalogRateHistoryDenominationIdRouteImport.update({
+    id: '/rate-history/$denominationId',
+    path: '/rate-history/$denominationId',
+    getParentRoute: () => AppAdminGiftcardsCatalogRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -262,6 +269,7 @@ export interface FileRoutesByFullPath {
   '/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
   '/admin/giftcards/catalog/': typeof AppAdminGiftcardsCatalogIndexRoute
   '/admin/wallets/withdrawals/': typeof AppAdminWalletsWithdrawalsIndexRoute
+  '/admin/giftcards/catalog/rate-history/$denominationId': typeof AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -293,6 +301,7 @@ export interface FileRoutesByTo {
   '/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
   '/admin/giftcards/catalog': typeof AppAdminGiftcardsCatalogIndexRoute
   '/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsIndexRoute
+  '/admin/giftcards/catalog/rate-history/$denominationId': typeof AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -329,6 +338,7 @@ export interface FileRoutesById {
   '/_app/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
   '/_app/admin/giftcards/catalog/': typeof AppAdminGiftcardsCatalogIndexRoute
   '/_app/admin/wallets/withdrawals/': typeof AppAdminWalletsWithdrawalsIndexRoute
+  '/_app/admin/giftcards/catalog/rate-history/$denominationId': typeof AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -365,6 +375,7 @@ export interface FileRouteTypes {
     | '/admin/wallets/withdrawals/all'
     | '/admin/giftcards/catalog/'
     | '/admin/wallets/withdrawals/'
+    | '/admin/giftcards/catalog/rate-history/$denominationId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -396,6 +407,7 @@ export interface FileRouteTypes {
     | '/admin/wallets/withdrawals/all'
     | '/admin/giftcards/catalog'
     | '/admin/wallets/withdrawals'
+    | '/admin/giftcards/catalog/rate-history/$denominationId'
   id:
     | '__root__'
     | '/_app'
@@ -431,6 +443,7 @@ export interface FileRouteTypes {
     | '/_app/admin/wallets/withdrawals/all'
     | '/_app/admin/giftcards/catalog/'
     | '/_app/admin/wallets/withdrawals/'
+    | '/_app/admin/giftcards/catalog/rate-history/$denominationId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -672,6 +685,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminAiConversationsConversationIdRouteImport
       parentRoute: typeof AppAdminAiConversationsRoute
     }
+    '/_app/admin/giftcards/catalog/rate-history/$denominationId': {
+      id: '/_app/admin/giftcards/catalog/rate-history/$denominationId'
+      path: '/rate-history/$denominationId'
+      fullPath: '/admin/giftcards/catalog/rate-history/$denominationId'
+      preLoaderRoute: typeof AppAdminGiftcardsCatalogRateHistoryDenominationIdRouteImport
+      parentRoute: typeof AppAdminGiftcardsCatalogRoute
+    }
   }
 }
 
@@ -734,6 +754,7 @@ interface AppAdminGiftcardsCatalogRouteChildren {
   AppAdminGiftcardsCatalogPayoutRoute: typeof AppAdminGiftcardsCatalogPayoutRoute
   AppAdminGiftcardsCatalogRatesRoute: typeof AppAdminGiftcardsCatalogRatesRoute
   AppAdminGiftcardsCatalogIndexRoute: typeof AppAdminGiftcardsCatalogIndexRoute
+  AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute: typeof AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute
 }
 
 const AppAdminGiftcardsCatalogRouteChildren: AppAdminGiftcardsCatalogRouteChildren =
@@ -746,6 +767,8 @@ const AppAdminGiftcardsCatalogRouteChildren: AppAdminGiftcardsCatalogRouteChildr
     AppAdminGiftcardsCatalogPayoutRoute: AppAdminGiftcardsCatalogPayoutRoute,
     AppAdminGiftcardsCatalogRatesRoute: AppAdminGiftcardsCatalogRatesRoute,
     AppAdminGiftcardsCatalogIndexRoute: AppAdminGiftcardsCatalogIndexRoute,
+    AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute:
+      AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute,
   }
 
 const AppAdminGiftcardsCatalogRouteWithChildren =

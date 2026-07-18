@@ -98,6 +98,7 @@ export type TradeDetail = {
   rejectedAt: string | null;
   paidAt: string | null;
   rejectionReason: string | null;
+  adminComment: string | null;
   items: TradeItem[];
   // AI image-verification rollup across the line items (advisory).
   verificationStatus: TradeVerificationStatus;

@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { apiGet, apiPost, getAdminUserId, buildQs } from "./client";
+import { apiGet, apiPost, apiPatch, getAdminUserId, buildQs } from "./client";
 import { queryKeys } from "./keys";
 import type { PagedResult, TradeListItem, TradeDetail, ListTradesParams, AdminDashboardStats } from "./types";
 
@@ -13,12 +13,14 @@ export const getTrade = (id: string) =>
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
 
-export const acceptTrade = (tradeId: string, overridePayout?: number) => {
+export const acceptTrade = (tradeId: string, overridePayout?: number, comment?: string) => {
   const adminUserId = getAdminUserId();
   if (!adminUserId) throw new Error("Not authenticated");
+  const note = comment?.trim();
   return apiPost<boolean>(`/giftcards/v1/admin/trades/${tradeId}/accept`, {
     adminUserId,
     ...(overridePayout != null ? { overridePayout } : {}),
+    ...(note ? { comment: note } : {}),
   });
 };
 
@@ -41,6 +43,20 @@ export const rejectTradeItem = (tradeId: string, itemId: string, reason: string)
   const adminUserId = getAdminUserId();
   if (!adminUserId) throw new Error("Not authenticated");
   return apiPost<void>(`/giftcards/v1/admin/trades/${tradeId}/items/${itemId}/reject`, { adminUserId, reason });
+};
+
+export const editTradeItem = (
+  tradeId: string,
+  itemId: string,
+  changes: { denominationId?: string; quantity?: number },
+) => {
+  const adminUserId = getAdminUserId();
+  if (!adminUserId) throw new Error("Not authenticated");
+  return apiPatch<void>(`/giftcards/v1/admin/trades/${tradeId}/items/${itemId}`, {
+    adminUserId,
+    ...(changes.denominationId ? { denominationId: changes.denominationId } : {}),
+    ...(changes.quantity != null ? { quantity: changes.quantity } : {}),
+  });
 };
 
 export const fetchAdminStats = () =>

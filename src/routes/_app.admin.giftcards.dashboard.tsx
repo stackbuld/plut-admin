@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Clock, AlertTriangle, Gift, Activity, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { ArrowRight, Clock, AlertTriangle, Gift, Activity, CheckCircle2, XCircle, Loader2, Sparkles } from "lucide-react";
 import { StatCard } from "@/components/plut/StatCard";
 import { SlaIndicator } from "@/components/plut/SlaIndicator";
-import { tradeQueries } from "@/api";
+import { tradeQueries, fxRateQueries } from "@/api";
 import { format, parseISO } from "date-fns";
 import { formatNaira, relativeTime, truncId, formatDuration } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,8 @@ export const Route = createFileRoute("/_app/admin/giftcards/dashboard")({
 function Dashboard() {
   const { data: stats } = useQuery(tradeQueries.stats());
   const { data: pendingData } = useQuery(tradeQueries.list({ Status: "Submitted", PageSize: 50 }));
+  const { data: stagedFx } = useQuery(fxRateQueries.staged());
+  const stagedFxCount = stagedFx?.length ?? 0;
 
   const pending = pendingData?.items ?? [];
   const pendingCount = stats?.pendingReview ?? pendingData?.totalCount ?? 0;
@@ -36,6 +38,28 @@ function Dashboard() {
       <div className="flex items-baseline justify-between">
         <p className="text-sm text-muted-foreground">Today · {format(new Date(), "dd MMM yyyy")}</p>
       </div>
+
+      {stagedFxCount > 0 && (
+        <Link
+          to="/admin/giftcards/catalog/fx"
+          className="flex items-center gap-3 rounded-2xl border border-amber-500/40 bg-amber-500/5 px-5 py-3.5 transition-colors hover:bg-amber-500/10"
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
+            <Sparkles className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">
+              {stagedFxCount} new FX rate{stagedFxCount === 1 ? "" : "s"} awaiting review
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Fetched from the feed and not yet applied — review and apply on the FX Rates page.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
+            Review <ArrowRight className="h-3.5 w-3.5" />
+          </span>
+        </Link>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <PriorityCard label="Pending Review" value={pendingCount} unit="trades" tone={pendingCount > 0 ? "danger" : "ok"}

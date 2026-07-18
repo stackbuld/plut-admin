@@ -10,8 +10,12 @@ import type {
   RateListItem,
   CreateRateBody,
   ListRatesParams,
+  DenominationRateHistoryResult,
+  DenominationRatePayouts,
   FxRateItem,
   FxRateHistoryItem,
+  StagedFxRateItem,
+  FxRefreshResult,
   PayoutCurrencyItem,
 } from "./types";
 
@@ -84,12 +88,36 @@ export const createRate = (body: CreateRateBody) =>
 export const deactivateRate = (id: string) =>
   apiPatch<void>(`/giftcards/v1/admin/rates/${id}/deactivate`);
 
+export const getDenominationRateHistory = (denominationId: string) =>
+  apiGet<DenominationRateHistoryResult>(
+    `/giftcards/v1/admin/denomination-rates/${denominationId}/history`,
+  );
+
+export const getDenominationRatePayouts = (denominationId: string) =>
+  apiGet<DenominationRatePayouts>(
+    `/giftcards/v1/admin/denomination-rates/${denominationId}/payouts`,
+  );
+
 export const rateQueries = {
   list: (params?: ListRatesParams) =>
     queryOptions({
       queryKey: queryKeys.rates.list(params),
       queryFn: () => listRates(params),
       staleTime: 5 * 60_000,
+    }),
+
+  history: (denominationId: string) =>
+    queryOptions({
+      queryKey: queryKeys.rates.history(denominationId),
+      queryFn: () => getDenominationRateHistory(denominationId),
+      staleTime: 60_000,
+    }),
+
+  payouts: (denominationId: string) =>
+    queryOptions({
+      queryKey: queryKeys.rates.payouts(denominationId),
+      queryFn: () => getDenominationRatePayouts(denominationId),
+      staleTime: 60_000,
     }),
 };
 
@@ -108,6 +136,25 @@ export const setFxRate = (body: {
 export const getFxRateHistory = (currency = "NGN") =>
   apiGet<FxRateHistoryItem[]>(`/giftcards/v1/admin/fx-rate/history?currency=${currency}`);
 
+// Staged FX rates: fetched from the provider feed but held for manual review. The nightly feed never
+// changes the live rate — an admin applies (as-is), overrides (with a manual value), or discards each.
+export const listStagedFxRates = () =>
+  apiGet<StagedFxRateItem[]>("/giftcards/v1/admin/fx-rate/staged");
+
+// Manual "refresh from feed" trigger: fetches the provider rates now and stages any that differ from
+// the live rate. Idempotent — a pending row with the same value is left untouched (staged: 0).
+export const refreshFxRates = () =>
+  apiPost<FxRefreshResult>("/giftcards/v1/admin/fx-rate/refresh");
+
+export const applyStagedFxRate = (id: string) =>
+  apiPost<unknown>(`/giftcards/v1/admin/fx-rate/staged/${id}/apply`);
+
+export const overrideStagedFxRate = (id: string, rate: number) =>
+  apiPost<unknown>(`/giftcards/v1/admin/fx-rate/staged/${id}/override`, { rate });
+
+export const discardStagedFxRate = (id: string) =>
+  apiPost<unknown>(`/giftcards/v1/admin/fx-rate/staged/${id}/discard`);
+
 export const fxRateQueries = {
   current: () =>
     queryOptions({
@@ -121,6 +168,13 @@ export const fxRateQueries = {
       queryKey: [...queryKeys.fxRates.all(), "history", currency] as const,
       queryFn: () => getFxRateHistory(currency),
       staleTime: 5 * 60_000,
+    }),
+
+  staged: () =>
+    queryOptions({
+      queryKey: queryKeys.fxRates.staged(),
+      queryFn: listStagedFxRates,
+      staleTime: 60_000,
     }),
 };
 

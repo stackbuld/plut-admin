@@ -38,11 +38,14 @@ export const queryKeys = {
     all: () => ["admin", "rates"] as const,
     lists: () => [...queryKeys.rates.all(), "list"] as const,
     list: (params?: ListRatesParams) => [...queryKeys.rates.lists(), params] as const,
+    history: (denominationId: string) => [...queryKeys.rates.all(), "history", denominationId] as const,
+    payouts: (denominationId: string) => [...queryKeys.rates.all(), "payouts", denominationId] as const,
   },
 
   fxRates: {
     all: () => ["admin", "fx-rates"] as const,
     current: () => [...queryKeys.fxRates.all(), "current"] as const,
+    staged: () => [...queryKeys.fxRates.all(), "staged"] as const,
   },
 
   payoutCurrencies: {
