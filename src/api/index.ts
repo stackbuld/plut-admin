@@ -8,3 +8,5 @@ export * from "./users";
 export * from "./withdrawals";
 export * from "./wallets";
 export * from "./ai";
+export * from "./merchants";
+export * from "./sourcing";

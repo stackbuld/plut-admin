@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Check, X, AlertTriangle, ChevronRight, Clock, Loader2, CheckCircle2, XCircle, Copy } from "lucide-react";
+import { ArrowLeft, Check, X, AlertTriangle, ChevronRight, Clock, Loader2, CheckCircle2, XCircle, Copy, Bot, User, Pencil, ImageOff, RotateCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -13,9 +13,9 @@ import { StatusBadge } from "@/components/plut/StatusBadge";
 import { SlaIndicator } from "@/components/plut/SlaIndicator";
 import { UserRef } from "@/components/plut/UserSummaryModal";
 import { AiVerificationBadge, aiVerdictMeta, formatConfidence } from "@/components/plut/AiVerificationBadge";
-import { tradeQueries, userQueries, acceptTrade, rejectTrade, approveTradeItem, rejectTradeItem, queryKeys } from "@/api";
+import { tradeQueries, tradeSourcingQueries, userQueries, acceptTrade, rejectTrade, approveTradeItem, rejectTradeItem, recordCardOutcome, resendCardImages, queryKeys } from "@/api";
 import { formatDateTime } from "@/lib/format";
-import type { TradeItem, TradeDetail, KycTier, UserStatus } from "@/api/types";
+import type { TradeItem, TradeDetail, KycTier, UserStatus, TradeCardDto } from "@/api/types";
 import { cn } from "@/lib/utils";
 
 const REJECT_REASONS = [
@@ -257,6 +257,9 @@ function TradeDetailPage() {
           </div>
         </Panel>
       )}
+
+      {/* ── Vendor & Redemption — how this trade was sourced to a provider ── */}
+      <VendorSourcingPanel tradeId={tradeId} />
 
       {/* ── Batch Items — Finding 3: Brand + Country columns; Finding 4: FX note below ── */}
       <Panel title={`Batch Items${!isTerminal && pendingCount > 0 ? ` — ${pendingCount} pending review` : ""}`}>
@@ -611,6 +614,306 @@ function AiVerificationPanel({ trade }: { trade: TradeDetail }) {
         AI checks are advisory — they never approve, reject, or move money. Use your judgement.
       </p>
     </Panel>
+  );
+}
+
+// ── Vendor & Redemption panel ──────────────────────────────────────────────────
+// Shows how this trade was routed to (and redeemed by) a vendor: the winning provider,
+// the quoted rate, the live redemption status, the AI's read of the outcome, and the
+// vendor's raw comment. Sourced from the sourcing engine — advisory, read-only here.
+const REDEMPTION_STATUS_STYLES: Record<string, string> = {
+  Dispatched: "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300",
+  AwaitingProvider: "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/15 dark:text-yellow-300",
+  OutcomeRecorded: "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300",
+  NeedsHumanReview: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
+  TimedOut: "bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300",
+  Synced: "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300",
+};
+
+const OUTCOME_STYLES: Record<string, string> = {
+  Redeemed: "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300",
+  Failed: "bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300",
+  Unknown: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
+};
+
+const CARD_OUTCOME_STYLES: Record<TradeCardDto["outcome"], string> = {
+  Pending: "bg-secondary text-secondary-foreground",
+  Redeemed: "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300",
+  Failed: "bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300",
+  Unknown: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
+};
+
+function SourcingBadge({ label, className }: { label: string; className?: string }) {
+  return (
+    <span className={cn("inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold", className ?? "bg-secondary text-secondary-foreground")}>
+      {label}
+    </span>
+  );
+}
+
+function VendorSourcingPanel({ tradeId }: { tradeId: string }) {
+  const qc = useQueryClient();
+  const { data, isLoading } = useQuery(tradeSourcingQueries.summary(tradeId));
+
+  const outcomeMutation = useMutation({
+    mutationFn: ({ orderId, index, outcome }: { orderId: string; index: number; outcome: "Redeemed" | "Failed" }) =>
+      recordCardOutcome(orderId, index, { outcome }),
+    onSuccess: (res) => {
+      toast.success(`Card ${res.cardIndex} marked. ${res.pendingCards} still pending.`);
+      qc.invalidateQueries({ queryKey: queryKeys.sourcing.tradeSummary(tradeId) });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const resendMutation = useMutation({
+    mutationFn: (orderId: string) => resendCardImages(orderId),
+    onSuccess: (res) => {
+      toast.success(
+        res.imagesSent >= res.imagesTotal
+          ? `All ${res.imagesTotal} card image(s) sent.`
+          : `${res.imagesSent}/${res.imagesTotal} card image(s) sent.`,
+      );
+      qc.invalidateQueries({ queryKey: queryKeys.sourcing.tradeSummary(tradeId) });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (isLoading) {
+    return (
+      <Panel title="Vendor & Redemption">
+        <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> Loading sourcing…
+        </div>
+      </Panel>
+    );
+  }
+
+  if (!data || !data.sourced) {
+    return (
+      <Panel title="Vendor & Redemption">
+        <p className="py-1 text-sm text-muted-foreground">Not yet routed to a vendor.</p>
+      </Panel>
+    );
+  }
+
+  const rate = data.quotedRate != null ? `${data.quotedRate} ${data.quotedCurrency ?? ""}`.trim() : null;
+
+  return (
+    <Panel title="Vendor & Redemption">
+      <div className="grid gap-x-8 gap-y-0 sm:grid-cols-2">
+        <Row label="Vendor">{data.providerName ?? <span className="text-muted-foreground">—</span>}</Row>
+        <Row label="Trade ref"><span className="font-mono text-xs">{data.tradeReference ?? "—"}</span></Row>
+        <Row label="Rate">
+          {rate ? (
+            <span className="font-mono">
+              {rate}
+              {data.normalizedUsdPerCard != null && (
+                <span className="ml-1.5 text-[11px] text-muted-foreground">${data.normalizedUsdPerCard.toFixed(4)}/card</span>
+              )}
+            </span>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </Row>
+        <Row label="Status">
+          <SourcingBadge label={data.redemptionStatus} className={REDEMPTION_STATUS_STYLES[data.redemptionStatus]} />
+        </Row>
+        <Row label="Outcome">
+          {data.outcome ? (
+            <SourcingBadge label={data.outcome} className={OUTCOME_STYLES[data.outcome]} />
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </Row>
+        {data.correlationConfidence != null && (
+          <Row label="Correlation">
+            <span className="text-xs text-muted-foreground">
+              {(data.correlationConfidence * 100).toFixed(0)}%
+              {data.correlationMethod ? ` · ${data.correlationMethod}` : ""}
+            </span>
+          </Row>
+        )}
+        {data.dispatchedAt && <Row label="Dispatched">{formatDateTime(data.dispatchedAt)}</Row>}
+        {data.outcomeAt && <Row label="Outcome at">{formatDateTime(data.outcomeAt)}</Row>}
+        {data.imagesTotal > 0 && (
+          <Row label="Card images">
+            <span className={data.imagesSent < data.imagesTotal ? "font-medium text-destructive" : "text-muted-foreground"}>
+              {data.imagesSent}/{data.imagesTotal} sent
+            </span>
+          </Row>
+        )}
+      </div>
+
+      {data.redemptionOrderId && data.imagesSent < data.imagesTotal && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2">
+          <div className="flex items-center gap-2 text-xs text-destructive">
+            <ImageOff className="h-4 w-4 shrink-0" />
+            <span>
+              The vendor received the message but {data.imagesTotal - data.imagesSent} of {data.imagesTotal} card
+              image(s) didn't send.
+            </span>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 gap-1 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            disabled={resendMutation.isPending}
+            onClick={() => resendMutation.mutate(data.redemptionOrderId!)}
+          >
+            {resendMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCw className="h-3 w-3" />}
+            Re-send images
+          </Button>
+        </div>
+      )}
+
+      {(data.outcomeReasonText || data.outcomeReasonCode) && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">AI read:</span>{" "}
+          {data.outcomeReasonText ?? data.outcomeReasonCode}
+        </p>
+      )}
+
+      {data.vendorComment && (
+        <blockquote className="mt-3 border-l-2 border-border pl-3 text-xs italic text-muted-foreground">
+          “{data.vendorComment}”
+        </blockquote>
+      )}
+
+      {data.cards.length > 0 && (
+        <CardChecklist
+          cards={data.cards}
+          orderId={data.redemptionOrderId}
+          onRecord={(index, outcome) =>
+            data.redemptionOrderId &&
+            outcomeMutation.mutate({ orderId: data.redemptionOrderId, index, outcome })
+          }
+          pendingIndex={outcomeMutation.isPending ? outcomeMutation.variables?.index ?? null : null}
+        />
+      )}
+    </Panel>
+  );
+}
+
+// Per-card redemption checklist for a multi-card order. Each Pending card can be
+// marked Redeemed/Failed inline; the buttons are hidden once we don't have an order id.
+function CardChecklist({
+  cards,
+  orderId,
+  onRecord,
+  pendingIndex,
+}: {
+  cards: TradeCardDto[];
+  orderId: string | null;
+  onRecord: (index: number, outcome: "Redeemed" | "Failed") => void;
+  pendingIndex: number | null;
+}) {
+  const ordered = [...cards].sort((a, b) => a.index - b.index);
+  const total = ordered.length;
+  const redeemed = ordered.filter((c) => c.outcome === "Redeemed").length;
+
+  return (
+    <div className="mt-4 border-t border-border pt-3">
+      <div className="mb-2 flex items-center justify-between">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+          Cards — {redeemed}/{total} redeemed
+        </h4>
+      </div>
+      <div className="space-y-2">
+        {ordered.map((card) => (
+          <CardRow
+            key={card.index}
+            card={card}
+            orderId={orderId}
+            busy={pendingIndex === card.index}
+            onRecord={onRecord}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CardRow({
+  card,
+  orderId,
+  busy,
+  onRecord,
+}: {
+  card: TradeCardDto;
+  orderId: string | null;
+  busy: boolean;
+  onRecord: (index: number, outcome: "Redeemed" | "Failed") => void;
+}) {
+  const resolved = card.outcome !== "Pending";
+  const [overriding, setOverriding] = useState(false);
+  const showButtons = orderId && (!resolved || overriding);
+
+  const record = (outcome: "Redeemed" | "Failed") => {
+    setOverriding(false);
+    onRecord(card.index, outcome);
+  };
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-border p-2.5">
+      {card.imageUrl && (
+        <img src={card.imageUrl} alt={`Card ${card.index}`} className="h-9 w-9 shrink-0 rounded object-cover" />
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">
+          Card {card.index} · {card.brandCode} {card.amount} {card.currency}
+        </p>
+        {resolved && card.outcomeSource && (
+          <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            {card.outcomeSource === "Agent" ? <Bot className="h-3 w-3" /> : <User className="h-3 w-3" />}
+            {card.outcomeSource === "Agent" ? "Assistant" : "Operator"}
+            {card.outcomeSource === "Agent" && card.outcomeConfidence != null && (
+              <span>· {(card.outcomeConfidence * 100).toFixed(0)}%</span>
+            )}
+          </p>
+        )}
+        {card.reasonText && <p className="truncate text-xs text-muted-foreground">{card.reasonText}</p>}
+      </div>
+      <SourcingBadge label={card.outcome} className={CARD_OUTCOME_STYLES[card.outcome]} />
+      {showButtons ? (
+        <div className="flex shrink-0 items-center gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 gap-1 border-success/40 text-success hover:bg-success/10 hover:text-success"
+            disabled={busy}
+            onClick={() => record("Redeemed")}
+          >
+            {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />} Redeemed
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 gap-1 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            disabled={busy}
+            onClick={() => record("Failed")}
+          >
+            {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />} Failed
+          </Button>
+          {resolved && (
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-muted-foreground" onClick={() => setOverriding(false)}>
+              Cancel
+            </Button>
+          )}
+        </div>
+      ) : (
+        resolved && orderId && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 gap-1 px-2 text-muted-foreground"
+            onClick={() => setOverriding(true)}
+            title="Override this card's outcome"
+          >
+            <Pencil className="h-3 w-3" /> Override
+          </Button>
+        )
+      )}
+    </div>
   );
 }
 

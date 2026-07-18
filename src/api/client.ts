@@ -1,5 +1,5 @@
 const BASE_URL = "https://api-v2.plut.ng";
-//const BASE_URL = "http://localhost:9090";
+// const BASE_URL = "http://localhost:9090";
 
 const SESSION_KEY = "plut-session";
 
@@ -72,6 +72,12 @@ export async function apiUpload<T>(path: string, formData: FormData): Promise<T>
 export const apiPost = <T>(path: string, body?: unknown) =>
   request<T>(path, {
     method: "POST",
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+export const apiPut = <T>(path: string, body?: unknown) =>
+  request<T>(path, {
+    method: "PUT",
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 

@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { apiGet, buildQs } from "./client";
+import { apiGet, apiPost, buildQs } from "./client";
 import { queryKeys } from "./keys";
 import type {
   PagedResult,
@@ -7,6 +7,8 @@ import type {
   AiConversationDetail,
   AiUsageStats,
   ListAiConversationsParams,
+  WahaSessionInfo,
+  WahaGroup,
 } from "./types";
 
 // ── Fetchers ──────────────────────────────────────────────────────────────────
@@ -19,6 +21,30 @@ export const getAiConversation = (id: string) =>
 
 export const getAiUsageStats = (days: number) =>
   apiGet<AiUsageStats>(`/api/v1/ai/admin/usage/stats${buildQs({ days })}`);
+
+// ── WhatsApp (WAHA) session ─────────────────────────────────────────────────────
+
+export const getWahaSession = () =>
+  apiGet<WahaSessionInfo>(`/api/v1/ai/admin/waha/session`);
+
+export const startWahaSession = () =>
+  apiPost<WahaSessionInfo>(`/api/v1/ai/admin/waha/session/start`);
+
+export const restartWahaSession = () =>
+  apiPost<WahaSessionInfo>(`/api/v1/ai/admin/waha/session/restart`);
+
+export const logoutWahaSession = () =>
+  apiPost<WahaSessionInfo>(`/api/v1/ai/admin/waha/session/logout`);
+
+// Request a phone-pairing code for the given full international number (digits only).
+// The response `data` is the pairing code string itself (e.g. "ABCD-1234").
+export const requestWahaCode = (phoneNumber: string) =>
+  apiPost<string>(`/api/v1/ai/admin/waha/session/request-code`, { phoneNumber });
+
+// The WhatsApp groups the paired number belongs to — for picking a merchant's channel.
+// Fails (throws) when the session isn't WORKING; the caller surfaces "connect first".
+export const getWahaGroups = () =>
+  apiGet<WahaGroup[]>(`/api/v1/ai/admin/waha/groups`);
 
 // ── Query options (co-located cache config) ───────────────────────────────────
 
@@ -42,5 +68,25 @@ export const aiQueries = {
       queryKey: queryKeys.ai.stats(days),
       queryFn: () => getAiUsageStats(days),
       staleTime: 60_000,
+    }),
+};
+
+export const wahaQueries = {
+  // Poll on a short interval so the QR and status live-update while the admin pairs the number.
+  session: () =>
+    queryOptions({
+      queryKey: queryKeys.waha.session(),
+      queryFn: getWahaSession,
+      staleTime: 0,
+      refetchInterval: 3000,
+    }),
+
+  // Groups change rarely — cache briefly; refetched when the merchant picker opens.
+  groups: () =>
+    queryOptions({
+      queryKey: queryKeys.waha.groups(),
+      queryFn: getWahaGroups,
+      staleTime: 30_000,
+      retry: false,
     }),
 };

@@ -9,7 +9,28 @@ import { UserRef } from "@/components/plut/UserSummaryModal";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { tradeQueries, type TradeStatus } from "@/api";
+import type { ProviderRedemptionStatus } from "@/api/types";
 import { formatDate, formatTime, truncId } from "@/lib/format";
+import { cn } from "@/lib/utils";
+
+// Vendor-sourcing/redemption rollup badge. Mirrors the AI-verification badge treatment:
+// a small pill whose colour tracks the state. NotSourced renders as a muted em-dash.
+const REDEMPTION_BADGE: Record<ProviderRedemptionStatus, { label: string; className: string }> = {
+  NotSourced: { label: "Not sent", className: "bg-gray-100 text-gray-600 dark:bg-gray-500/15 dark:text-gray-400" },
+  Dispatched: { label: "Sent to vendor", className: "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300" },
+  Redeemed: { label: "Redeemed", className: "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300" },
+  Failed: { label: "Failed", className: "bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300" },
+  Unknown: { label: "Unknown", className: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300" },
+};
+
+function VendorRedemptionBadge({ status }: { status: ProviderRedemptionStatus }) {
+  const meta = REDEMPTION_BADGE[status] ?? REDEMPTION_BADGE.NotSourced;
+  return (
+    <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold", meta.className)}>
+      {meta.label}
+    </span>
+  );
+}
 
 // AI verification filter options. `value` is the backend enum name (bound case-insensitively);
 // "All" clears the filter. Order surfaces the actionable states (flagged / uncertain) first.
@@ -95,8 +116,9 @@ function TradesLayout() {
                   </div>
                   <StatusBadge status={t.status} />
                 </div>
-                <div className="mt-2">
+                <div className="mt-2 flex flex-wrap items-center gap-2">
                   <AiVerificationBadge status={t.verificationStatus} confidence={t.verificationConfidence} showConfidence />
+                  <VendorRedemptionBadge status={t.providerRedemptionStatus} />
                 </div>
                 <div className="mt-3 flex items-end justify-between">
                   <p className="text-xs text-muted-foreground">{t.itemCount} item{t.itemCount !== 1 ? "s" : ""}</p>
@@ -125,7 +147,7 @@ function TradesLayout() {
               <table className="w-full text-sm">
                 <thead className="bg-secondary/60">
                   <tr className="text-left">
-                    {["Trade ID", "Customer", "Items", "USD Value", "Payout", "Submitted", "SLA", "AI", "Status"].map((h) => (
+                    {["Trade ID", "Customer", "Items", "USD Value", "Payout", "Submitted", "SLA", "AI", "Vendor", "Status"].map((h) => (
                       <th key={h} className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
                     ))}
                   </tr>
@@ -150,11 +172,12 @@ function TradesLayout() {
                       <td className="px-6 py-3.5">
                         <AiVerificationBadge status={t.verificationStatus} confidence={t.verificationConfidence} showConfidence />
                       </td>
+                      <td className="px-6 py-3.5"><VendorRedemptionBadge status={t.providerRedemptionStatus} /></td>
                       <td className="px-6 py-3.5"><StatusBadge status={t.status} /></td>
                     </tr>
                   ))}
                   {list.length === 0 && (
-                    <tr><td colSpan={9} className="px-6 py-12 text-center text-sm text-muted-foreground">No trades match these filters.</td></tr>
+                    <tr><td colSpan={10} className="px-6 py-12 text-center text-sm text-muted-foreground">No trades match these filters.</td></tr>
                   )}
                 </tbody>
               </table>

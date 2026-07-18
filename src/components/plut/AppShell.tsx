@@ -1,7 +1,7 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Bell, ChevronDown, Coins, Gift, LayoutGrid, LogOut, Menu, Moon, Sun,
-  ArrowLeftRight, Users, BookOpen, Wallet, Bitcoin, Banknote, Sparkles, MessagesSquare,
+  ArrowLeftRight, Users, BookOpen, Wallet, Bitcoin, Banknote, Sparkles, MessagesSquare, Store, Smartphone, Network, ClipboardCheck, ShieldCheck, Clock,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
 import { useAuth } from "@/lib/auth";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { tradeQueries, withdrawalQueries } from "@/api";
+import { tradeQueries, withdrawalQueries, sourcingBadgeQueries } from "@/api";
 
 function usePendingCount() {
   const { data } = useQuery(tradeQueries.stats());
@@ -42,6 +42,19 @@ const WITHDRAWAL_CHILDREN: { to: string; label: string; exact?: boolean }[] = [
   { to: "/admin/wallets/withdrawals", label: "Overview", exact: true },
   { to: "/admin/wallets/withdrawals/all", label: "All Withdrawals" },
 ];
+
+// Sourcing tabs — extend this list as later slices land (WhatsApp, Allocations, Review).
+function useSourcingNav(): NavItem[] {
+  const { data: badges } = useQuery(sourcingBadgeQueries.counts());
+  return [
+    { to: "/admin/sourcing/merchants", label: "Merchants", icon: Store, matchPrefix: "/admin/sourcing/merchants" },
+    { to: "/admin/sourcing/allocations", label: "Allocations", icon: Network, badge: badges?.allocationsPending || undefined, matchPrefix: "/admin/sourcing/allocations" },
+    { to: "/admin/sourcing/review", label: "Review Queue", icon: ClipboardCheck, badge: badges?.reviewQueue || undefined, matchPrefix: "/admin/sourcing/review" },
+    { to: "/admin/sourcing/awaiting", label: "Awaiting Providers", icon: Clock, badge: badges?.awaitingProviders || undefined, matchPrefix: "/admin/sourcing/awaiting" },
+    { to: "/admin/sourcing/our-numbers", label: "Our Numbers", icon: ShieldCheck, matchPrefix: "/admin/sourcing/our-numbers" },
+    { to: "/admin/sourcing/whatsapp", label: "WhatsApp", icon: Smartphone, matchPrefix: "/admin/sourcing/whatsapp" },
+  ];
+}
 
 function useGiftcardNav(): NavItem[] {
   const pending = usePendingCount();
@@ -222,10 +235,12 @@ function SidebarFooter() {
 
 function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   const giftcardNav = useGiftcardNav();
+  const sourcingNav = useSourcingNav();
   const walletsNav = useWalletsNav();
   const aiNav = useAiNav();
   const products: Product[] = [
     { id: "giftcards", label: "Giftcards", icon: Gift, items: giftcardNav },
+    { id: "sourcing", label: "Sourcing", icon: Store, items: sourcingNav },
     { id: "wallets", label: "Wallets", icon: Wallet, items: walletsNav },
     { id: "ai", label: "AI Assistant", icon: Sparkles, items: aiNav },
     { id: "vas", label: "VAS", icon: Wallet, comingSoon: true },
@@ -250,6 +265,7 @@ function deriveTitle(pathname: string): string {
   if (pathname.startsWith("/admin/giftcards/catalog")) return "Catalog";
   if (pathname.startsWith("/admin/giftcards/users")) return "User Management";
   if (pathname.startsWith("/admin/giftcards/dashboard")) return "Dashboard";
+  if (pathname.startsWith("/admin/sourcing")) return "Sourcing";
   if (pathname.startsWith("/admin/wallets/withdrawals")) return "Withdrawals";
   if (pathname.startsWith("/admin/ai/conversations")) return "AI Conversations";
   if (pathname.startsWith("/admin/ai/dashboard")) return "AI Overview";

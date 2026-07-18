@@ -13,7 +13,15 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AppAdminSourcingRouteImport } from './routes/_app.admin.sourcing'
+import { Route as AppAdminSourcingIndexRouteImport } from './routes/_app.admin.sourcing.index'
 import { Route as AppAdminWalletsWithdrawalsRouteImport } from './routes/_app.admin.wallets.withdrawals'
+import { Route as AppAdminSourcingWhatsappRouteImport } from './routes/_app.admin.sourcing.whatsapp'
+import { Route as AppAdminSourcingReviewRouteImport } from './routes/_app.admin.sourcing.review'
+import { Route as AppAdminSourcingOurNumbersRouteImport } from './routes/_app.admin.sourcing.our-numbers'
+import { Route as AppAdminSourcingMerchantsRouteImport } from './routes/_app.admin.sourcing.merchants'
+import { Route as AppAdminSourcingAwaitingRouteImport } from './routes/_app.admin.sourcing.awaiting'
+import { Route as AppAdminSourcingAllocationsRouteImport } from './routes/_app.admin.sourcing.allocations'
 import { Route as AppAdminGiftcardsUsersRouteImport } from './routes/_app.admin.giftcards.users'
 import { Route as AppAdminGiftcardsTradesRouteImport } from './routes/_app.admin.giftcards.trades'
 import { Route as AppAdminGiftcardsDashboardRouteImport } from './routes/_app.admin.giftcards.dashboard'
@@ -54,11 +62,56 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppAdminSourcingRoute = AppAdminSourcingRouteImport.update({
+  id: '/admin/sourcing',
+  path: '/admin/sourcing',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminSourcingIndexRoute = AppAdminSourcingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAdminSourcingRoute,
+} as any)
 const AppAdminWalletsWithdrawalsRoute =
   AppAdminWalletsWithdrawalsRouteImport.update({
     id: '/admin/wallets/withdrawals',
     path: '/admin/wallets/withdrawals',
     getParentRoute: () => AppRoute,
+  } as any)
+const AppAdminSourcingWhatsappRoute =
+  AppAdminSourcingWhatsappRouteImport.update({
+    id: '/whatsapp',
+    path: '/whatsapp',
+    getParentRoute: () => AppAdminSourcingRoute,
+  } as any)
+const AppAdminSourcingReviewRoute = AppAdminSourcingReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => AppAdminSourcingRoute,
+} as any)
+const AppAdminSourcingOurNumbersRoute =
+  AppAdminSourcingOurNumbersRouteImport.update({
+    id: '/our-numbers',
+    path: '/our-numbers',
+    getParentRoute: () => AppAdminSourcingRoute,
+  } as any)
+const AppAdminSourcingMerchantsRoute =
+  AppAdminSourcingMerchantsRouteImport.update({
+    id: '/merchants',
+    path: '/merchants',
+    getParentRoute: () => AppAdminSourcingRoute,
+  } as any)
+const AppAdminSourcingAwaitingRoute =
+  AppAdminSourcingAwaitingRouteImport.update({
+    id: '/awaiting',
+    path: '/awaiting',
+    getParentRoute: () => AppAdminSourcingRoute,
+  } as any)
+const AppAdminSourcingAllocationsRoute =
+  AppAdminSourcingAllocationsRouteImport.update({
+    id: '/allocations',
+    path: '/allocations',
+    getParentRoute: () => AppAdminSourcingRoute,
   } as any)
 const AppAdminGiftcardsUsersRoute = AppAdminGiftcardsUsersRouteImport.update({
   id: '/admin/giftcards/users',
@@ -180,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/admin/sourcing': typeof AppAdminSourcingRouteWithChildren
   '/admin/ai/conversations': typeof AppAdminAiConversationsRouteWithChildren
   '/admin/ai/dashboard': typeof AppAdminAiDashboardRoute
   '/admin/giftcards/brands': typeof AppAdminGiftcardsBrandsRouteWithChildren
@@ -187,7 +241,14 @@ export interface FileRoutesByFullPath {
   '/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
+  '/admin/sourcing/allocations': typeof AppAdminSourcingAllocationsRoute
+  '/admin/sourcing/awaiting': typeof AppAdminSourcingAwaitingRoute
+  '/admin/sourcing/merchants': typeof AppAdminSourcingMerchantsRoute
+  '/admin/sourcing/our-numbers': typeof AppAdminSourcingOurNumbersRoute
+  '/admin/sourcing/review': typeof AppAdminSourcingReviewRoute
+  '/admin/sourcing/whatsapp': typeof AppAdminSourcingWhatsappRoute
   '/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
+  '/admin/sourcing/': typeof AppAdminSourcingIndexRoute
   '/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
   '/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
@@ -212,6 +273,13 @@ export interface FileRoutesByTo {
   '/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
+  '/admin/sourcing/allocations': typeof AppAdminSourcingAllocationsRoute
+  '/admin/sourcing/awaiting': typeof AppAdminSourcingAwaitingRoute
+  '/admin/sourcing/merchants': typeof AppAdminSourcingMerchantsRoute
+  '/admin/sourcing/our-numbers': typeof AppAdminSourcingOurNumbersRoute
+  '/admin/sourcing/review': typeof AppAdminSourcingReviewRoute
+  '/admin/sourcing/whatsapp': typeof AppAdminSourcingWhatsappRoute
+  '/admin/sourcing': typeof AppAdminSourcingIndexRoute
   '/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
   '/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
@@ -232,6 +300,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/admin/sourcing': typeof AppAdminSourcingRouteWithChildren
   '/_app/admin/ai/conversations': typeof AppAdminAiConversationsRouteWithChildren
   '/_app/admin/ai/dashboard': typeof AppAdminAiDashboardRoute
   '/_app/admin/giftcards/brands': typeof AppAdminGiftcardsBrandsRouteWithChildren
@@ -239,7 +308,14 @@ export interface FileRoutesById {
   '/_app/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/_app/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/_app/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
+  '/_app/admin/sourcing/allocations': typeof AppAdminSourcingAllocationsRoute
+  '/_app/admin/sourcing/awaiting': typeof AppAdminSourcingAwaitingRoute
+  '/_app/admin/sourcing/merchants': typeof AppAdminSourcingMerchantsRoute
+  '/_app/admin/sourcing/our-numbers': typeof AppAdminSourcingOurNumbersRoute
+  '/_app/admin/sourcing/review': typeof AppAdminSourcingReviewRoute
+  '/_app/admin/sourcing/whatsapp': typeof AppAdminSourcingWhatsappRoute
   '/_app/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
+  '/_app/admin/sourcing/': typeof AppAdminSourcingIndexRoute
   '/_app/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
   '/_app/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/_app/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
@@ -260,6 +336,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/auth/callback'
+    | '/admin/sourcing'
     | '/admin/ai/conversations'
     | '/admin/ai/dashboard'
     | '/admin/giftcards/brands'
@@ -267,7 +344,14 @@ export interface FileRouteTypes {
     | '/admin/giftcards/dashboard'
     | '/admin/giftcards/trades'
     | '/admin/giftcards/users'
+    | '/admin/sourcing/allocations'
+    | '/admin/sourcing/awaiting'
+    | '/admin/sourcing/merchants'
+    | '/admin/sourcing/our-numbers'
+    | '/admin/sourcing/review'
+    | '/admin/sourcing/whatsapp'
     | '/admin/wallets/withdrawals'
+    | '/admin/sourcing/'
     | '/admin/ai/conversations/$conversationId'
     | '/admin/giftcards/brands/$brandId'
     | '/admin/giftcards/catalog/countries'
@@ -292,6 +376,13 @@ export interface FileRouteTypes {
     | '/admin/giftcards/dashboard'
     | '/admin/giftcards/trades'
     | '/admin/giftcards/users'
+    | '/admin/sourcing/allocations'
+    | '/admin/sourcing/awaiting'
+    | '/admin/sourcing/merchants'
+    | '/admin/sourcing/our-numbers'
+    | '/admin/sourcing/review'
+    | '/admin/sourcing/whatsapp'
+    | '/admin/sourcing'
     | '/admin/ai/conversations/$conversationId'
     | '/admin/giftcards/brands/$brandId'
     | '/admin/giftcards/catalog/countries'
@@ -311,6 +402,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/auth/callback'
     | '/_app/'
+    | '/_app/admin/sourcing'
     | '/_app/admin/ai/conversations'
     | '/_app/admin/ai/dashboard'
     | '/_app/admin/giftcards/brands'
@@ -318,7 +410,14 @@ export interface FileRouteTypes {
     | '/_app/admin/giftcards/dashboard'
     | '/_app/admin/giftcards/trades'
     | '/_app/admin/giftcards/users'
+    | '/_app/admin/sourcing/allocations'
+    | '/_app/admin/sourcing/awaiting'
+    | '/_app/admin/sourcing/merchants'
+    | '/_app/admin/sourcing/our-numbers'
+    | '/_app/admin/sourcing/review'
+    | '/_app/admin/sourcing/whatsapp'
     | '/_app/admin/wallets/withdrawals'
+    | '/_app/admin/sourcing/'
     | '/_app/admin/ai/conversations/$conversationId'
     | '/_app/admin/giftcards/brands/$brandId'
     | '/_app/admin/giftcards/catalog/countries'
@@ -370,12 +469,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/admin/sourcing': {
+      id: '/_app/admin/sourcing'
+      path: '/admin/sourcing'
+      fullPath: '/admin/sourcing'
+      preLoaderRoute: typeof AppAdminSourcingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/sourcing/': {
+      id: '/_app/admin/sourcing/'
+      path: '/'
+      fullPath: '/admin/sourcing/'
+      preLoaderRoute: typeof AppAdminSourcingIndexRouteImport
+      parentRoute: typeof AppAdminSourcingRoute
+    }
     '/_app/admin/wallets/withdrawals': {
       id: '/_app/admin/wallets/withdrawals'
       path: '/admin/wallets/withdrawals'
       fullPath: '/admin/wallets/withdrawals'
       preLoaderRoute: typeof AppAdminWalletsWithdrawalsRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_app/admin/sourcing/whatsapp': {
+      id: '/_app/admin/sourcing/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/admin/sourcing/whatsapp'
+      preLoaderRoute: typeof AppAdminSourcingWhatsappRouteImport
+      parentRoute: typeof AppAdminSourcingRoute
+    }
+    '/_app/admin/sourcing/review': {
+      id: '/_app/admin/sourcing/review'
+      path: '/review'
+      fullPath: '/admin/sourcing/review'
+      preLoaderRoute: typeof AppAdminSourcingReviewRouteImport
+      parentRoute: typeof AppAdminSourcingRoute
+    }
+    '/_app/admin/sourcing/our-numbers': {
+      id: '/_app/admin/sourcing/our-numbers'
+      path: '/our-numbers'
+      fullPath: '/admin/sourcing/our-numbers'
+      preLoaderRoute: typeof AppAdminSourcingOurNumbersRouteImport
+      parentRoute: typeof AppAdminSourcingRoute
+    }
+    '/_app/admin/sourcing/merchants': {
+      id: '/_app/admin/sourcing/merchants'
+      path: '/merchants'
+      fullPath: '/admin/sourcing/merchants'
+      preLoaderRoute: typeof AppAdminSourcingMerchantsRouteImport
+      parentRoute: typeof AppAdminSourcingRoute
+    }
+    '/_app/admin/sourcing/awaiting': {
+      id: '/_app/admin/sourcing/awaiting'
+      path: '/awaiting'
+      fullPath: '/admin/sourcing/awaiting'
+      preLoaderRoute: typeof AppAdminSourcingAwaitingRouteImport
+      parentRoute: typeof AppAdminSourcingRoute
+    }
+    '/_app/admin/sourcing/allocations': {
+      id: '/_app/admin/sourcing/allocations'
+      path: '/allocations'
+      fullPath: '/admin/sourcing/allocations'
+      preLoaderRoute: typeof AppAdminSourcingAllocationsRouteImport
+      parentRoute: typeof AppAdminSourcingRoute
     }
     '/_app/admin/giftcards/users': {
       id: '/_app/admin/giftcards/users'
@@ -520,6 +675,29 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppAdminSourcingRouteChildren {
+  AppAdminSourcingAllocationsRoute: typeof AppAdminSourcingAllocationsRoute
+  AppAdminSourcingAwaitingRoute: typeof AppAdminSourcingAwaitingRoute
+  AppAdminSourcingMerchantsRoute: typeof AppAdminSourcingMerchantsRoute
+  AppAdminSourcingOurNumbersRoute: typeof AppAdminSourcingOurNumbersRoute
+  AppAdminSourcingReviewRoute: typeof AppAdminSourcingReviewRoute
+  AppAdminSourcingWhatsappRoute: typeof AppAdminSourcingWhatsappRoute
+  AppAdminSourcingIndexRoute: typeof AppAdminSourcingIndexRoute
+}
+
+const AppAdminSourcingRouteChildren: AppAdminSourcingRouteChildren = {
+  AppAdminSourcingAllocationsRoute: AppAdminSourcingAllocationsRoute,
+  AppAdminSourcingAwaitingRoute: AppAdminSourcingAwaitingRoute,
+  AppAdminSourcingMerchantsRoute: AppAdminSourcingMerchantsRoute,
+  AppAdminSourcingOurNumbersRoute: AppAdminSourcingOurNumbersRoute,
+  AppAdminSourcingReviewRoute: AppAdminSourcingReviewRoute,
+  AppAdminSourcingWhatsappRoute: AppAdminSourcingWhatsappRoute,
+  AppAdminSourcingIndexRoute: AppAdminSourcingIndexRoute,
+}
+
+const AppAdminSourcingRouteWithChildren =
+  AppAdminSourcingRoute._addFileChildren(AppAdminSourcingRouteChildren)
+
 interface AppAdminAiConversationsRouteChildren {
   AppAdminAiConversationsConversationIdRoute: typeof AppAdminAiConversationsConversationIdRoute
 }
@@ -624,6 +802,7 @@ const AppAdminWalletsWithdrawalsRouteWithChildren =
 
 interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
+  AppAdminSourcingRoute: typeof AppAdminSourcingRouteWithChildren
   AppAdminAiConversationsRoute: typeof AppAdminAiConversationsRouteWithChildren
   AppAdminAiDashboardRoute: typeof AppAdminAiDashboardRoute
   AppAdminGiftcardsBrandsRoute: typeof AppAdminGiftcardsBrandsRouteWithChildren
@@ -636,6 +815,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
+  AppAdminSourcingRoute: AppAdminSourcingRouteWithChildren,
   AppAdminAiConversationsRoute: AppAdminAiConversationsRouteWithChildren,
   AppAdminAiDashboardRoute: AppAdminAiDashboardRoute,
   AppAdminGiftcardsBrandsRoute: AppAdminGiftcardsBrandsRouteWithChildren,
