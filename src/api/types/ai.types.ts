@@ -93,3 +93,31 @@ export type ListAiConversationsParams = {
   page?: number;
   pageSize?: number;
 };
+
+// ── WhatsApp (WAHA) session — the dedicated sourcing number's pairing/lifecycle ──
+// Mirrors GET/POST /api/v1/ai/admin/waha/session*. Status strings come verbatim from WAHA.
+export type WahaSessionStatus =
+  | "WORKING"
+  | "SCAN_QR_CODE"
+  | "STARTING"
+  | "STOPPED"
+  | "FAILED";
+
+export type WahaSessionInfo = {
+  status: WahaSessionStatus;
+  // The paired number when WORKING (e.g. "2348012345678"); otherwise null.
+  connectedNumber?: string | null;
+  // A "data:image/png;base64,…" URL to render for scanning while SCAN_QR_CODE; otherwise null.
+  qr?: string | null;
+};
+
+// A WhatsApp group the paired number belongs to — a pickable provider channel.
+// Mirrors GET /api/v1/ai/admin/waha/groups (only available while the session is WORKING).
+export type WahaGroup = {
+  // The chat id ending in "@g.us" — goes straight into the provider's channelChatId.
+  id: string;
+  // The group subject / display name.
+  name: string;
+  // Participant count when WAHA reports it.
+  size?: number | null;
+};

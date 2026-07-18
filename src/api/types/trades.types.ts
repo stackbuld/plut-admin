@@ -8,6 +8,14 @@ export type TradeStatus =
 
 export type TradeItemStatus = "Pending" | "Approved" | "Rejected";
 
+// Vendor-sourcing/redemption rollup surfaced on the admin trade list (advisory).
+export type ProviderRedemptionStatus =
+  | "NotSourced"
+  | "Dispatched"
+  | "Redeemed"
+  | "Failed"
+  | "Unknown";
+
 // AI image-verification rollup set by the ai-service worker (advisory only — it never
 // moves money or auto-rejects). Wire values arrive upper-cased from the API; the
 // AiVerificationBadge normalizes, so treat this as case-insensitive.
@@ -36,6 +44,8 @@ export type TradeListItem = {
   verificationStatus: TradeVerificationStatus;
   verificationConfidence: number | null;
   verifiedAt: string | null;
+  // Vendor-sourcing/redemption rollup (advisory). "NotSourced" until routed to a provider.
+  providerRedemptionStatus: ProviderRedemptionStatus;
 };
 
 export type TradeItem = {
