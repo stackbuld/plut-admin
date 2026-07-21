@@ -70,7 +70,7 @@ function AnnouncementsPage() {
             id="ann-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="🚀 PLUT AI Is Active!"
+            placeholder="Weekend rates are live 🎉"
             maxLength={TITLE_LIMIT * 2}
           />
         </div>
@@ -83,7 +83,7 @@ function AnnouncementsPage() {
             id="ann-body"
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            placeholder="PLUT AI is back online, and rates are up! Trade your gift cards now to enjoy better payouts."
+            placeholder="Amazon and Steam cards are paying more until Sunday. Open Plut to lock in your rate."
             rows={4}
             maxLength={BODY_LIMIT * 2}
           />
