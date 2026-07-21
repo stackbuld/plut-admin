@@ -1,7 +1,7 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Bell, ChevronDown, Coins, Gift, LayoutGrid, LogOut, Menu, Moon, Sun,
-  ArrowLeftRight, Users, BookOpen, Wallet, Bitcoin, Banknote, Sparkles, MessagesSquare, Store, Smartphone, Network, ClipboardCheck, ShieldCheck, Clock,
+  ArrowLeftRight, Users, BookOpen, Wallet, Bitcoin, Banknote, Sparkles, MessagesSquare, Store, Smartphone, Network, ClipboardCheck, ShieldCheck, Clock, Megaphone,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -71,6 +71,12 @@ function useAiNav(): NavItem[] {
   return [
     { to: "/admin/ai/dashboard", label: "Dashboard", icon: LayoutGrid },
     { to: "/admin/ai/conversations", label: "Conversations", icon: MessagesSquare, matchPrefix: "/admin/ai/conversations" },
+  ];
+}
+
+function useNotificationsNav(): NavItem[] {
+  return [
+    { to: "/admin/notifications/announcements", label: "Announcements", icon: Megaphone, matchPrefix: "/admin/notifications/announcements" },
   ];
 }
 
@@ -238,11 +244,13 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
   const sourcingNav = useSourcingNav();
   const walletsNav = useWalletsNav();
   const aiNav = useAiNav();
+  const notificationsNav = useNotificationsNav();
   const products: Product[] = [
     { id: "giftcards", label: "Giftcards", icon: Gift, items: giftcardNav },
     { id: "sourcing", label: "Sourcing", icon: Store, items: sourcingNav },
     { id: "wallets", label: "Wallets", icon: Wallet, items: walletsNav },
     { id: "ai", label: "AI Assistant", icon: Sparkles, items: aiNav },
+    { id: "notifications", label: "Notifications", icon: Bell, items: notificationsNav },
     { id: "vas", label: "VAS", icon: Wallet, comingSoon: true },
     { id: "crypto", label: "Crypto", icon: Bitcoin, comingSoon: true },
   ];
@@ -269,6 +277,7 @@ function deriveTitle(pathname: string): string {
   if (pathname.startsWith("/admin/wallets/withdrawals")) return "Withdrawals";
   if (pathname.startsWith("/admin/ai/conversations")) return "AI Conversations";
   if (pathname.startsWith("/admin/ai/dashboard")) return "AI Overview";
+  if (pathname.startsWith("/admin/notifications")) return "Announcements";
   return "Plut Admin";
 }
 

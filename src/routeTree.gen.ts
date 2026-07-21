@@ -22,6 +22,7 @@ import { Route as AppAdminSourcingOurNumbersRouteImport } from './routes/_app.ad
 import { Route as AppAdminSourcingMerchantsRouteImport } from './routes/_app.admin.sourcing.merchants'
 import { Route as AppAdminSourcingAwaitingRouteImport } from './routes/_app.admin.sourcing.awaiting'
 import { Route as AppAdminSourcingAllocationsRouteImport } from './routes/_app.admin.sourcing.allocations'
+import { Route as AppAdminNotificationsAnnouncementsRouteImport } from './routes/_app.admin.notifications.announcements'
 import { Route as AppAdminGiftcardsUsersRouteImport } from './routes/_app.admin.giftcards.users'
 import { Route as AppAdminGiftcardsTradesRouteImport } from './routes/_app.admin.giftcards.trades'
 import { Route as AppAdminGiftcardsDashboardRouteImport } from './routes/_app.admin.giftcards.dashboard'
@@ -113,6 +114,12 @@ const AppAdminSourcingAllocationsRoute =
     id: '/allocations',
     path: '/allocations',
     getParentRoute: () => AppAdminSourcingRoute,
+  } as any)
+const AppAdminNotificationsAnnouncementsRoute =
+  AppAdminNotificationsAnnouncementsRouteImport.update({
+    id: '/admin/notifications/announcements',
+    path: '/admin/notifications/announcements',
+    getParentRoute: () => AppRoute,
   } as any)
 const AppAdminGiftcardsUsersRoute = AppAdminGiftcardsUsersRouteImport.update({
   id: '/admin/giftcards/users',
@@ -248,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
+  '/admin/notifications/announcements': typeof AppAdminNotificationsAnnouncementsRoute
   '/admin/sourcing/allocations': typeof AppAdminSourcingAllocationsRoute
   '/admin/sourcing/awaiting': typeof AppAdminSourcingAwaitingRoute
   '/admin/sourcing/merchants': typeof AppAdminSourcingMerchantsRoute
@@ -281,6 +289,7 @@ export interface FileRoutesByTo {
   '/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
+  '/admin/notifications/announcements': typeof AppAdminNotificationsAnnouncementsRoute
   '/admin/sourcing/allocations': typeof AppAdminSourcingAllocationsRoute
   '/admin/sourcing/awaiting': typeof AppAdminSourcingAwaitingRoute
   '/admin/sourcing/merchants': typeof AppAdminSourcingMerchantsRoute
@@ -317,6 +326,7 @@ export interface FileRoutesById {
   '/_app/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/_app/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/_app/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
+  '/_app/admin/notifications/announcements': typeof AppAdminNotificationsAnnouncementsRoute
   '/_app/admin/sourcing/allocations': typeof AppAdminSourcingAllocationsRoute
   '/_app/admin/sourcing/awaiting': typeof AppAdminSourcingAwaitingRoute
   '/_app/admin/sourcing/merchants': typeof AppAdminSourcingMerchantsRoute
@@ -354,6 +364,7 @@ export interface FileRouteTypes {
     | '/admin/giftcards/dashboard'
     | '/admin/giftcards/trades'
     | '/admin/giftcards/users'
+    | '/admin/notifications/announcements'
     | '/admin/sourcing/allocations'
     | '/admin/sourcing/awaiting'
     | '/admin/sourcing/merchants'
@@ -387,6 +398,7 @@ export interface FileRouteTypes {
     | '/admin/giftcards/dashboard'
     | '/admin/giftcards/trades'
     | '/admin/giftcards/users'
+    | '/admin/notifications/announcements'
     | '/admin/sourcing/allocations'
     | '/admin/sourcing/awaiting'
     | '/admin/sourcing/merchants'
@@ -422,6 +434,7 @@ export interface FileRouteTypes {
     | '/_app/admin/giftcards/dashboard'
     | '/_app/admin/giftcards/trades'
     | '/_app/admin/giftcards/users'
+    | '/_app/admin/notifications/announcements'
     | '/_app/admin/sourcing/allocations'
     | '/_app/admin/sourcing/awaiting'
     | '/_app/admin/sourcing/merchants'
@@ -544,6 +557,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/sourcing/allocations'
       preLoaderRoute: typeof AppAdminSourcingAllocationsRouteImport
       parentRoute: typeof AppAdminSourcingRoute
+    }
+    '/_app/admin/notifications/announcements': {
+      id: '/_app/admin/notifications/announcements'
+      path: '/admin/notifications/announcements'
+      fullPath: '/admin/notifications/announcements'
+      preLoaderRoute: typeof AppAdminNotificationsAnnouncementsRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/admin/giftcards/users': {
       id: '/_app/admin/giftcards/users'
@@ -833,6 +853,7 @@ interface AppRouteChildren {
   AppAdminGiftcardsDashboardRoute: typeof AppAdminGiftcardsDashboardRoute
   AppAdminGiftcardsTradesRoute: typeof AppAdminGiftcardsTradesRouteWithChildren
   AppAdminGiftcardsUsersRoute: typeof AppAdminGiftcardsUsersRouteWithChildren
+  AppAdminNotificationsAnnouncementsRoute: typeof AppAdminNotificationsAnnouncementsRoute
   AppAdminWalletsWithdrawalsRoute: typeof AppAdminWalletsWithdrawalsRouteWithChildren
 }
 
@@ -846,6 +867,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminGiftcardsDashboardRoute: AppAdminGiftcardsDashboardRoute,
   AppAdminGiftcardsTradesRoute: AppAdminGiftcardsTradesRouteWithChildren,
   AppAdminGiftcardsUsersRoute: AppAdminGiftcardsUsersRouteWithChildren,
+  AppAdminNotificationsAnnouncementsRoute:
+    AppAdminNotificationsAnnouncementsRoute,
   AppAdminWalletsWithdrawalsRoute: AppAdminWalletsWithdrawalsRouteWithChildren,
 }
 
