@@ -22,6 +22,7 @@ import { Route as AppAdminSourcingOurNumbersRouteImport } from './routes/_app.ad
 import { Route as AppAdminSourcingMerchantsRouteImport } from './routes/_app.admin.sourcing.merchants'
 import { Route as AppAdminSourcingAwaitingRouteImport } from './routes/_app.admin.sourcing.awaiting'
 import { Route as AppAdminSourcingAllocationsRouteImport } from './routes/_app.admin.sourcing.allocations'
+import { Route as AppAdminObservabilityCriticalErrorsRouteImport } from './routes/_app.admin.observability.critical-errors'
 import { Route as AppAdminNotificationsAnnouncementsRouteImport } from './routes/_app.admin.notifications.announcements'
 import { Route as AppAdminGiftcardsUsersRouteImport } from './routes/_app.admin.giftcards.users'
 import { Route as AppAdminGiftcardsTradesRouteImport } from './routes/_app.admin.giftcards.trades'
@@ -114,6 +115,12 @@ const AppAdminSourcingAllocationsRoute =
     id: '/allocations',
     path: '/allocations',
     getParentRoute: () => AppAdminSourcingRoute,
+  } as any)
+const AppAdminObservabilityCriticalErrorsRoute =
+  AppAdminObservabilityCriticalErrorsRouteImport.update({
+    id: '/admin/observability/critical-errors',
+    path: '/admin/observability/critical-errors',
+    getParentRoute: () => AppRoute,
   } as any)
 const AppAdminNotificationsAnnouncementsRoute =
   AppAdminNotificationsAnnouncementsRouteImport.update({
@@ -256,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
   '/admin/notifications/announcements': typeof AppAdminNotificationsAnnouncementsRoute
+  '/admin/observability/critical-errors': typeof AppAdminObservabilityCriticalErrorsRoute
   '/admin/sourcing/allocations': typeof AppAdminSourcingAllocationsRoute
   '/admin/sourcing/awaiting': typeof AppAdminSourcingAwaitingRoute
   '/admin/sourcing/merchants': typeof AppAdminSourcingMerchantsRoute
@@ -290,6 +298,7 @@ export interface FileRoutesByTo {
   '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
   '/admin/notifications/announcements': typeof AppAdminNotificationsAnnouncementsRoute
+  '/admin/observability/critical-errors': typeof AppAdminObservabilityCriticalErrorsRoute
   '/admin/sourcing/allocations': typeof AppAdminSourcingAllocationsRoute
   '/admin/sourcing/awaiting': typeof AppAdminSourcingAwaitingRoute
   '/admin/sourcing/merchants': typeof AppAdminSourcingMerchantsRoute
@@ -327,6 +336,7 @@ export interface FileRoutesById {
   '/_app/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/_app/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
   '/_app/admin/notifications/announcements': typeof AppAdminNotificationsAnnouncementsRoute
+  '/_app/admin/observability/critical-errors': typeof AppAdminObservabilityCriticalErrorsRoute
   '/_app/admin/sourcing/allocations': typeof AppAdminSourcingAllocationsRoute
   '/_app/admin/sourcing/awaiting': typeof AppAdminSourcingAwaitingRoute
   '/_app/admin/sourcing/merchants': typeof AppAdminSourcingMerchantsRoute
@@ -365,6 +375,7 @@ export interface FileRouteTypes {
     | '/admin/giftcards/trades'
     | '/admin/giftcards/users'
     | '/admin/notifications/announcements'
+    | '/admin/observability/critical-errors'
     | '/admin/sourcing/allocations'
     | '/admin/sourcing/awaiting'
     | '/admin/sourcing/merchants'
@@ -399,6 +410,7 @@ export interface FileRouteTypes {
     | '/admin/giftcards/trades'
     | '/admin/giftcards/users'
     | '/admin/notifications/announcements'
+    | '/admin/observability/critical-errors'
     | '/admin/sourcing/allocations'
     | '/admin/sourcing/awaiting'
     | '/admin/sourcing/merchants'
@@ -435,6 +447,7 @@ export interface FileRouteTypes {
     | '/_app/admin/giftcards/trades'
     | '/_app/admin/giftcards/users'
     | '/_app/admin/notifications/announcements'
+    | '/_app/admin/observability/critical-errors'
     | '/_app/admin/sourcing/allocations'
     | '/_app/admin/sourcing/awaiting'
     | '/_app/admin/sourcing/merchants'
@@ -557,6 +570,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/sourcing/allocations'
       preLoaderRoute: typeof AppAdminSourcingAllocationsRouteImport
       parentRoute: typeof AppAdminSourcingRoute
+    }
+    '/_app/admin/observability/critical-errors': {
+      id: '/_app/admin/observability/critical-errors'
+      path: '/admin/observability/critical-errors'
+      fullPath: '/admin/observability/critical-errors'
+      preLoaderRoute: typeof AppAdminObservabilityCriticalErrorsRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/admin/notifications/announcements': {
       id: '/_app/admin/notifications/announcements'
@@ -854,6 +874,7 @@ interface AppRouteChildren {
   AppAdminGiftcardsTradesRoute: typeof AppAdminGiftcardsTradesRouteWithChildren
   AppAdminGiftcardsUsersRoute: typeof AppAdminGiftcardsUsersRouteWithChildren
   AppAdminNotificationsAnnouncementsRoute: typeof AppAdminNotificationsAnnouncementsRoute
+  AppAdminObservabilityCriticalErrorsRoute: typeof AppAdminObservabilityCriticalErrorsRoute
   AppAdminWalletsWithdrawalsRoute: typeof AppAdminWalletsWithdrawalsRouteWithChildren
 }
 
@@ -869,6 +890,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminGiftcardsUsersRoute: AppAdminGiftcardsUsersRouteWithChildren,
   AppAdminNotificationsAnnouncementsRoute:
     AppAdminNotificationsAnnouncementsRoute,
+  AppAdminObservabilityCriticalErrorsRoute:
+    AppAdminObservabilityCriticalErrorsRoute,
   AppAdminWalletsWithdrawalsRoute: AppAdminWalletsWithdrawalsRouteWithChildren,
 }
 
