@@ -52,6 +52,28 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
 
 export const apiGet = <T>(path: string) => request<T>(path, { method: "GET" });
 
+// A handful of endpoints (health/canary checks) intentionally return their body raw,
+// not wrapped in the { success, data, message } envelope — use this for those.
+async function requestRaw<T>(path: string, init: RequestInit): Promise<T> {
+  const token = getAccessToken();
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  const body = (await res.json()) as T;
+  if (!res.ok && res.status !== 503) {
+    const message = (body as { message?: string })?.message;
+    throw new Error(message ?? `HTTP ${res.status}`);
+  }
+  return body;
+}
+
+export const apiGetRaw = <T>(path: string) => requestRaw<T>(path, { method: "GET" });
+
 export async function apiUpload<T>(path: string, formData: FormData): Promise<T> {
   const token = getAccessToken();
   const res = await fetch(`${BASE_URL}${path}`, {

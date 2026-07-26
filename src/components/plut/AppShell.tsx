@@ -1,7 +1,7 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Bell, ChevronDown, Coins, Gift, LayoutGrid, LogOut, Menu, Moon, Sun,
-  ArrowLeftRight, Users, BookOpen, Wallet, Bitcoin, Banknote, Sparkles, MessagesSquare, Store, Smartphone, Network, ClipboardCheck, ShieldCheck, Clock,
+  ArrowLeftRight, Users, BookOpen, Wallet, Bitcoin, Banknote, Sparkles, MessagesSquare, Store, Smartphone, Network, ClipboardCheck, ShieldCheck, Clock, AlertTriangle, Activity,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -87,6 +87,10 @@ function useWalletsNav(): NavItem[] {
     },
   ];
 }
+
+const OBSERVABILITY_NAV: NavItem[] = [
+  { to: "/admin/observability/critical-errors", label: "Critical Errors", icon: AlertTriangle, matchPrefix: "/admin/observability/critical-errors" },
+];
 
 type Product = { id: string; label: string; icon: typeof Coins; items?: NavItem[]; comingSoon?: boolean };
 
@@ -243,6 +247,7 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
     { id: "sourcing", label: "Sourcing", icon: Store, items: sourcingNav },
     { id: "wallets", label: "Wallets", icon: Wallet, items: walletsNav },
     { id: "ai", label: "AI Assistant", icon: Sparkles, items: aiNav },
+    { id: "observability", label: "Observability", icon: Activity, items: OBSERVABILITY_NAV },
     { id: "vas", label: "VAS", icon: Wallet, comingSoon: true },
     { id: "crypto", label: "Crypto", icon: Bitcoin, comingSoon: true },
   ];
@@ -269,6 +274,7 @@ function deriveTitle(pathname: string): string {
   if (pathname.startsWith("/admin/wallets/withdrawals")) return "Withdrawals";
   if (pathname.startsWith("/admin/ai/conversations")) return "AI Conversations";
   if (pathname.startsWith("/admin/ai/dashboard")) return "AI Overview";
+  if (pathname.startsWith("/admin/observability/critical-errors")) return "Critical Errors";
   return "Plut Admin";
 }
 
