@@ -43,11 +43,12 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
     throw new Error("Session expired. Redirecting to login…");
   }
 
-  const envelope: Envelope<T> = await res.json();
-  if (!res.ok || !envelope.success) {
-    throw new Error(envelope.message ?? `HTTP ${res.status}`);
+  const text = await res.text();
+  const envelope: Partial<Envelope<T>> | null = text ? JSON.parse(text) : null;
+  if (!res.ok || envelope?.success === false) {
+    throw new Error(envelope?.message ?? `HTTP ${res.status}`);
   }
-  return envelope.data;
+  return (envelope?.data ?? null) as T;
 }
 
 export const apiGet = <T>(path: string) => request<T>(path, { method: "GET" });
