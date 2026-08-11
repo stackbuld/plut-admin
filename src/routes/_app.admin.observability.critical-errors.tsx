@@ -429,10 +429,24 @@ function buildReportText(error: CriticalError, detail?: CriticalErrorDetail): st
     `Fingerprint: ${error.fingerprint}`,
     error.traceId ? `Trace: ${error.traceId}` : null,
     detail?.userId ? `User: ${detail.userId}` : null,
+    // Location and payload are what a reader needs first, so they get their own lines rather than
+    // being buried in a comma-joined context dump.
+    detail?.context?.["exception.file"]
+      ? `Failed at: ${detail.context["exception.file"]}${
+          detail.context["exception.line"] ? `:${detail.context["exception.line"]}` : ""
+        }${detail.context["exception.site"] ? ` (${detail.context["exception.site"]})` : ""}`
+      : null,
+    detail?.context?.["exception.innerMessage"]
+      ? `Root cause: ${detail.context["exception.innerMessage"]}`
+      : null,
     detail?.context && Object.keys(detail.context).length
       ? `Context: ${Object.entries(detail.context)
+          .filter(([k]) => k !== "request.payload")
           .map(([k, v]) => `${k}=${v}`)
           .join(", ")}`
+      : null,
+    detail?.context?.["request.payload"]
+      ? `\nRequest payload (secrets masked):\n${prettyJson(detail.context["request.payload"])}`
       : null,
     detail?.stackTrace ? `\nStack trace:\n${detail.stackTrace}` : null,
   ];
@@ -603,14 +617,7 @@ function ErrorRow({
               </dl>
 
               {detail?.context && Object.keys(detail.context).length > 0 && (
-                <div>
-                  <p className="mb-1 text-[11px] text-muted-foreground">Context</p>
-                  <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-lg bg-muted/40 p-2.5 text-[11px] sm:grid-cols-3">
-                    {Object.entries(detail.context).map(([k, v]) => (
-                      <Field key={k} label={k} value={v} mono />
-                    ))}
-                  </dl>
-                </div>
+                <ContextPanels context={detail.context} />
               )}
 
               {detail?.stackTrace ? (
@@ -635,6 +642,118 @@ function ErrorRow({
       )}
     </div>
   );
+}
+
+// ── Context rendering ────────────────────────────────────────────────────────
+// The backend enriches every error with a flat context bag. A few of those keys answer the first
+// questions triage always asks — where did it throw, what did the database object to, what was sent
+// — so they get dedicated treatment instead of being truncated into a generic grid cell. Anything
+// unrecognised still falls through to that grid, so new backend keys never go missing here.
+
+const FAULT_KEYS = [
+  "exception.type",
+  "exception.innerType",
+  "exception.innerMessage",
+  "exception.site",
+  "exception.file",
+  "exception.line",
+] as const;
+
+const PAYLOAD_KEY = "request.payload";
+
+function ContextPanels({ context }: { context: Record<string, string> }) {
+  const get = (k: string) => context[k]?.trim() || undefined;
+
+  const file = get("exception.file");
+  const line = get("exception.line");
+  const site = get("exception.site");
+  const rootCause = get("exception.innerMessage");
+  const payload = get(PAYLOAD_KEY);
+
+  const dbEntries = Object.entries(context).filter(([k]) => k.startsWith("db."));
+  const rest = Object.entries(context).filter(
+    ([k]) =>
+      !FAULT_KEYS.includes(k as (typeof FAULT_KEYS)[number]) &&
+      !k.startsWith("db.") &&
+      k !== PAYLOAD_KEY,
+  );
+
+  return (
+    <div className="space-y-3">
+      {(file || site || rootCause) && (
+        <div className="rounded-lg border border-border bg-muted/40 p-2.5">
+          <p className="mb-1 text-[11px] text-muted-foreground">Where it failed</p>
+          {file && (
+            <p className="font-mono text-xs font-semibold text-foreground break-all">
+              {file}
+              {line ? `:${line}` : ""}
+            </p>
+          )}
+          {site && (
+            <p className="mt-0.5 font-mono text-[11px] text-muted-foreground break-all">{site}</p>
+          )}
+          {rootCause && (
+            <p className="mt-1.5 text-[11px] text-foreground break-words">
+              <span className="text-muted-foreground">Root cause: </span>
+              {rootCause}
+            </p>
+          )}
+        </div>
+      )}
+
+      {dbEntries.length > 0 && (
+        <div>
+          <p className="mb-1 text-[11px] text-muted-foreground">Database</p>
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-lg bg-muted/40 p-2.5 text-[11px] sm:grid-cols-3">
+            {dbEntries.map(([k, v]) => (
+              <Field key={k} label={k.replace(/^db\./, "")} value={v} mono />
+            ))}
+          </dl>
+        </div>
+      )}
+
+      {payload && (
+        <div>
+          <div className="mb-1 flex items-center justify-between">
+            <p className="text-[11px] text-muted-foreground">
+              Request payload <span className="opacity-70">(secrets masked at source)</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => copyText(payload, "Payload")}
+              className="text-muted-foreground hover:text-foreground"
+              title="Copy payload"
+            >
+              <Clipboard className="h-3 w-3" />
+            </button>
+          </div>
+          <pre className="max-h-48 overflow-auto rounded-lg bg-muted/50 p-2.5 text-[10px] leading-relaxed text-foreground">
+            {prettyJson(payload)}
+          </pre>
+        </div>
+      )}
+
+      {rest.length > 0 && (
+        <div>
+          <p className="mb-1 text-[11px] text-muted-foreground">Context</p>
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-lg bg-muted/40 p-2.5 text-[11px] sm:grid-cols-3">
+            {rest.map(([k, v]) => (
+              <Field key={k} label={k} value={v} mono />
+            ))}
+          </dl>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Pretty-prints a JSON payload; returns it untouched when it isn't JSON (form bodies, plain text). */
+function prettyJson(value: string): string {
+  try {
+    return JSON.stringify(JSON.parse(value), null, 2);
+  } catch {
+    return value;
+  }
 }
 
 function Field({
