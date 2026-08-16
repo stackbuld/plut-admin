@@ -7,3 +7,4 @@ export * from "./withdrawals.types";
 export * from "./ai.types";
 export * from "./merchants.types";
 export * from "./sourcing.types";
+export * from "./vas.types";

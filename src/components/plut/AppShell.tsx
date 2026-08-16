@@ -1,7 +1,7 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Bell, ChevronDown, Coins, Gift, LayoutGrid, LogOut, Menu, Moon, Sun,
-  ArrowLeftRight, Users, BookOpen, Wallet, Bitcoin, Banknote, Sparkles, MessagesSquare, Store, Smartphone, Network, ClipboardCheck, ShieldCheck, Clock, AlertTriangle, Activity, Megaphone,
+  ArrowLeftRight, Users, BookOpen, Wallet, Bitcoin, Banknote, Sparkles, MessagesSquare, Store, Smartphone, Network, ClipboardCheck, ShieldCheck, Clock, AlertTriangle, Activity, Megaphone, Radio,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
 import { useAuth } from "@/lib/auth";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { tradeQueries, withdrawalQueries, sourcingBadgeQueries } from "@/api";
+import { tradeQueries, withdrawalQueries, sourcingBadgeQueries, vasQueries } from "@/api";
 
 function usePendingCount() {
   const { data } = useQuery(tradeQueries.stats());
@@ -19,6 +19,11 @@ function usePendingCount() {
 function usePendingWithdrawalsCount() {
   const { data } = useQuery(withdrawalQueries.summary());
   return data?.pendingApprovalCount ?? 0;
+}
+
+function useVasFailedCount() {
+  const { data } = useQuery(vasQueries.dashboard());
+  return data?.failedLast24h ?? 0;
 }
 
 type NavItem = {
@@ -91,6 +96,15 @@ function useWalletsNav(): NavItem[] {
       matchPrefix: "/admin/wallets/withdrawals",
       children: WITHDRAWAL_CHILDREN,
     },
+  ];
+}
+
+function useVasNav(): NavItem[] {
+  const failedCount = useVasFailedCount();
+  return [
+    { to: "/admin/vas/dashboard", label: "Dashboard", icon: LayoutGrid },
+    { to: "/admin/vas/transactions", label: "Transactions", icon: ArrowLeftRight, badge: failedCount || undefined, matchPrefix: "/admin/vas/transactions" },
+    { to: "/admin/vas/providers", label: "Providers", icon: Radio, matchPrefix: "/admin/vas/providers" },
   ];
 }
 
@@ -249,14 +263,15 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
   const walletsNav = useWalletsNav();
   const aiNav = useAiNav();
   const notificationsNav = useNotificationsNav();
+  const vasNav = useVasNav();
   const products: Product[] = [
     { id: "giftcards", label: "Giftcards", icon: Gift, items: giftcardNav },
     { id: "sourcing", label: "Sourcing", icon: Store, items: sourcingNav },
     { id: "wallets", label: "Wallets", icon: Wallet, items: walletsNav },
+    { id: "vas", label: "VAS", icon: Smartphone, items: vasNav },
     { id: "ai", label: "AI Assistant", icon: Sparkles, items: aiNav },
     { id: "observability", label: "Observability", icon: Activity, items: OBSERVABILITY_NAV },
     { id: "notifications", label: "Notifications", icon: Bell, items: notificationsNav },
-    { id: "vas", label: "VAS", icon: Wallet, comingSoon: true },
     { id: "crypto", label: "Crypto", icon: Bitcoin, comingSoon: true },
   ];
   return (
@@ -284,6 +299,9 @@ function deriveTitle(pathname: string): string {
   if (pathname.startsWith("/admin/ai/dashboard")) return "AI Overview";
   if (pathname.startsWith("/admin/observability/critical-errors")) return "Critical Errors";
   if (pathname.startsWith("/admin/notifications")) return "Announcements";
+  if (pathname.startsWith("/admin/vas/dashboard")) return "VAS Overview";
+  if (pathname.startsWith("/admin/vas/transactions")) return "VAS Transactions";
+  if (pathname.startsWith("/admin/vas/providers")) return "VAS Providers";
   return "Plut Admin";
 }
 
