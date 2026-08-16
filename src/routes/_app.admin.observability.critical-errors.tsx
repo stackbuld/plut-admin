@@ -421,9 +421,11 @@ function copyText(text: string, label: string) {
 }
 
 function buildReportText(error: CriticalError, detail?: CriticalErrorDetail): string {
-  const contextEntries = detail?.context ? Object.entries(detail.context) : [];
-  const smallContext = contextEntries.filter(([, v]) => v.length <= LARGE_CONTEXT_VALUE_THRESHOLD);
-  const largeContext = contextEntries.filter(([, v]) => v.length > LARGE_CONTEXT_VALUE_THRESHOLD);
+  const context = detail?.context ?? {};
+  const namedKeys = new Set<string>([...FAULT_KEYS, PAYLOAD_KEY, RESPONSE_BODY_KEY]);
+  const rest = Object.entries(context).filter(([k]) => !namedKeys.has(k) && !k.startsWith("db."));
+  const restSmall = rest.filter(([, v]) => v.length <= LARGE_VALUE_THRESHOLD);
+  const restLarge = rest.filter(([, v]) => v.length > LARGE_VALUE_THRESHOLD);
 
   const lines: (string | null)[] = [
     `[${error.severity}] ${error.module} — ${error.message}`,
@@ -433,8 +435,22 @@ function buildReportText(error: CriticalError, detail?: CriticalErrorDetail): st
     `Fingerprint: ${error.fingerprint}`,
     error.traceId ? `Trace: ${error.traceId}` : null,
     detail?.userId ? `User: ${detail.userId}` : null,
-    smallContext.length ? `Context: ${smallContext.map(([k, v]) => `${k}=${v}`).join(", ")}` : null,
-    ...largeContext.map(([k, v]) => `\n${k}:\n${prettyPrintIfJson(v)}`),
+    // Location and payload are what a reader needs first, so they get their own lines rather than
+    // being buried in a comma-joined context dump.
+    context["exception.file"]
+      ? `Failed at: ${context["exception.file"]}${
+          context["exception.line"] ? `:${context["exception.line"]}` : ""
+        }${context["exception.site"] ? ` (${context["exception.site"]})` : ""}`
+      : null,
+    context["exception.innerMessage"] ? `Root cause: ${context["exception.innerMessage"]}` : null,
+    restSmall.length ? `Context: ${restSmall.map(([k, v]) => `${k}=${v}`).join(", ")}` : null,
+    context[PAYLOAD_KEY]
+      ? `\nRequest payload (secrets masked):\n${prettyJson(context[PAYLOAD_KEY])}`
+      : null,
+    context[RESPONSE_BODY_KEY]
+      ? `\nResponse body (secrets masked):\n${prettyJson(context[RESPONSE_BODY_KEY])}`
+      : null,
+    ...restLarge.map(([k, v]) => `\n${k}:\n${prettyJson(v)}`),
     detail?.stackTrace ? `\nStack trace:\n${detail.stackTrace}` : null,
   ];
   return lines.filter((l): l is string => l !== null).join("\n");
@@ -604,7 +620,7 @@ function ErrorRow({
               </dl>
 
               {detail?.context && Object.keys(detail.context).length > 0 && (
-                <ContextSection context={detail.context} />
+                <ContextPanels context={detail.context} />
               )}
 
               {detail?.stackTrace ? (
@@ -631,57 +647,148 @@ function ErrorRow({
   );
 }
 
-// Payload-shaped context values (a masked request/response body, a raw provider error) are
-// unreadable crammed into a single-line truncated grid cell — anything past this length gets
-// its own formatted block instead, the same treatment stackTrace already gets.
-const LARGE_CONTEXT_VALUE_THRESHOLD = 120;
+// ── Context rendering ────────────────────────────────────────────────────────
+// The backend enriches every error with a flat context bag. A few keys answer the first
+// questions triage always asks — where did it throw, what did the database object to, what was
+// sent and received — so they get dedicated treatment instead of being truncated into a generic
+// grid cell. Anything else still falls through to that grid; anything long, to its own formatted
+// block (the same treatment stackTrace already gets) — so a future backend key is legible without
+// a frontend change.
 
-function prettyPrintIfJson(value: string): string {
-  try {
-    return JSON.stringify(JSON.parse(value), null, 2);
-  } catch {
-    return value;
-  }
-}
+const FAULT_KEYS = [
+  "exception.type",
+  "exception.innerType",
+  "exception.innerMessage",
+  "exception.site",
+  "exception.file",
+  "exception.line",
+] as const;
 
-function ContextSection({ context }: { context: Record<string, string> }) {
-  const entries = Object.entries(context);
-  const small = entries.filter(([, v]) => v.length <= LARGE_CONTEXT_VALUE_THRESHOLD);
-  const large = entries.filter(([, v]) => v.length > LARGE_CONTEXT_VALUE_THRESHOLD);
+const PAYLOAD_KEY = "request.payload";
+const RESPONSE_BODY_KEY = "response.body";
+const RESPONSE_STATUS_KEY = "response.statusCode";
+const ENDPOINT_KEY = "endpoint";
+const LARGE_VALUE_THRESHOLD = 120;
+
+function ContextPanels({ context }: { context: Record<string, string> }) {
+  const get = (k: string) => context[k]?.trim() || undefined;
+
+  const file = get("exception.file");
+  const line = get("exception.line");
+  const site = get("exception.site");
+  const rootCause = get("exception.innerMessage");
+  const payload = get(PAYLOAD_KEY);
+  const responseBody = get(RESPONSE_BODY_KEY);
+  const endpoint = get(ENDPOINT_KEY);
+  const responseStatus = get(RESPONSE_STATUS_KEY);
+
+  const dbEntries = Object.entries(context).filter(([k]) => k.startsWith("db."));
+  const namedKeys = new Set<string>([...FAULT_KEYS, PAYLOAD_KEY, RESPONSE_BODY_KEY]);
+  const rest = Object.entries(context).filter(([k]) => !namedKeys.has(k) && !k.startsWith("db."));
+  const restSmall = rest.filter(([, v]) => v.length <= LARGE_VALUE_THRESHOLD);
+  const restLarge = rest.filter(([, v]) => v.length > LARGE_VALUE_THRESHOLD);
 
   return (
     <div className="space-y-3">
-      {small.length > 0 && (
+      {(file || site || rootCause) && (
+        <div className="rounded-lg border border-border bg-muted/40 p-2.5">
+          <p className="mb-1 text-[11px] text-muted-foreground">Where it failed</p>
+          {file && (
+            <p className="font-mono text-xs font-semibold text-foreground break-all">
+              {file}
+              {line ? `:${line}` : ""}
+            </p>
+          )}
+          {site && (
+            <p className="mt-0.5 font-mono text-[11px] text-muted-foreground break-all">{site}</p>
+          )}
+          {rootCause && (
+            <p className="mt-1.5 text-[11px] text-foreground break-words">
+              <span className="text-muted-foreground">Root cause: </span>
+              {rootCause}
+            </p>
+          )}
+        </div>
+      )}
+
+      {dbEntries.length > 0 && (
+        <div>
+          <p className="mb-1 text-[11px] text-muted-foreground">Database</p>
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-lg bg-muted/40 p-2.5 text-[11px] sm:grid-cols-3">
+            {dbEntries.map(([k, v]) => (
+              <Field key={k} label={k.replace(/^db\./, "")} value={v} mono />
+            ))}
+          </dl>
+        </div>
+      )}
+
+      {endpoint && (
+        <p className="text-[11px] text-muted-foreground">
+          Downstream call: <span className="font-mono text-foreground">{endpoint}</span>
+          {responseStatus ? ` · HTTP ${responseStatus}` : ""}
+        </p>
+      )}
+
+      {payload && <PayloadBlock label="Request payload" value={payload} />}
+      {responseBody && <PayloadBlock label="Response body" value={responseBody} />}
+
+      {restSmall.length > 0 && (
         <div>
           <p className="mb-1 text-[11px] text-muted-foreground">Context</p>
           <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-lg bg-muted/40 p-2.5 text-[11px] sm:grid-cols-3">
-            {small.map(([k, v]) => (
+            {restSmall.map(([k, v]) => (
               <Field key={k} label={k} value={v} mono />
             ))}
           </dl>
         </div>
       )}
 
-      {large.map(([k, v]) => (
-        <div key={k}>
-          <div className="mb-1 flex items-center justify-between">
-            <p className="font-mono text-[11px] text-muted-foreground">{k}</p>
-            <button
-              type="button"
-              onClick={() => copyText(v, k)}
-              title={`Copy ${k}`}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Clipboard className="h-3 w-3" />
-            </button>
-          </div>
-          <pre className="max-h-64 overflow-auto rounded-lg bg-muted/50 p-3 text-[10px] leading-relaxed text-muted-foreground">
-            {prettyPrintIfJson(v)}
-          </pre>
-        </div>
+      {restLarge.map(([k, v]) => (
+        <PayloadBlock key={k} label={k} value={v} mono />
       ))}
     </div>
   );
+}
+
+/** A copyable, pretty-printed block for a payload-shaped context value (request/response bodies,
+ * or any other context entry too long for the generic grid). Secrets are masked at the source
+ * (backend), never here — this only formats what it's given. */
+function PayloadBlock({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between">
+        <p
+          className={
+            mono
+              ? "font-mono text-[11px] text-muted-foreground"
+              : "text-[11px] text-muted-foreground"
+          }
+        >
+          {label} <span className="opacity-70">(secrets masked at source)</span>
+        </p>
+        <button
+          type="button"
+          onClick={() => copyText(value, label)}
+          className="text-muted-foreground hover:text-foreground"
+          title={`Copy ${label.toLowerCase()}`}
+        >
+          <Clipboard className="h-3 w-3" />
+        </button>
+      </div>
+      <pre className="max-h-48 overflow-auto rounded-lg bg-muted/50 p-2.5 text-[10px] leading-relaxed text-foreground">
+        {prettyJson(value)}
+      </pre>
+    </div>
+  );
+}
+
+/** Pretty-prints a JSON payload; returns it untouched when it isn't JSON (form bodies, plain text). */
+function prettyJson(value: string): string {
+  try {
+    return JSON.stringify(JSON.parse(value), null, 2);
+  } catch {
+    return value;
+  }
 }
 
 function Field({
