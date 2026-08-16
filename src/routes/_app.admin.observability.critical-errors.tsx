@@ -50,7 +50,7 @@ const MODULE_OPTIONS = [
   { v: "account-service", l: "Account Service" },
   { v: "ledger-service", l: "Ledger Service" },
   { v: "gift-cards", l: "Gift Cards" },
-  { v: "value-added-service", l: "VAS" },
+  { v: "vas", l: "VAS" },
   { v: "ai-service", l: "AI Service" },
   { v: "notifications", l: "Notifications" },
   { v: "platform", l: "Platform" },
@@ -421,6 +421,10 @@ function copyText(text: string, label: string) {
 }
 
 function buildReportText(error: CriticalError, detail?: CriticalErrorDetail): string {
+  const contextEntries = detail?.context ? Object.entries(detail.context) : [];
+  const smallContext = contextEntries.filter(([, v]) => v.length <= LARGE_CONTEXT_VALUE_THRESHOLD);
+  const largeContext = contextEntries.filter(([, v]) => v.length > LARGE_CONTEXT_VALUE_THRESHOLD);
+
   const lines: (string | null)[] = [
     `[${error.severity}] ${error.module} — ${error.message}`,
     `Operation: ${error.operation ?? "—"}${error.statusCode ? ` (HTTP ${error.statusCode})` : ""}`,
@@ -429,11 +433,8 @@ function buildReportText(error: CriticalError, detail?: CriticalErrorDetail): st
     `Fingerprint: ${error.fingerprint}`,
     error.traceId ? `Trace: ${error.traceId}` : null,
     detail?.userId ? `User: ${detail.userId}` : null,
-    detail?.context && Object.keys(detail.context).length
-      ? `Context: ${Object.entries(detail.context)
-          .map(([k, v]) => `${k}=${v}`)
-          .join(", ")}`
-      : null,
+    smallContext.length ? `Context: ${smallContext.map(([k, v]) => `${k}=${v}`).join(", ")}` : null,
+    ...largeContext.map(([k, v]) => `\n${k}:\n${prettyPrintIfJson(v)}`),
     detail?.stackTrace ? `\nStack trace:\n${detail.stackTrace}` : null,
   ];
   return lines.filter((l): l is string => l !== null).join("\n");
@@ -603,14 +604,7 @@ function ErrorRow({
               </dl>
 
               {detail?.context && Object.keys(detail.context).length > 0 && (
-                <div>
-                  <p className="mb-1 text-[11px] text-muted-foreground">Context</p>
-                  <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-lg bg-muted/40 p-2.5 text-[11px] sm:grid-cols-3">
-                    {Object.entries(detail.context).map(([k, v]) => (
-                      <Field key={k} label={k} value={v} mono />
-                    ))}
-                  </dl>
-                </div>
+                <ContextSection context={detail.context} />
               )}
 
               {detail?.stackTrace ? (
@@ -633,6 +627,59 @@ function ErrorRow({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// Payload-shaped context values (a masked request/response body, a raw provider error) are
+// unreadable crammed into a single-line truncated grid cell — anything past this length gets
+// its own formatted block instead, the same treatment stackTrace already gets.
+const LARGE_CONTEXT_VALUE_THRESHOLD = 120;
+
+function prettyPrintIfJson(value: string): string {
+  try {
+    return JSON.stringify(JSON.parse(value), null, 2);
+  } catch {
+    return value;
+  }
+}
+
+function ContextSection({ context }: { context: Record<string, string> }) {
+  const entries = Object.entries(context);
+  const small = entries.filter(([, v]) => v.length <= LARGE_CONTEXT_VALUE_THRESHOLD);
+  const large = entries.filter(([, v]) => v.length > LARGE_CONTEXT_VALUE_THRESHOLD);
+
+  return (
+    <div className="space-y-3">
+      {small.length > 0 && (
+        <div>
+          <p className="mb-1 text-[11px] text-muted-foreground">Context</p>
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-lg bg-muted/40 p-2.5 text-[11px] sm:grid-cols-3">
+            {small.map(([k, v]) => (
+              <Field key={k} label={k} value={v} mono />
+            ))}
+          </dl>
+        </div>
+      )}
+
+      {large.map(([k, v]) => (
+        <div key={k}>
+          <div className="mb-1 flex items-center justify-between">
+            <p className="font-mono text-[11px] text-muted-foreground">{k}</p>
+            <button
+              type="button"
+              onClick={() => copyText(v, k)}
+              title={`Copy ${k}`}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Clipboard className="h-3 w-3" />
+            </button>
+          </div>
+          <pre className="max-h-64 overflow-auto rounded-lg bg-muted/50 p-3 text-[10px] leading-relaxed text-muted-foreground">
+            {prettyPrintIfJson(v)}
+          </pre>
+        </div>
+      ))}
     </div>
   );
 }

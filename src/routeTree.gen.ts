@@ -13,9 +13,13 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AppAdminVasRouteImport } from './routes/_app.admin.vas'
 import { Route as AppAdminSourcingRouteImport } from './routes/_app.admin.sourcing'
 import { Route as AppAdminSourcingIndexRouteImport } from './routes/_app.admin.sourcing.index'
 import { Route as AppAdminWalletsWithdrawalsRouteImport } from './routes/_app.admin.wallets.withdrawals'
+import { Route as AppAdminVasTransactionsRouteImport } from './routes/_app.admin.vas.transactions'
+import { Route as AppAdminVasProvidersRouteImport } from './routes/_app.admin.vas.providers'
+import { Route as AppAdminVasDashboardRouteImport } from './routes/_app.admin.vas.dashboard'
 import { Route as AppAdminSourcingWhatsappRouteImport } from './routes/_app.admin.sourcing.whatsapp'
 import { Route as AppAdminSourcingReviewRouteImport } from './routes/_app.admin.sourcing.review'
 import { Route as AppAdminSourcingOurNumbersRouteImport } from './routes/_app.admin.sourcing.our-numbers'
@@ -32,9 +36,13 @@ import { Route as AppAdminGiftcardsBrandsRouteImport } from './routes/_app.admin
 import { Route as AppAdminAiDashboardRouteImport } from './routes/_app.admin.ai.dashboard'
 import { Route as AppAdminAiConversationsRouteImport } from './routes/_app.admin.ai.conversations'
 import { Route as AppAdminWalletsWithdrawalsIndexRouteImport } from './routes/_app.admin.wallets.withdrawals.index'
+import { Route as AppAdminVasTransactionsIndexRouteImport } from './routes/_app.admin.vas.transactions.index'
+import { Route as AppAdminVasProvidersIndexRouteImport } from './routes/_app.admin.vas.providers.index'
 import { Route as AppAdminGiftcardsCatalogIndexRouteImport } from './routes/_app.admin.giftcards.catalog.index'
 import { Route as AppAdminWalletsWithdrawalsAllRouteImport } from './routes/_app.admin.wallets.withdrawals.all'
 import { Route as AppAdminWalletsWithdrawalsWithdrawalIdRouteImport } from './routes/_app.admin.wallets.withdrawals.$withdrawalId'
+import { Route as AppAdminVasTransactionsTransactionIdRouteImport } from './routes/_app.admin.vas.transactions.$transactionId'
+import { Route as AppAdminVasProvidersProviderIdRouteImport } from './routes/_app.admin.vas.providers.$providerId'
 import { Route as AppAdminGiftcardsUsersUserIdRouteImport } from './routes/_app.admin.giftcards.users.$userId'
 import { Route as AppAdminGiftcardsTradesTradeIdRouteImport } from './routes/_app.admin.giftcards.trades.$tradeId'
 import { Route as AppAdminGiftcardsCatalogRatesRouteImport } from './routes/_app.admin.giftcards.catalog.rates'
@@ -65,6 +73,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppAdminVasRoute = AppAdminVasRouteImport.update({
+  id: '/admin/vas',
+  path: '/admin/vas',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminSourcingRoute = AppAdminSourcingRouteImport.update({
   id: '/admin/sourcing',
   path: '/admin/sourcing',
@@ -81,6 +94,21 @@ const AppAdminWalletsWithdrawalsRoute =
     path: '/admin/wallets/withdrawals',
     getParentRoute: () => AppRoute,
   } as any)
+const AppAdminVasTransactionsRoute = AppAdminVasTransactionsRouteImport.update({
+  id: '/transactions',
+  path: '/transactions',
+  getParentRoute: () => AppAdminVasRoute,
+} as any)
+const AppAdminVasProvidersRoute = AppAdminVasProvidersRouteImport.update({
+  id: '/providers',
+  path: '/providers',
+  getParentRoute: () => AppAdminVasRoute,
+} as any)
+const AppAdminVasDashboardRoute = AppAdminVasDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppAdminVasRoute,
+} as any)
 const AppAdminSourcingWhatsappRoute =
   AppAdminSourcingWhatsappRouteImport.update({
     id: '/whatsapp',
@@ -171,6 +199,18 @@ const AppAdminWalletsWithdrawalsIndexRoute =
     path: '/',
     getParentRoute: () => AppAdminWalletsWithdrawalsRoute,
   } as any)
+const AppAdminVasTransactionsIndexRoute =
+  AppAdminVasTransactionsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppAdminVasTransactionsRoute,
+  } as any)
+const AppAdminVasProvidersIndexRoute =
+  AppAdminVasProvidersIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppAdminVasProvidersRoute,
+  } as any)
 const AppAdminGiftcardsCatalogIndexRoute =
   AppAdminGiftcardsCatalogIndexRouteImport.update({
     id: '/',
@@ -188,6 +228,18 @@ const AppAdminWalletsWithdrawalsWithdrawalIdRoute =
     id: '/$withdrawalId',
     path: '/$withdrawalId',
     getParentRoute: () => AppAdminWalletsWithdrawalsRoute,
+  } as any)
+const AppAdminVasTransactionsTransactionIdRoute =
+  AppAdminVasTransactionsTransactionIdRouteImport.update({
+    id: '/$transactionId',
+    path: '/$transactionId',
+    getParentRoute: () => AppAdminVasTransactionsRoute,
+  } as any)
+const AppAdminVasProvidersProviderIdRoute =
+  AppAdminVasProvidersProviderIdRouteImport.update({
+    id: '/$providerId',
+    path: '/$providerId',
+    getParentRoute: () => AppAdminVasProvidersRoute,
   } as any)
 const AppAdminGiftcardsUsersUserIdRoute =
   AppAdminGiftcardsUsersUserIdRouteImport.update({
@@ -255,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/sourcing': typeof AppAdminSourcingRouteWithChildren
+  '/admin/vas': typeof AppAdminVasRouteWithChildren
   '/admin/ai/conversations': typeof AppAdminAiConversationsRouteWithChildren
   '/admin/ai/dashboard': typeof AppAdminAiDashboardRoute
   '/admin/giftcards/brands': typeof AppAdminGiftcardsBrandsRouteWithChildren
@@ -270,6 +323,9 @@ export interface FileRoutesByFullPath {
   '/admin/sourcing/our-numbers': typeof AppAdminSourcingOurNumbersRoute
   '/admin/sourcing/review': typeof AppAdminSourcingReviewRoute
   '/admin/sourcing/whatsapp': typeof AppAdminSourcingWhatsappRoute
+  '/admin/vas/dashboard': typeof AppAdminVasDashboardRoute
+  '/admin/vas/providers': typeof AppAdminVasProvidersRouteWithChildren
+  '/admin/vas/transactions': typeof AppAdminVasTransactionsRouteWithChildren
   '/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
   '/admin/sourcing/': typeof AppAdminSourcingIndexRoute
   '/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
@@ -281,9 +337,13 @@ export interface FileRoutesByFullPath {
   '/admin/giftcards/catalog/rates': typeof AppAdminGiftcardsCatalogRatesRoute
   '/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
+  '/admin/vas/providers/$providerId': typeof AppAdminVasProvidersProviderIdRoute
+  '/admin/vas/transactions/$transactionId': typeof AppAdminVasTransactionsTransactionIdRoute
   '/admin/wallets/withdrawals/$withdrawalId': typeof AppAdminWalletsWithdrawalsWithdrawalIdRoute
   '/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
   '/admin/giftcards/catalog/': typeof AppAdminGiftcardsCatalogIndexRoute
+  '/admin/vas/providers/': typeof AppAdminVasProvidersIndexRoute
+  '/admin/vas/transactions/': typeof AppAdminVasTransactionsIndexRoute
   '/admin/wallets/withdrawals/': typeof AppAdminWalletsWithdrawalsIndexRoute
   '/admin/giftcards/catalog/rate-history/$denominationId': typeof AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute
 }
@@ -291,6 +351,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/': typeof AppIndexRoute
+  '/admin/vas': typeof AppAdminVasRouteWithChildren
   '/admin/ai/conversations': typeof AppAdminAiConversationsRouteWithChildren
   '/admin/ai/dashboard': typeof AppAdminAiDashboardRoute
   '/admin/giftcards/brands': typeof AppAdminGiftcardsBrandsRouteWithChildren
@@ -305,6 +366,7 @@ export interface FileRoutesByTo {
   '/admin/sourcing/our-numbers': typeof AppAdminSourcingOurNumbersRoute
   '/admin/sourcing/review': typeof AppAdminSourcingReviewRoute
   '/admin/sourcing/whatsapp': typeof AppAdminSourcingWhatsappRoute
+  '/admin/vas/dashboard': typeof AppAdminVasDashboardRoute
   '/admin/sourcing': typeof AppAdminSourcingIndexRoute
   '/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
   '/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
@@ -315,9 +377,13 @@ export interface FileRoutesByTo {
   '/admin/giftcards/catalog/rates': typeof AppAdminGiftcardsCatalogRatesRoute
   '/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
+  '/admin/vas/providers/$providerId': typeof AppAdminVasProvidersProviderIdRoute
+  '/admin/vas/transactions/$transactionId': typeof AppAdminVasTransactionsTransactionIdRoute
   '/admin/wallets/withdrawals/$withdrawalId': typeof AppAdminWalletsWithdrawalsWithdrawalIdRoute
   '/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
   '/admin/giftcards/catalog': typeof AppAdminGiftcardsCatalogIndexRoute
+  '/admin/vas/providers': typeof AppAdminVasProvidersIndexRoute
+  '/admin/vas/transactions': typeof AppAdminVasTransactionsIndexRoute
   '/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsIndexRoute
   '/admin/giftcards/catalog/rate-history/$denominationId': typeof AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute
 }
@@ -328,6 +394,7 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/_app/': typeof AppIndexRoute
   '/_app/admin/sourcing': typeof AppAdminSourcingRouteWithChildren
+  '/_app/admin/vas': typeof AppAdminVasRouteWithChildren
   '/_app/admin/ai/conversations': typeof AppAdminAiConversationsRouteWithChildren
   '/_app/admin/ai/dashboard': typeof AppAdminAiDashboardRoute
   '/_app/admin/giftcards/brands': typeof AppAdminGiftcardsBrandsRouteWithChildren
@@ -343,6 +410,9 @@ export interface FileRoutesById {
   '/_app/admin/sourcing/our-numbers': typeof AppAdminSourcingOurNumbersRoute
   '/_app/admin/sourcing/review': typeof AppAdminSourcingReviewRoute
   '/_app/admin/sourcing/whatsapp': typeof AppAdminSourcingWhatsappRoute
+  '/_app/admin/vas/dashboard': typeof AppAdminVasDashboardRoute
+  '/_app/admin/vas/providers': typeof AppAdminVasProvidersRouteWithChildren
+  '/_app/admin/vas/transactions': typeof AppAdminVasTransactionsRouteWithChildren
   '/_app/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
   '/_app/admin/sourcing/': typeof AppAdminSourcingIndexRoute
   '/_app/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
@@ -354,9 +424,13 @@ export interface FileRoutesById {
   '/_app/admin/giftcards/catalog/rates': typeof AppAdminGiftcardsCatalogRatesRoute
   '/_app/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/_app/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
+  '/_app/admin/vas/providers/$providerId': typeof AppAdminVasProvidersProviderIdRoute
+  '/_app/admin/vas/transactions/$transactionId': typeof AppAdminVasTransactionsTransactionIdRoute
   '/_app/admin/wallets/withdrawals/$withdrawalId': typeof AppAdminWalletsWithdrawalsWithdrawalIdRoute
   '/_app/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
   '/_app/admin/giftcards/catalog/': typeof AppAdminGiftcardsCatalogIndexRoute
+  '/_app/admin/vas/providers/': typeof AppAdminVasProvidersIndexRoute
+  '/_app/admin/vas/transactions/': typeof AppAdminVasTransactionsIndexRoute
   '/_app/admin/wallets/withdrawals/': typeof AppAdminWalletsWithdrawalsIndexRoute
   '/_app/admin/giftcards/catalog/rate-history/$denominationId': typeof AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute
 }
@@ -367,6 +441,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/auth/callback'
     | '/admin/sourcing'
+    | '/admin/vas'
     | '/admin/ai/conversations'
     | '/admin/ai/dashboard'
     | '/admin/giftcards/brands'
@@ -382,6 +457,9 @@ export interface FileRouteTypes {
     | '/admin/sourcing/our-numbers'
     | '/admin/sourcing/review'
     | '/admin/sourcing/whatsapp'
+    | '/admin/vas/dashboard'
+    | '/admin/vas/providers'
+    | '/admin/vas/transactions'
     | '/admin/wallets/withdrawals'
     | '/admin/sourcing/'
     | '/admin/ai/conversations/$conversationId'
@@ -393,9 +471,13 @@ export interface FileRouteTypes {
     | '/admin/giftcards/catalog/rates'
     | '/admin/giftcards/trades/$tradeId'
     | '/admin/giftcards/users/$userId'
+    | '/admin/vas/providers/$providerId'
+    | '/admin/vas/transactions/$transactionId'
     | '/admin/wallets/withdrawals/$withdrawalId'
     | '/admin/wallets/withdrawals/all'
     | '/admin/giftcards/catalog/'
+    | '/admin/vas/providers/'
+    | '/admin/vas/transactions/'
     | '/admin/wallets/withdrawals/'
     | '/admin/giftcards/catalog/rate-history/$denominationId'
   fileRoutesByTo: FileRoutesByTo
@@ -403,6 +485,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/auth/callback'
     | '/'
+    | '/admin/vas'
     | '/admin/ai/conversations'
     | '/admin/ai/dashboard'
     | '/admin/giftcards/brands'
@@ -417,6 +500,7 @@ export interface FileRouteTypes {
     | '/admin/sourcing/our-numbers'
     | '/admin/sourcing/review'
     | '/admin/sourcing/whatsapp'
+    | '/admin/vas/dashboard'
     | '/admin/sourcing'
     | '/admin/ai/conversations/$conversationId'
     | '/admin/giftcards/brands/$brandId'
@@ -427,9 +511,13 @@ export interface FileRouteTypes {
     | '/admin/giftcards/catalog/rates'
     | '/admin/giftcards/trades/$tradeId'
     | '/admin/giftcards/users/$userId'
+    | '/admin/vas/providers/$providerId'
+    | '/admin/vas/transactions/$transactionId'
     | '/admin/wallets/withdrawals/$withdrawalId'
     | '/admin/wallets/withdrawals/all'
     | '/admin/giftcards/catalog'
+    | '/admin/vas/providers'
+    | '/admin/vas/transactions'
     | '/admin/wallets/withdrawals'
     | '/admin/giftcards/catalog/rate-history/$denominationId'
   id:
@@ -439,6 +527,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/_app/'
     | '/_app/admin/sourcing'
+    | '/_app/admin/vas'
     | '/_app/admin/ai/conversations'
     | '/_app/admin/ai/dashboard'
     | '/_app/admin/giftcards/brands'
@@ -454,6 +543,9 @@ export interface FileRouteTypes {
     | '/_app/admin/sourcing/our-numbers'
     | '/_app/admin/sourcing/review'
     | '/_app/admin/sourcing/whatsapp'
+    | '/_app/admin/vas/dashboard'
+    | '/_app/admin/vas/providers'
+    | '/_app/admin/vas/transactions'
     | '/_app/admin/wallets/withdrawals'
     | '/_app/admin/sourcing/'
     | '/_app/admin/ai/conversations/$conversationId'
@@ -465,9 +557,13 @@ export interface FileRouteTypes {
     | '/_app/admin/giftcards/catalog/rates'
     | '/_app/admin/giftcards/trades/$tradeId'
     | '/_app/admin/giftcards/users/$userId'
+    | '/_app/admin/vas/providers/$providerId'
+    | '/_app/admin/vas/transactions/$transactionId'
     | '/_app/admin/wallets/withdrawals/$withdrawalId'
     | '/_app/admin/wallets/withdrawals/all'
     | '/_app/admin/giftcards/catalog/'
+    | '/_app/admin/vas/providers/'
+    | '/_app/admin/vas/transactions/'
     | '/_app/admin/wallets/withdrawals/'
     | '/_app/admin/giftcards/catalog/rate-history/$denominationId'
   fileRoutesById: FileRoutesById
@@ -508,6 +604,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/admin/vas': {
+      id: '/_app/admin/vas'
+      path: '/admin/vas'
+      fullPath: '/admin/vas'
+      preLoaderRoute: typeof AppAdminVasRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/sourcing': {
       id: '/_app/admin/sourcing'
       path: '/admin/sourcing'
@@ -528,6 +631,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/wallets/withdrawals'
       preLoaderRoute: typeof AppAdminWalletsWithdrawalsRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_app/admin/vas/transactions': {
+      id: '/_app/admin/vas/transactions'
+      path: '/transactions'
+      fullPath: '/admin/vas/transactions'
+      preLoaderRoute: typeof AppAdminVasTransactionsRouteImport
+      parentRoute: typeof AppAdminVasRoute
+    }
+    '/_app/admin/vas/providers': {
+      id: '/_app/admin/vas/providers'
+      path: '/providers'
+      fullPath: '/admin/vas/providers'
+      preLoaderRoute: typeof AppAdminVasProvidersRouteImport
+      parentRoute: typeof AppAdminVasRoute
+    }
+    '/_app/admin/vas/dashboard': {
+      id: '/_app/admin/vas/dashboard'
+      path: '/dashboard'
+      fullPath: '/admin/vas/dashboard'
+      preLoaderRoute: typeof AppAdminVasDashboardRouteImport
+      parentRoute: typeof AppAdminVasRoute
     }
     '/_app/admin/sourcing/whatsapp': {
       id: '/_app/admin/sourcing/whatsapp'
@@ -641,6 +765,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminWalletsWithdrawalsIndexRouteImport
       parentRoute: typeof AppAdminWalletsWithdrawalsRoute
     }
+    '/_app/admin/vas/transactions/': {
+      id: '/_app/admin/vas/transactions/'
+      path: '/'
+      fullPath: '/admin/vas/transactions/'
+      preLoaderRoute: typeof AppAdminVasTransactionsIndexRouteImport
+      parentRoute: typeof AppAdminVasTransactionsRoute
+    }
+    '/_app/admin/vas/providers/': {
+      id: '/_app/admin/vas/providers/'
+      path: '/'
+      fullPath: '/admin/vas/providers/'
+      preLoaderRoute: typeof AppAdminVasProvidersIndexRouteImport
+      parentRoute: typeof AppAdminVasProvidersRoute
+    }
     '/_app/admin/giftcards/catalog/': {
       id: '/_app/admin/giftcards/catalog/'
       path: '/'
@@ -661,6 +799,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/wallets/withdrawals/$withdrawalId'
       preLoaderRoute: typeof AppAdminWalletsWithdrawalsWithdrawalIdRouteImport
       parentRoute: typeof AppAdminWalletsWithdrawalsRoute
+    }
+    '/_app/admin/vas/transactions/$transactionId': {
+      id: '/_app/admin/vas/transactions/$transactionId'
+      path: '/$transactionId'
+      fullPath: '/admin/vas/transactions/$transactionId'
+      preLoaderRoute: typeof AppAdminVasTransactionsTransactionIdRouteImport
+      parentRoute: typeof AppAdminVasTransactionsRoute
+    }
+    '/_app/admin/vas/providers/$providerId': {
+      id: '/_app/admin/vas/providers/$providerId'
+      path: '/$providerId'
+      fullPath: '/admin/vas/providers/$providerId'
+      preLoaderRoute: typeof AppAdminVasProvidersProviderIdRouteImport
+      parentRoute: typeof AppAdminVasProvidersRoute
     }
     '/_app/admin/giftcards/users/$userId': {
       id: '/_app/admin/giftcards/users/$userId'
@@ -757,6 +909,52 @@ const AppAdminSourcingRouteChildren: AppAdminSourcingRouteChildren = {
 
 const AppAdminSourcingRouteWithChildren =
   AppAdminSourcingRoute._addFileChildren(AppAdminSourcingRouteChildren)
+
+interface AppAdminVasProvidersRouteChildren {
+  AppAdminVasProvidersProviderIdRoute: typeof AppAdminVasProvidersProviderIdRoute
+  AppAdminVasProvidersIndexRoute: typeof AppAdminVasProvidersIndexRoute
+}
+
+const AppAdminVasProvidersRouteChildren: AppAdminVasProvidersRouteChildren = {
+  AppAdminVasProvidersProviderIdRoute: AppAdminVasProvidersProviderIdRoute,
+  AppAdminVasProvidersIndexRoute: AppAdminVasProvidersIndexRoute,
+}
+
+const AppAdminVasProvidersRouteWithChildren =
+  AppAdminVasProvidersRoute._addFileChildren(AppAdminVasProvidersRouteChildren)
+
+interface AppAdminVasTransactionsRouteChildren {
+  AppAdminVasTransactionsTransactionIdRoute: typeof AppAdminVasTransactionsTransactionIdRoute
+  AppAdminVasTransactionsIndexRoute: typeof AppAdminVasTransactionsIndexRoute
+}
+
+const AppAdminVasTransactionsRouteChildren: AppAdminVasTransactionsRouteChildren =
+  {
+    AppAdminVasTransactionsTransactionIdRoute:
+      AppAdminVasTransactionsTransactionIdRoute,
+    AppAdminVasTransactionsIndexRoute: AppAdminVasTransactionsIndexRoute,
+  }
+
+const AppAdminVasTransactionsRouteWithChildren =
+  AppAdminVasTransactionsRoute._addFileChildren(
+    AppAdminVasTransactionsRouteChildren,
+  )
+
+interface AppAdminVasRouteChildren {
+  AppAdminVasDashboardRoute: typeof AppAdminVasDashboardRoute
+  AppAdminVasProvidersRoute: typeof AppAdminVasProvidersRouteWithChildren
+  AppAdminVasTransactionsRoute: typeof AppAdminVasTransactionsRouteWithChildren
+}
+
+const AppAdminVasRouteChildren: AppAdminVasRouteChildren = {
+  AppAdminVasDashboardRoute: AppAdminVasDashboardRoute,
+  AppAdminVasProvidersRoute: AppAdminVasProvidersRouteWithChildren,
+  AppAdminVasTransactionsRoute: AppAdminVasTransactionsRouteWithChildren,
+}
+
+const AppAdminVasRouteWithChildren = AppAdminVasRoute._addFileChildren(
+  AppAdminVasRouteChildren,
+)
 
 interface AppAdminAiConversationsRouteChildren {
   AppAdminAiConversationsConversationIdRoute: typeof AppAdminAiConversationsConversationIdRoute
@@ -866,6 +1064,7 @@ const AppAdminWalletsWithdrawalsRouteWithChildren =
 interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppAdminSourcingRoute: typeof AppAdminSourcingRouteWithChildren
+  AppAdminVasRoute: typeof AppAdminVasRouteWithChildren
   AppAdminAiConversationsRoute: typeof AppAdminAiConversationsRouteWithChildren
   AppAdminAiDashboardRoute: typeof AppAdminAiDashboardRoute
   AppAdminGiftcardsBrandsRoute: typeof AppAdminGiftcardsBrandsRouteWithChildren
@@ -881,6 +1080,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppAdminSourcingRoute: AppAdminSourcingRouteWithChildren,
+  AppAdminVasRoute: AppAdminVasRouteWithChildren,
   AppAdminAiConversationsRoute: AppAdminAiConversationsRouteWithChildren,
   AppAdminAiDashboardRoute: AppAdminAiDashboardRoute,
   AppAdminGiftcardsBrandsRoute: AppAdminGiftcardsBrandsRouteWithChildren,
