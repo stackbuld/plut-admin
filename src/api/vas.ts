@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { apiGet, apiPatch, apiPost, buildQs } from "./client";
+import { apiGet, apiPatch, apiPost, buildQs, idempotencyHeader } from "./client";
 import type {
   ListVasSecurityFlagsParams,
   ListVasTransactionsParams,
@@ -38,13 +38,13 @@ export const getVasTransaction = (id: string) =>
   apiGet<VasAdminTransactionDetail>(`/api/vas/admin/transactions/${id}`);
 
 export const retryVasTransaction = (id: string) =>
-  apiPost<void>(`/api/vas/admin/transactions/${id}/retry`);
+  apiPost<void>(`/api/vas/admin/transactions/${id}/retry`, undefined, idempotencyHeader());
 
 export const switchVasTransactionProvider = (id: string, body: SwitchVasProviderBody) =>
-  apiPost<void>(`/api/vas/admin/transactions/${id}/switch-provider`, body);
+  apiPost<void>(`/api/vas/admin/transactions/${id}/switch-provider`, body, idempotencyHeader());
 
 export const forceRefundVasTransaction = (id: string) =>
-  apiPost<void>(`/api/vas/admin/transactions/${id}/force-refund`);
+  apiPost<void>(`/api/vas/admin/transactions/${id}/force-refund`, undefined, idempotencyHeader());
 
 export const listVasProviders = () => apiGet<VasAdminProvider[]>("/api/vas/admin/providers");
 
@@ -55,9 +55,10 @@ export const getVasProviderMappingSummary = (id: string) =>
   apiGet<VasProviderMappingSummary>(`/api/vas/admin/providers/${id}/mapping-summary`);
 
 export const updateVasProvider = (id: string, body: UpdateVasProviderBody) =>
-  apiPatch<void>(`/api/vas/admin/providers/${id}`, body);
+  apiPatch<void>(`/api/vas/admin/providers/${id}`, body, idempotencyHeader());
 
-export const syncVasProviders = () => apiPost<void>("/api/vas/admin/providers/sync");
+export const syncVasProviders = () =>
+  apiPost<void>("/api/vas/admin/providers/sync", undefined, idempotencyHeader());
 
 export const listVasSecurityFlags = (p: ListVasSecurityFlagsParams = {}) => {
   const params: Record<string, unknown> = {};

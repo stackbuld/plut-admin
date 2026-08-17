@@ -35,6 +35,7 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init.headers as Record<string, string> | undefined),
     },
   });
 
@@ -92,29 +93,40 @@ export async function apiUpload<T>(path: string, formData: FormData): Promise<T>
   return envelope.data;
 }
 
-export const apiPost = <T>(path: string, body?: unknown) =>
+export const apiPost = <T>(path: string, body?: unknown, headers?: Record<string, string>) =>
   request<T>(path, {
     method: "POST",
     body: body !== undefined ? JSON.stringify(body) : undefined,
+    headers,
   });
 
-export const apiPut = <T>(path: string, body?: unknown) =>
+export const apiPut = <T>(path: string, body?: unknown, headers?: Record<string, string>) =>
   request<T>(path, {
     method: "PUT",
     body: body !== undefined ? JSON.stringify(body) : undefined,
+    headers,
   });
 
-export const apiPatch = <T>(path: string, body?: unknown) =>
+export const apiPatch = <T>(path: string, body?: unknown, headers?: Record<string, string>) =>
   request<T>(path, {
     method: "PATCH",
     body: body !== undefined ? JSON.stringify(body) : undefined,
+    headers,
   });
 
-export const apiDelete = <T>(path: string, body?: unknown) =>
+export const apiDelete = <T>(path: string, body?: unknown, headers?: Record<string, string>) =>
   request<T>(path, {
     method: "DELETE",
     body: body !== undefined ? JSON.stringify(body) : undefined,
+    headers,
   });
+
+// VAS's admin mutations require an Idempotency-Key (its idempotency middleware covers
+// /api/vas/admin, unlike wallets' admin routes under the separate /api/admin prefix) — a fresh
+// key per call, since each is a distinct user-initiated action, not a retry of a prior one.
+export const idempotencyHeader = (): Record<string, string> => ({
+  "Idempotency-Key": crypto.randomUUID(),
+});
 
 function buildQs(params: Record<string, unknown>): string {
   const qs = new URLSearchParams();
