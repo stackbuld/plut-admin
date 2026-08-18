@@ -18,8 +18,14 @@ import { Route as AppAdminSourcingRouteImport } from './routes/_app.admin.sourci
 import { Route as AppAdminSourcingIndexRouteImport } from './routes/_app.admin.sourcing.index'
 import { Route as AppAdminWalletsWithdrawalsRouteImport } from './routes/_app.admin.wallets.withdrawals'
 import { Route as AppAdminVasTransactionsRouteImport } from './routes/_app.admin.vas.transactions'
+import { Route as AppAdminVasSecurityRouteImport } from './routes/_app.admin.vas.security'
+import { Route as AppAdminVasSchedulesRouteImport } from './routes/_app.admin.vas.schedules'
 import { Route as AppAdminVasProvidersRouteImport } from './routes/_app.admin.vas.providers'
+import { Route as AppAdminVasEmployeeGroupsRouteImport } from './routes/_app.admin.vas.employee-groups'
 import { Route as AppAdminVasDashboardRouteImport } from './routes/_app.admin.vas.dashboard'
+import { Route as AppAdminVasCommissionsRouteImport } from './routes/_app.admin.vas.commissions'
+import { Route as AppAdminVasCatalogRouteImport } from './routes/_app.admin.vas.catalog'
+import { Route as AppAdminVasBulkPurchasesRouteImport } from './routes/_app.admin.vas.bulk-purchases'
 import { Route as AppAdminSourcingWhatsappRouteImport } from './routes/_app.admin.sourcing.whatsapp'
 import { Route as AppAdminSourcingReviewRouteImport } from './routes/_app.admin.sourcing.review'
 import { Route as AppAdminSourcingOurNumbersRouteImport } from './routes/_app.admin.sourcing.our-numbers'
@@ -37,12 +43,20 @@ import { Route as AppAdminAiDashboardRouteImport } from './routes/_app.admin.ai.
 import { Route as AppAdminAiConversationsRouteImport } from './routes/_app.admin.ai.conversations'
 import { Route as AppAdminWalletsWithdrawalsIndexRouteImport } from './routes/_app.admin.wallets.withdrawals.index'
 import { Route as AppAdminVasTransactionsIndexRouteImport } from './routes/_app.admin.vas.transactions.index'
+import { Route as AppAdminVasSchedulesIndexRouteImport } from './routes/_app.admin.vas.schedules.index'
 import { Route as AppAdminVasProvidersIndexRouteImport } from './routes/_app.admin.vas.providers.index'
+import { Route as AppAdminVasEmployeeGroupsIndexRouteImport } from './routes/_app.admin.vas.employee-groups.index'
+import { Route as AppAdminVasCatalogIndexRouteImport } from './routes/_app.admin.vas.catalog.index'
+import { Route as AppAdminVasBulkPurchasesIndexRouteImport } from './routes/_app.admin.vas.bulk-purchases.index'
 import { Route as AppAdminGiftcardsCatalogIndexRouteImport } from './routes/_app.admin.giftcards.catalog.index'
 import { Route as AppAdminWalletsWithdrawalsAllRouteImport } from './routes/_app.admin.wallets.withdrawals.all'
 import { Route as AppAdminWalletsWithdrawalsWithdrawalIdRouteImport } from './routes/_app.admin.wallets.withdrawals.$withdrawalId'
 import { Route as AppAdminVasTransactionsTransactionIdRouteImport } from './routes/_app.admin.vas.transactions.$transactionId'
+import { Route as AppAdminVasSchedulesScheduleIdRouteImport } from './routes/_app.admin.vas.schedules.$scheduleId'
 import { Route as AppAdminVasProvidersProviderIdRouteImport } from './routes/_app.admin.vas.providers.$providerId'
+import { Route as AppAdminVasEmployeeGroupsGroupIdRouteImport } from './routes/_app.admin.vas.employee-groups.$groupId'
+import { Route as AppAdminVasCatalogCategoryIdRouteImport } from './routes/_app.admin.vas.catalog.$categoryId'
+import { Route as AppAdminVasBulkPurchasesBatchIdRouteImport } from './routes/_app.admin.vas.bulk-purchases.$batchId'
 import { Route as AppAdminGiftcardsUsersUserIdRouteImport } from './routes/_app.admin.giftcards.users.$userId'
 import { Route as AppAdminGiftcardsTradesTradeIdRouteImport } from './routes/_app.admin.giftcards.trades.$tradeId'
 import { Route as AppAdminGiftcardsCatalogRatesRouteImport } from './routes/_app.admin.giftcards.catalog.rates'
@@ -52,6 +66,7 @@ import { Route as AppAdminGiftcardsCatalogDenominationsRouteImport } from './rou
 import { Route as AppAdminGiftcardsCatalogCountriesRouteImport } from './routes/_app.admin.giftcards.catalog.countries'
 import { Route as AppAdminGiftcardsBrandsBrandIdRouteImport } from './routes/_app.admin.giftcards.brands.$brandId'
 import { Route as AppAdminAiConversationsConversationIdRouteImport } from './routes/_app.admin.ai.conversations.$conversationId'
+import { Route as AppAdminVasCatalogCategoryIdServiceIdRouteImport } from './routes/_app.admin.vas.catalog.$categoryId.$serviceId'
 import { Route as AppAdminGiftcardsCatalogRateHistoryDenominationIdRouteImport } from './routes/_app.admin.giftcards.catalog.rate-history.$denominationId'
 
 const LoginRoute = LoginRouteImport.update({
@@ -99,16 +114,48 @@ const AppAdminVasTransactionsRoute = AppAdminVasTransactionsRouteImport.update({
   path: '/transactions',
   getParentRoute: () => AppAdminVasRoute,
 } as any)
+const AppAdminVasSecurityRoute = AppAdminVasSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => AppAdminVasRoute,
+} as any)
+const AppAdminVasSchedulesRoute = AppAdminVasSchedulesRouteImport.update({
+  id: '/schedules',
+  path: '/schedules',
+  getParentRoute: () => AppAdminVasRoute,
+} as any)
 const AppAdminVasProvidersRoute = AppAdminVasProvidersRouteImport.update({
   id: '/providers',
   path: '/providers',
   getParentRoute: () => AppAdminVasRoute,
 } as any)
+const AppAdminVasEmployeeGroupsRoute =
+  AppAdminVasEmployeeGroupsRouteImport.update({
+    id: '/employee-groups',
+    path: '/employee-groups',
+    getParentRoute: () => AppAdminVasRoute,
+  } as any)
 const AppAdminVasDashboardRoute = AppAdminVasDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AppAdminVasRoute,
 } as any)
+const AppAdminVasCommissionsRoute = AppAdminVasCommissionsRouteImport.update({
+  id: '/commissions',
+  path: '/commissions',
+  getParentRoute: () => AppAdminVasRoute,
+} as any)
+const AppAdminVasCatalogRoute = AppAdminVasCatalogRouteImport.update({
+  id: '/catalog',
+  path: '/catalog',
+  getParentRoute: () => AppAdminVasRoute,
+} as any)
+const AppAdminVasBulkPurchasesRoute =
+  AppAdminVasBulkPurchasesRouteImport.update({
+    id: '/bulk-purchases',
+    path: '/bulk-purchases',
+    getParentRoute: () => AppAdminVasRoute,
+  } as any)
 const AppAdminSourcingWhatsappRoute =
   AppAdminSourcingWhatsappRouteImport.update({
     id: '/whatsapp',
@@ -205,11 +252,34 @@ const AppAdminVasTransactionsIndexRoute =
     path: '/',
     getParentRoute: () => AppAdminVasTransactionsRoute,
   } as any)
+const AppAdminVasSchedulesIndexRoute =
+  AppAdminVasSchedulesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppAdminVasSchedulesRoute,
+  } as any)
 const AppAdminVasProvidersIndexRoute =
   AppAdminVasProvidersIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AppAdminVasProvidersRoute,
+  } as any)
+const AppAdminVasEmployeeGroupsIndexRoute =
+  AppAdminVasEmployeeGroupsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppAdminVasEmployeeGroupsRoute,
+  } as any)
+const AppAdminVasCatalogIndexRoute = AppAdminVasCatalogIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAdminVasCatalogRoute,
+} as any)
+const AppAdminVasBulkPurchasesIndexRoute =
+  AppAdminVasBulkPurchasesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppAdminVasBulkPurchasesRoute,
   } as any)
 const AppAdminGiftcardsCatalogIndexRoute =
   AppAdminGiftcardsCatalogIndexRouteImport.update({
@@ -235,11 +305,35 @@ const AppAdminVasTransactionsTransactionIdRoute =
     path: '/$transactionId',
     getParentRoute: () => AppAdminVasTransactionsRoute,
   } as any)
+const AppAdminVasSchedulesScheduleIdRoute =
+  AppAdminVasSchedulesScheduleIdRouteImport.update({
+    id: '/$scheduleId',
+    path: '/$scheduleId',
+    getParentRoute: () => AppAdminVasSchedulesRoute,
+  } as any)
 const AppAdminVasProvidersProviderIdRoute =
   AppAdminVasProvidersProviderIdRouteImport.update({
     id: '/$providerId',
     path: '/$providerId',
     getParentRoute: () => AppAdminVasProvidersRoute,
+  } as any)
+const AppAdminVasEmployeeGroupsGroupIdRoute =
+  AppAdminVasEmployeeGroupsGroupIdRouteImport.update({
+    id: '/$groupId',
+    path: '/$groupId',
+    getParentRoute: () => AppAdminVasEmployeeGroupsRoute,
+  } as any)
+const AppAdminVasCatalogCategoryIdRoute =
+  AppAdminVasCatalogCategoryIdRouteImport.update({
+    id: '/$categoryId',
+    path: '/$categoryId',
+    getParentRoute: () => AppAdminVasCatalogRoute,
+  } as any)
+const AppAdminVasBulkPurchasesBatchIdRoute =
+  AppAdminVasBulkPurchasesBatchIdRouteImport.update({
+    id: '/$batchId',
+    path: '/$batchId',
+    getParentRoute: () => AppAdminVasBulkPurchasesRoute,
   } as any)
 const AppAdminGiftcardsUsersUserIdRoute =
   AppAdminGiftcardsUsersUserIdRouteImport.update({
@@ -295,6 +389,12 @@ const AppAdminAiConversationsConversationIdRoute =
     path: '/$conversationId',
     getParentRoute: () => AppAdminAiConversationsRoute,
   } as any)
+const AppAdminVasCatalogCategoryIdServiceIdRoute =
+  AppAdminVasCatalogCategoryIdServiceIdRouteImport.update({
+    id: '/$serviceId',
+    path: '/$serviceId',
+    getParentRoute: () => AppAdminVasCatalogCategoryIdRoute,
+  } as any)
 const AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute =
   AppAdminGiftcardsCatalogRateHistoryDenominationIdRouteImport.update({
     id: '/rate-history/$denominationId',
@@ -323,8 +423,14 @@ export interface FileRoutesByFullPath {
   '/admin/sourcing/our-numbers': typeof AppAdminSourcingOurNumbersRoute
   '/admin/sourcing/review': typeof AppAdminSourcingReviewRoute
   '/admin/sourcing/whatsapp': typeof AppAdminSourcingWhatsappRoute
+  '/admin/vas/bulk-purchases': typeof AppAdminVasBulkPurchasesRouteWithChildren
+  '/admin/vas/catalog': typeof AppAdminVasCatalogRouteWithChildren
+  '/admin/vas/commissions': typeof AppAdminVasCommissionsRoute
   '/admin/vas/dashboard': typeof AppAdminVasDashboardRoute
+  '/admin/vas/employee-groups': typeof AppAdminVasEmployeeGroupsRouteWithChildren
   '/admin/vas/providers': typeof AppAdminVasProvidersRouteWithChildren
+  '/admin/vas/schedules': typeof AppAdminVasSchedulesRouteWithChildren
+  '/admin/vas/security': typeof AppAdminVasSecurityRoute
   '/admin/vas/transactions': typeof AppAdminVasTransactionsRouteWithChildren
   '/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
   '/admin/sourcing/': typeof AppAdminSourcingIndexRoute
@@ -337,15 +443,24 @@ export interface FileRoutesByFullPath {
   '/admin/giftcards/catalog/rates': typeof AppAdminGiftcardsCatalogRatesRoute
   '/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
+  '/admin/vas/bulk-purchases/$batchId': typeof AppAdminVasBulkPurchasesBatchIdRoute
+  '/admin/vas/catalog/$categoryId': typeof AppAdminVasCatalogCategoryIdRouteWithChildren
+  '/admin/vas/employee-groups/$groupId': typeof AppAdminVasEmployeeGroupsGroupIdRoute
   '/admin/vas/providers/$providerId': typeof AppAdminVasProvidersProviderIdRoute
+  '/admin/vas/schedules/$scheduleId': typeof AppAdminVasSchedulesScheduleIdRoute
   '/admin/vas/transactions/$transactionId': typeof AppAdminVasTransactionsTransactionIdRoute
   '/admin/wallets/withdrawals/$withdrawalId': typeof AppAdminWalletsWithdrawalsWithdrawalIdRoute
   '/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
   '/admin/giftcards/catalog/': typeof AppAdminGiftcardsCatalogIndexRoute
+  '/admin/vas/bulk-purchases/': typeof AppAdminVasBulkPurchasesIndexRoute
+  '/admin/vas/catalog/': typeof AppAdminVasCatalogIndexRoute
+  '/admin/vas/employee-groups/': typeof AppAdminVasEmployeeGroupsIndexRoute
   '/admin/vas/providers/': typeof AppAdminVasProvidersIndexRoute
+  '/admin/vas/schedules/': typeof AppAdminVasSchedulesIndexRoute
   '/admin/vas/transactions/': typeof AppAdminVasTransactionsIndexRoute
   '/admin/wallets/withdrawals/': typeof AppAdminWalletsWithdrawalsIndexRoute
   '/admin/giftcards/catalog/rate-history/$denominationId': typeof AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute
+  '/admin/vas/catalog/$categoryId/$serviceId': typeof AppAdminVasCatalogCategoryIdServiceIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -366,7 +481,9 @@ export interface FileRoutesByTo {
   '/admin/sourcing/our-numbers': typeof AppAdminSourcingOurNumbersRoute
   '/admin/sourcing/review': typeof AppAdminSourcingReviewRoute
   '/admin/sourcing/whatsapp': typeof AppAdminSourcingWhatsappRoute
+  '/admin/vas/commissions': typeof AppAdminVasCommissionsRoute
   '/admin/vas/dashboard': typeof AppAdminVasDashboardRoute
+  '/admin/vas/security': typeof AppAdminVasSecurityRoute
   '/admin/sourcing': typeof AppAdminSourcingIndexRoute
   '/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
   '/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
@@ -377,15 +494,24 @@ export interface FileRoutesByTo {
   '/admin/giftcards/catalog/rates': typeof AppAdminGiftcardsCatalogRatesRoute
   '/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
+  '/admin/vas/bulk-purchases/$batchId': typeof AppAdminVasBulkPurchasesBatchIdRoute
+  '/admin/vas/catalog/$categoryId': typeof AppAdminVasCatalogCategoryIdRouteWithChildren
+  '/admin/vas/employee-groups/$groupId': typeof AppAdminVasEmployeeGroupsGroupIdRoute
   '/admin/vas/providers/$providerId': typeof AppAdminVasProvidersProviderIdRoute
+  '/admin/vas/schedules/$scheduleId': typeof AppAdminVasSchedulesScheduleIdRoute
   '/admin/vas/transactions/$transactionId': typeof AppAdminVasTransactionsTransactionIdRoute
   '/admin/wallets/withdrawals/$withdrawalId': typeof AppAdminWalletsWithdrawalsWithdrawalIdRoute
   '/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
   '/admin/giftcards/catalog': typeof AppAdminGiftcardsCatalogIndexRoute
+  '/admin/vas/bulk-purchases': typeof AppAdminVasBulkPurchasesIndexRoute
+  '/admin/vas/catalog': typeof AppAdminVasCatalogIndexRoute
+  '/admin/vas/employee-groups': typeof AppAdminVasEmployeeGroupsIndexRoute
   '/admin/vas/providers': typeof AppAdminVasProvidersIndexRoute
+  '/admin/vas/schedules': typeof AppAdminVasSchedulesIndexRoute
   '/admin/vas/transactions': typeof AppAdminVasTransactionsIndexRoute
   '/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsIndexRoute
   '/admin/giftcards/catalog/rate-history/$denominationId': typeof AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute
+  '/admin/vas/catalog/$categoryId/$serviceId': typeof AppAdminVasCatalogCategoryIdServiceIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -410,8 +536,14 @@ export interface FileRoutesById {
   '/_app/admin/sourcing/our-numbers': typeof AppAdminSourcingOurNumbersRoute
   '/_app/admin/sourcing/review': typeof AppAdminSourcingReviewRoute
   '/_app/admin/sourcing/whatsapp': typeof AppAdminSourcingWhatsappRoute
+  '/_app/admin/vas/bulk-purchases': typeof AppAdminVasBulkPurchasesRouteWithChildren
+  '/_app/admin/vas/catalog': typeof AppAdminVasCatalogRouteWithChildren
+  '/_app/admin/vas/commissions': typeof AppAdminVasCommissionsRoute
   '/_app/admin/vas/dashboard': typeof AppAdminVasDashboardRoute
+  '/_app/admin/vas/employee-groups': typeof AppAdminVasEmployeeGroupsRouteWithChildren
   '/_app/admin/vas/providers': typeof AppAdminVasProvidersRouteWithChildren
+  '/_app/admin/vas/schedules': typeof AppAdminVasSchedulesRouteWithChildren
+  '/_app/admin/vas/security': typeof AppAdminVasSecurityRoute
   '/_app/admin/vas/transactions': typeof AppAdminVasTransactionsRouteWithChildren
   '/_app/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
   '/_app/admin/sourcing/': typeof AppAdminSourcingIndexRoute
@@ -424,15 +556,24 @@ export interface FileRoutesById {
   '/_app/admin/giftcards/catalog/rates': typeof AppAdminGiftcardsCatalogRatesRoute
   '/_app/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/_app/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
+  '/_app/admin/vas/bulk-purchases/$batchId': typeof AppAdminVasBulkPurchasesBatchIdRoute
+  '/_app/admin/vas/catalog/$categoryId': typeof AppAdminVasCatalogCategoryIdRouteWithChildren
+  '/_app/admin/vas/employee-groups/$groupId': typeof AppAdminVasEmployeeGroupsGroupIdRoute
   '/_app/admin/vas/providers/$providerId': typeof AppAdminVasProvidersProviderIdRoute
+  '/_app/admin/vas/schedules/$scheduleId': typeof AppAdminVasSchedulesScheduleIdRoute
   '/_app/admin/vas/transactions/$transactionId': typeof AppAdminVasTransactionsTransactionIdRoute
   '/_app/admin/wallets/withdrawals/$withdrawalId': typeof AppAdminWalletsWithdrawalsWithdrawalIdRoute
   '/_app/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
   '/_app/admin/giftcards/catalog/': typeof AppAdminGiftcardsCatalogIndexRoute
+  '/_app/admin/vas/bulk-purchases/': typeof AppAdminVasBulkPurchasesIndexRoute
+  '/_app/admin/vas/catalog/': typeof AppAdminVasCatalogIndexRoute
+  '/_app/admin/vas/employee-groups/': typeof AppAdminVasEmployeeGroupsIndexRoute
   '/_app/admin/vas/providers/': typeof AppAdminVasProvidersIndexRoute
+  '/_app/admin/vas/schedules/': typeof AppAdminVasSchedulesIndexRoute
   '/_app/admin/vas/transactions/': typeof AppAdminVasTransactionsIndexRoute
   '/_app/admin/wallets/withdrawals/': typeof AppAdminWalletsWithdrawalsIndexRoute
   '/_app/admin/giftcards/catalog/rate-history/$denominationId': typeof AppAdminGiftcardsCatalogRateHistoryDenominationIdRoute
+  '/_app/admin/vas/catalog/$categoryId/$serviceId': typeof AppAdminVasCatalogCategoryIdServiceIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -457,8 +598,14 @@ export interface FileRouteTypes {
     | '/admin/sourcing/our-numbers'
     | '/admin/sourcing/review'
     | '/admin/sourcing/whatsapp'
+    | '/admin/vas/bulk-purchases'
+    | '/admin/vas/catalog'
+    | '/admin/vas/commissions'
     | '/admin/vas/dashboard'
+    | '/admin/vas/employee-groups'
     | '/admin/vas/providers'
+    | '/admin/vas/schedules'
+    | '/admin/vas/security'
     | '/admin/vas/transactions'
     | '/admin/wallets/withdrawals'
     | '/admin/sourcing/'
@@ -471,15 +618,24 @@ export interface FileRouteTypes {
     | '/admin/giftcards/catalog/rates'
     | '/admin/giftcards/trades/$tradeId'
     | '/admin/giftcards/users/$userId'
+    | '/admin/vas/bulk-purchases/$batchId'
+    | '/admin/vas/catalog/$categoryId'
+    | '/admin/vas/employee-groups/$groupId'
     | '/admin/vas/providers/$providerId'
+    | '/admin/vas/schedules/$scheduleId'
     | '/admin/vas/transactions/$transactionId'
     | '/admin/wallets/withdrawals/$withdrawalId'
     | '/admin/wallets/withdrawals/all'
     | '/admin/giftcards/catalog/'
+    | '/admin/vas/bulk-purchases/'
+    | '/admin/vas/catalog/'
+    | '/admin/vas/employee-groups/'
     | '/admin/vas/providers/'
+    | '/admin/vas/schedules/'
     | '/admin/vas/transactions/'
     | '/admin/wallets/withdrawals/'
     | '/admin/giftcards/catalog/rate-history/$denominationId'
+    | '/admin/vas/catalog/$categoryId/$serviceId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -500,7 +656,9 @@ export interface FileRouteTypes {
     | '/admin/sourcing/our-numbers'
     | '/admin/sourcing/review'
     | '/admin/sourcing/whatsapp'
+    | '/admin/vas/commissions'
     | '/admin/vas/dashboard'
+    | '/admin/vas/security'
     | '/admin/sourcing'
     | '/admin/ai/conversations/$conversationId'
     | '/admin/giftcards/brands/$brandId'
@@ -511,15 +669,24 @@ export interface FileRouteTypes {
     | '/admin/giftcards/catalog/rates'
     | '/admin/giftcards/trades/$tradeId'
     | '/admin/giftcards/users/$userId'
+    | '/admin/vas/bulk-purchases/$batchId'
+    | '/admin/vas/catalog/$categoryId'
+    | '/admin/vas/employee-groups/$groupId'
     | '/admin/vas/providers/$providerId'
+    | '/admin/vas/schedules/$scheduleId'
     | '/admin/vas/transactions/$transactionId'
     | '/admin/wallets/withdrawals/$withdrawalId'
     | '/admin/wallets/withdrawals/all'
     | '/admin/giftcards/catalog'
+    | '/admin/vas/bulk-purchases'
+    | '/admin/vas/catalog'
+    | '/admin/vas/employee-groups'
     | '/admin/vas/providers'
+    | '/admin/vas/schedules'
     | '/admin/vas/transactions'
     | '/admin/wallets/withdrawals'
     | '/admin/giftcards/catalog/rate-history/$denominationId'
+    | '/admin/vas/catalog/$categoryId/$serviceId'
   id:
     | '__root__'
     | '/_app'
@@ -543,8 +710,14 @@ export interface FileRouteTypes {
     | '/_app/admin/sourcing/our-numbers'
     | '/_app/admin/sourcing/review'
     | '/_app/admin/sourcing/whatsapp'
+    | '/_app/admin/vas/bulk-purchases'
+    | '/_app/admin/vas/catalog'
+    | '/_app/admin/vas/commissions'
     | '/_app/admin/vas/dashboard'
+    | '/_app/admin/vas/employee-groups'
     | '/_app/admin/vas/providers'
+    | '/_app/admin/vas/schedules'
+    | '/_app/admin/vas/security'
     | '/_app/admin/vas/transactions'
     | '/_app/admin/wallets/withdrawals'
     | '/_app/admin/sourcing/'
@@ -557,15 +730,24 @@ export interface FileRouteTypes {
     | '/_app/admin/giftcards/catalog/rates'
     | '/_app/admin/giftcards/trades/$tradeId'
     | '/_app/admin/giftcards/users/$userId'
+    | '/_app/admin/vas/bulk-purchases/$batchId'
+    | '/_app/admin/vas/catalog/$categoryId'
+    | '/_app/admin/vas/employee-groups/$groupId'
     | '/_app/admin/vas/providers/$providerId'
+    | '/_app/admin/vas/schedules/$scheduleId'
     | '/_app/admin/vas/transactions/$transactionId'
     | '/_app/admin/wallets/withdrawals/$withdrawalId'
     | '/_app/admin/wallets/withdrawals/all'
     | '/_app/admin/giftcards/catalog/'
+    | '/_app/admin/vas/bulk-purchases/'
+    | '/_app/admin/vas/catalog/'
+    | '/_app/admin/vas/employee-groups/'
     | '/_app/admin/vas/providers/'
+    | '/_app/admin/vas/schedules/'
     | '/_app/admin/vas/transactions/'
     | '/_app/admin/wallets/withdrawals/'
     | '/_app/admin/giftcards/catalog/rate-history/$denominationId'
+    | '/_app/admin/vas/catalog/$categoryId/$serviceId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -639,6 +821,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminVasTransactionsRouteImport
       parentRoute: typeof AppAdminVasRoute
     }
+    '/_app/admin/vas/security': {
+      id: '/_app/admin/vas/security'
+      path: '/security'
+      fullPath: '/admin/vas/security'
+      preLoaderRoute: typeof AppAdminVasSecurityRouteImport
+      parentRoute: typeof AppAdminVasRoute
+    }
+    '/_app/admin/vas/schedules': {
+      id: '/_app/admin/vas/schedules'
+      path: '/schedules'
+      fullPath: '/admin/vas/schedules'
+      preLoaderRoute: typeof AppAdminVasSchedulesRouteImport
+      parentRoute: typeof AppAdminVasRoute
+    }
     '/_app/admin/vas/providers': {
       id: '/_app/admin/vas/providers'
       path: '/providers'
@@ -646,11 +842,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminVasProvidersRouteImport
       parentRoute: typeof AppAdminVasRoute
     }
+    '/_app/admin/vas/employee-groups': {
+      id: '/_app/admin/vas/employee-groups'
+      path: '/employee-groups'
+      fullPath: '/admin/vas/employee-groups'
+      preLoaderRoute: typeof AppAdminVasEmployeeGroupsRouteImport
+      parentRoute: typeof AppAdminVasRoute
+    }
     '/_app/admin/vas/dashboard': {
       id: '/_app/admin/vas/dashboard'
       path: '/dashboard'
       fullPath: '/admin/vas/dashboard'
       preLoaderRoute: typeof AppAdminVasDashboardRouteImport
+      parentRoute: typeof AppAdminVasRoute
+    }
+    '/_app/admin/vas/commissions': {
+      id: '/_app/admin/vas/commissions'
+      path: '/commissions'
+      fullPath: '/admin/vas/commissions'
+      preLoaderRoute: typeof AppAdminVasCommissionsRouteImport
+      parentRoute: typeof AppAdminVasRoute
+    }
+    '/_app/admin/vas/catalog': {
+      id: '/_app/admin/vas/catalog'
+      path: '/catalog'
+      fullPath: '/admin/vas/catalog'
+      preLoaderRoute: typeof AppAdminVasCatalogRouteImport
+      parentRoute: typeof AppAdminVasRoute
+    }
+    '/_app/admin/vas/bulk-purchases': {
+      id: '/_app/admin/vas/bulk-purchases'
+      path: '/bulk-purchases'
+      fullPath: '/admin/vas/bulk-purchases'
+      preLoaderRoute: typeof AppAdminVasBulkPurchasesRouteImport
       parentRoute: typeof AppAdminVasRoute
     }
     '/_app/admin/sourcing/whatsapp': {
@@ -772,12 +996,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminVasTransactionsIndexRouteImport
       parentRoute: typeof AppAdminVasTransactionsRoute
     }
+    '/_app/admin/vas/schedules/': {
+      id: '/_app/admin/vas/schedules/'
+      path: '/'
+      fullPath: '/admin/vas/schedules/'
+      preLoaderRoute: typeof AppAdminVasSchedulesIndexRouteImport
+      parentRoute: typeof AppAdminVasSchedulesRoute
+    }
     '/_app/admin/vas/providers/': {
       id: '/_app/admin/vas/providers/'
       path: '/'
       fullPath: '/admin/vas/providers/'
       preLoaderRoute: typeof AppAdminVasProvidersIndexRouteImport
       parentRoute: typeof AppAdminVasProvidersRoute
+    }
+    '/_app/admin/vas/employee-groups/': {
+      id: '/_app/admin/vas/employee-groups/'
+      path: '/'
+      fullPath: '/admin/vas/employee-groups/'
+      preLoaderRoute: typeof AppAdminVasEmployeeGroupsIndexRouteImport
+      parentRoute: typeof AppAdminVasEmployeeGroupsRoute
+    }
+    '/_app/admin/vas/catalog/': {
+      id: '/_app/admin/vas/catalog/'
+      path: '/'
+      fullPath: '/admin/vas/catalog/'
+      preLoaderRoute: typeof AppAdminVasCatalogIndexRouteImport
+      parentRoute: typeof AppAdminVasCatalogRoute
+    }
+    '/_app/admin/vas/bulk-purchases/': {
+      id: '/_app/admin/vas/bulk-purchases/'
+      path: '/'
+      fullPath: '/admin/vas/bulk-purchases/'
+      preLoaderRoute: typeof AppAdminVasBulkPurchasesIndexRouteImport
+      parentRoute: typeof AppAdminVasBulkPurchasesRoute
     }
     '/_app/admin/giftcards/catalog/': {
       id: '/_app/admin/giftcards/catalog/'
@@ -807,12 +1059,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminVasTransactionsTransactionIdRouteImport
       parentRoute: typeof AppAdminVasTransactionsRoute
     }
+    '/_app/admin/vas/schedules/$scheduleId': {
+      id: '/_app/admin/vas/schedules/$scheduleId'
+      path: '/$scheduleId'
+      fullPath: '/admin/vas/schedules/$scheduleId'
+      preLoaderRoute: typeof AppAdminVasSchedulesScheduleIdRouteImport
+      parentRoute: typeof AppAdminVasSchedulesRoute
+    }
     '/_app/admin/vas/providers/$providerId': {
       id: '/_app/admin/vas/providers/$providerId'
       path: '/$providerId'
       fullPath: '/admin/vas/providers/$providerId'
       preLoaderRoute: typeof AppAdminVasProvidersProviderIdRouteImport
       parentRoute: typeof AppAdminVasProvidersRoute
+    }
+    '/_app/admin/vas/employee-groups/$groupId': {
+      id: '/_app/admin/vas/employee-groups/$groupId'
+      path: '/$groupId'
+      fullPath: '/admin/vas/employee-groups/$groupId'
+      preLoaderRoute: typeof AppAdminVasEmployeeGroupsGroupIdRouteImport
+      parentRoute: typeof AppAdminVasEmployeeGroupsRoute
+    }
+    '/_app/admin/vas/catalog/$categoryId': {
+      id: '/_app/admin/vas/catalog/$categoryId'
+      path: '/$categoryId'
+      fullPath: '/admin/vas/catalog/$categoryId'
+      preLoaderRoute: typeof AppAdminVasCatalogCategoryIdRouteImport
+      parentRoute: typeof AppAdminVasCatalogRoute
+    }
+    '/_app/admin/vas/bulk-purchases/$batchId': {
+      id: '/_app/admin/vas/bulk-purchases/$batchId'
+      path: '/$batchId'
+      fullPath: '/admin/vas/bulk-purchases/$batchId'
+      preLoaderRoute: typeof AppAdminVasBulkPurchasesBatchIdRouteImport
+      parentRoute: typeof AppAdminVasBulkPurchasesRoute
     }
     '/_app/admin/giftcards/users/$userId': {
       id: '/_app/admin/giftcards/users/$userId'
@@ -877,6 +1157,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminAiConversationsConversationIdRouteImport
       parentRoute: typeof AppAdminAiConversationsRoute
     }
+    '/_app/admin/vas/catalog/$categoryId/$serviceId': {
+      id: '/_app/admin/vas/catalog/$categoryId/$serviceId'
+      path: '/$serviceId'
+      fullPath: '/admin/vas/catalog/$categoryId/$serviceId'
+      preLoaderRoute: typeof AppAdminVasCatalogCategoryIdServiceIdRouteImport
+      parentRoute: typeof AppAdminVasCatalogCategoryIdRoute
+    }
     '/_app/admin/giftcards/catalog/rate-history/$denominationId': {
       id: '/_app/admin/giftcards/catalog/rate-history/$denominationId'
       path: '/rate-history/$denominationId'
@@ -910,6 +1197,68 @@ const AppAdminSourcingRouteChildren: AppAdminSourcingRouteChildren = {
 const AppAdminSourcingRouteWithChildren =
   AppAdminSourcingRoute._addFileChildren(AppAdminSourcingRouteChildren)
 
+interface AppAdminVasBulkPurchasesRouteChildren {
+  AppAdminVasBulkPurchasesBatchIdRoute: typeof AppAdminVasBulkPurchasesBatchIdRoute
+  AppAdminVasBulkPurchasesIndexRoute: typeof AppAdminVasBulkPurchasesIndexRoute
+}
+
+const AppAdminVasBulkPurchasesRouteChildren: AppAdminVasBulkPurchasesRouteChildren =
+  {
+    AppAdminVasBulkPurchasesBatchIdRoute: AppAdminVasBulkPurchasesBatchIdRoute,
+    AppAdminVasBulkPurchasesIndexRoute: AppAdminVasBulkPurchasesIndexRoute,
+  }
+
+const AppAdminVasBulkPurchasesRouteWithChildren =
+  AppAdminVasBulkPurchasesRoute._addFileChildren(
+    AppAdminVasBulkPurchasesRouteChildren,
+  )
+
+interface AppAdminVasCatalogCategoryIdRouteChildren {
+  AppAdminVasCatalogCategoryIdServiceIdRoute: typeof AppAdminVasCatalogCategoryIdServiceIdRoute
+}
+
+const AppAdminVasCatalogCategoryIdRouteChildren: AppAdminVasCatalogCategoryIdRouteChildren =
+  {
+    AppAdminVasCatalogCategoryIdServiceIdRoute:
+      AppAdminVasCatalogCategoryIdServiceIdRoute,
+  }
+
+const AppAdminVasCatalogCategoryIdRouteWithChildren =
+  AppAdminVasCatalogCategoryIdRoute._addFileChildren(
+    AppAdminVasCatalogCategoryIdRouteChildren,
+  )
+
+interface AppAdminVasCatalogRouteChildren {
+  AppAdminVasCatalogCategoryIdRoute: typeof AppAdminVasCatalogCategoryIdRouteWithChildren
+  AppAdminVasCatalogIndexRoute: typeof AppAdminVasCatalogIndexRoute
+}
+
+const AppAdminVasCatalogRouteChildren: AppAdminVasCatalogRouteChildren = {
+  AppAdminVasCatalogCategoryIdRoute:
+    AppAdminVasCatalogCategoryIdRouteWithChildren,
+  AppAdminVasCatalogIndexRoute: AppAdminVasCatalogIndexRoute,
+}
+
+const AppAdminVasCatalogRouteWithChildren =
+  AppAdminVasCatalogRoute._addFileChildren(AppAdminVasCatalogRouteChildren)
+
+interface AppAdminVasEmployeeGroupsRouteChildren {
+  AppAdminVasEmployeeGroupsGroupIdRoute: typeof AppAdminVasEmployeeGroupsGroupIdRoute
+  AppAdminVasEmployeeGroupsIndexRoute: typeof AppAdminVasEmployeeGroupsIndexRoute
+}
+
+const AppAdminVasEmployeeGroupsRouteChildren: AppAdminVasEmployeeGroupsRouteChildren =
+  {
+    AppAdminVasEmployeeGroupsGroupIdRoute:
+      AppAdminVasEmployeeGroupsGroupIdRoute,
+    AppAdminVasEmployeeGroupsIndexRoute: AppAdminVasEmployeeGroupsIndexRoute,
+  }
+
+const AppAdminVasEmployeeGroupsRouteWithChildren =
+  AppAdminVasEmployeeGroupsRoute._addFileChildren(
+    AppAdminVasEmployeeGroupsRouteChildren,
+  )
+
 interface AppAdminVasProvidersRouteChildren {
   AppAdminVasProvidersProviderIdRoute: typeof AppAdminVasProvidersProviderIdRoute
   AppAdminVasProvidersIndexRoute: typeof AppAdminVasProvidersIndexRoute
@@ -922,6 +1271,19 @@ const AppAdminVasProvidersRouteChildren: AppAdminVasProvidersRouteChildren = {
 
 const AppAdminVasProvidersRouteWithChildren =
   AppAdminVasProvidersRoute._addFileChildren(AppAdminVasProvidersRouteChildren)
+
+interface AppAdminVasSchedulesRouteChildren {
+  AppAdminVasSchedulesScheduleIdRoute: typeof AppAdminVasSchedulesScheduleIdRoute
+  AppAdminVasSchedulesIndexRoute: typeof AppAdminVasSchedulesIndexRoute
+}
+
+const AppAdminVasSchedulesRouteChildren: AppAdminVasSchedulesRouteChildren = {
+  AppAdminVasSchedulesScheduleIdRoute: AppAdminVasSchedulesScheduleIdRoute,
+  AppAdminVasSchedulesIndexRoute: AppAdminVasSchedulesIndexRoute,
+}
+
+const AppAdminVasSchedulesRouteWithChildren =
+  AppAdminVasSchedulesRoute._addFileChildren(AppAdminVasSchedulesRouteChildren)
 
 interface AppAdminVasTransactionsRouteChildren {
   AppAdminVasTransactionsTransactionIdRoute: typeof AppAdminVasTransactionsTransactionIdRoute
@@ -941,14 +1303,26 @@ const AppAdminVasTransactionsRouteWithChildren =
   )
 
 interface AppAdminVasRouteChildren {
+  AppAdminVasBulkPurchasesRoute: typeof AppAdminVasBulkPurchasesRouteWithChildren
+  AppAdminVasCatalogRoute: typeof AppAdminVasCatalogRouteWithChildren
+  AppAdminVasCommissionsRoute: typeof AppAdminVasCommissionsRoute
   AppAdminVasDashboardRoute: typeof AppAdminVasDashboardRoute
+  AppAdminVasEmployeeGroupsRoute: typeof AppAdminVasEmployeeGroupsRouteWithChildren
   AppAdminVasProvidersRoute: typeof AppAdminVasProvidersRouteWithChildren
+  AppAdminVasSchedulesRoute: typeof AppAdminVasSchedulesRouteWithChildren
+  AppAdminVasSecurityRoute: typeof AppAdminVasSecurityRoute
   AppAdminVasTransactionsRoute: typeof AppAdminVasTransactionsRouteWithChildren
 }
 
 const AppAdminVasRouteChildren: AppAdminVasRouteChildren = {
+  AppAdminVasBulkPurchasesRoute: AppAdminVasBulkPurchasesRouteWithChildren,
+  AppAdminVasCatalogRoute: AppAdminVasCatalogRouteWithChildren,
+  AppAdminVasCommissionsRoute: AppAdminVasCommissionsRoute,
   AppAdminVasDashboardRoute: AppAdminVasDashboardRoute,
+  AppAdminVasEmployeeGroupsRoute: AppAdminVasEmployeeGroupsRouteWithChildren,
   AppAdminVasProvidersRoute: AppAdminVasProvidersRouteWithChildren,
+  AppAdminVasSchedulesRoute: AppAdminVasSchedulesRouteWithChildren,
+  AppAdminVasSecurityRoute: AppAdminVasSecurityRoute,
   AppAdminVasTransactionsRoute: AppAdminVasTransactionsRouteWithChildren,
 }
 

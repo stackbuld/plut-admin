@@ -188,3 +188,282 @@ export type ListVasSecurityFlagsParams = {
 export type SwitchVasProviderBody = {
   newProviderId: string;
 };
+
+// ── Commissions (admin design 05) ──────────────────────────────────────────────
+
+export type CommissionType = "Percentage" | "FixedAmount" | "Tiered";
+
+export type VasCommission = {
+  id: string;
+  providerId: string;
+  serviceId: string | null;
+  serviceProductId: string | null;
+  commissionType: CommissionType;
+  ratePercent: number | null;
+  fixedAmount: number | null;
+  currencyCode: string;
+  minTransactionAmount: number | null;
+  maxTransactionAmount: number | null;
+  effectiveFrom: string;
+  effectiveTo: string | null;
+  isActive: boolean;
+  priority: number;
+};
+
+export type ListVasCommissionsParams = {
+  providerId?: string;
+  isActive?: boolean;
+};
+
+export type CreateVasCommissionBody = {
+  providerId: string;
+  currencyCode: string;
+  commissionType: CommissionType;
+  adminUserId: string;
+  ratePercent?: number;
+  fixedAmount?: number;
+  serviceId?: string;
+  serviceProductId?: string;
+  minTransactionAmount?: number;
+  maxTransactionAmount?: number;
+  effectiveFrom?: string;
+  effectiveTo?: string;
+  priority?: number;
+};
+
+export type UpdateVasCommissionBody = {
+  ratePercent?: number;
+  fixedAmount?: number;
+  minTransactionAmount?: number;
+  maxTransactionAmount?: number;
+  effectiveTo?: string;
+  priority?: number;
+  isActive?: boolean;
+};
+
+export type VasCategoryProfit = {
+  serviceCategory: string;
+  commissionEarned: number;
+  transactionCount: number;
+};
+
+export type VasProfitReport = {
+  from: string;
+  to: string;
+  totalCommissionEarned: number;
+  transactionCount: number;
+  byCategory: VasCategoryProfit[];
+};
+
+// ── Bulk Purchases (admin design 06, read-only oversight) ──────────────────────
+
+export type BulkPurchaseStatus =
+  | "PendingApproval"
+  | "Pending"
+  | "Validating"
+  | "Processing"
+  | "PartiallyCompleted"
+  | "Completed"
+  | "Failed"
+  | "Cancelled";
+
+export type VasBulkBatch = {
+  id: string;
+  batchReference: string | null;
+  batchName: string;
+  status: BulkPurchaseStatus;
+  totalItemCount: number;
+  successCount: number;
+  failureCount: number;
+  totalEstimatedAmount: number;
+  currencyCode: string;
+  createdAt: string;
+};
+
+export type ListVasBulkBatchesParams = {
+  businessId?: string;
+  status?: BulkPurchaseStatus;
+  from?: string;
+  to?: string;
+  pageNumber?: number;
+  pageSize?: number;
+};
+
+export type VasBulkBatchItem = {
+  lineNumber: number;
+  serviceCategoryId: string;
+  serviceId: string;
+  customerIdentifierValue: string;
+  amount: number;
+  status: string;
+  vasTransactionId: string | null;
+  errorMessage: string | null;
+};
+
+export type VasBulkBatchDetail = {
+  batch: VasBulkBatch;
+  items: VasBulkBatchItem[];
+};
+
+// ── Employee Groups (admin design 07, read-only oversight) ─────────────────────
+
+export type AllowanceFrequency = "Weekly" | "Monthly";
+
+export type VasEmployeeGroup = {
+  id: string;
+  name: string;
+  serviceCategoryId: string;
+  serviceId: string;
+  serviceProductId: string | null;
+  allowanceAmount: number;
+  currencyCode: string;
+  isActive: boolean;
+  activeMemberCount: number;
+  allowanceFrequency: AllowanceFrequency | null;
+  nextDisbursementDate: string | null;
+  lastDisbursedAt: string | null;
+};
+
+export type VasEmployeeGroupMember = {
+  id: string;
+  beneficiaryValue: string;
+  memberUserId: string | null;
+  isActive: boolean;
+};
+
+export type VasEmployeeGroupDetail = {
+  group: VasEmployeeGroup;
+  members: VasEmployeeGroupMember[];
+};
+
+// ── Schedules (admin design 08, read-only oversight) ────────────────────────────
+
+export type ScheduleFrequency = "Daily" | "Weekly" | "BiWeekly" | "Monthly" | "Custom";
+
+export type VasSchedule = {
+  id: string;
+  userId: string;
+  serviceCategoryId: string;
+  serviceId: string;
+  serviceProductId: string | null;
+  customerIdentifierType: string;
+  customerIdentifierValue: string;
+  amount: number;
+  currencyCode: string;
+  frequency: string;
+  nextRunDate: string;
+  lastRunDate: string | null;
+  lastRunStatus: string | null;
+  endDate: string | null;
+  isActive: boolean;
+  isCancelled: boolean;
+  autoRenew: boolean;
+  failureCount: number;
+  description: string | null;
+  runCount: number;
+  nickname: string | null;
+  emoji: string | null;
+  note: string | null;
+  recipientLabel: string | null;
+  skipNextRun: boolean;
+};
+
+export type ListVasSchedulesParams = {
+  userId?: string;
+  isActive?: boolean;
+  service?: string;
+  pageNumber?: number;
+  pageSize?: number;
+};
+
+export type VasScheduleDetail = {
+  schedule: VasSchedule;
+  maxFailureCount: number;
+  lastReminderAt: string | null;
+};
+
+// ── Catalog (admin design 04, read-heavy with narrow writes) ───────────────────
+
+export type VasAdminCategory = {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  iconUrl: string | null;
+  isActive: boolean;
+  sortOrder: number;
+  defaultCurrencyCode: string;
+  requiresCustomerValidation: boolean;
+  minAmount: number | null;
+  maxAmount: number | null;
+  serviceCount: number;
+};
+
+export type UpdateVasCategoryBody = {
+  isActive?: boolean;
+  minAmount?: number;
+  maxAmount?: number;
+};
+
+export type VasAdminService = {
+  id: string;
+  serviceCategoryId: string;
+  code: string;
+  name: string;
+  description: string;
+  logoUrl: string | null;
+  isActive: boolean;
+  sortOrder: number;
+  minAmount: number | null;
+  maxAmount: number | null;
+  productCount: number;
+  hasActiveProviderMapping: boolean;
+};
+
+export type UpdateVasServiceBody = {
+  isActive?: boolean;
+  minAmount?: number;
+  maxAmount?: number;
+};
+
+export type VasAdminMobileDataPlan = {
+  dataCode: string;
+  validity: string;
+  allowance: string;
+  allowanceMB: number | null;
+  isNightPlan: boolean;
+  isSocialPlan: boolean;
+};
+
+export type VasAdminCablePricingOption = {
+  monthsPaidFor: number;
+  price: number;
+  invoicePeriod: number;
+};
+
+export type VasAdminCableTvPackage = {
+  productCode: string;
+  isAddon: boolean;
+  parentPackageId: string | null;
+  availablePricingOptions: VasAdminCablePricingOption[];
+};
+
+export type VasAdminProduct = {
+  id: string;
+  serviceId: string;
+  code: string;
+  name: string;
+  description: string | null;
+  productType: "FixedAmount" | "VariableAmount" | "SubscriptionPackage";
+  baseAmount: number | null;
+  currencyCode: string;
+  isActive: boolean;
+  sortOrder: number;
+  hasActiveProviderMapping: boolean;
+  dataPlan: VasAdminMobileDataPlan | null;
+  cablePackage: VasAdminCableTvPackage | null;
+};
+
+export type UpdateVasProductBody = {
+  isActive: boolean;
+};

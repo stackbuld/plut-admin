@@ -1,7 +1,32 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  Bell, ChevronDown, Coins, Gift, LayoutGrid, LogOut, Menu, Moon, Sun,
-  ArrowLeftRight, Users, BookOpen, Wallet, Bitcoin, Banknote, Sparkles, MessagesSquare, Store, Smartphone, Network, ClipboardCheck, ShieldCheck, Clock, AlertTriangle, Activity, Megaphone, Radio,
+  Bell,
+  ChevronDown,
+  Coins,
+  Gift,
+  LayoutGrid,
+  LogOut,
+  Menu,
+  Moon,
+  Sun,
+  ArrowLeftRight,
+  Users,
+  BookOpen,
+  Wallet,
+  Bitcoin,
+  Banknote,
+  Sparkles,
+  MessagesSquare,
+  Store,
+  Smartphone,
+  Network,
+  ClipboardCheck,
+  ShieldCheck,
+  Clock,
+  AlertTriangle,
+  Activity,
+  Megaphone,
+  Radio,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -52,12 +77,45 @@ const WITHDRAWAL_CHILDREN: { to: string; label: string; exact?: boolean }[] = [
 function useSourcingNav(): NavItem[] {
   const { data: badges } = useQuery(sourcingBadgeQueries.counts());
   return [
-    { to: "/admin/sourcing/merchants", label: "Merchants", icon: Store, matchPrefix: "/admin/sourcing/merchants" },
-    { to: "/admin/sourcing/allocations", label: "Allocations", icon: Network, badge: badges?.allocationsPending || undefined, matchPrefix: "/admin/sourcing/allocations" },
-    { to: "/admin/sourcing/review", label: "Review Queue", icon: ClipboardCheck, badge: badges?.reviewQueue || undefined, matchPrefix: "/admin/sourcing/review" },
-    { to: "/admin/sourcing/awaiting", label: "Awaiting Providers", icon: Clock, badge: badges?.awaitingProviders || undefined, matchPrefix: "/admin/sourcing/awaiting" },
-    { to: "/admin/sourcing/our-numbers", label: "Our Numbers", icon: ShieldCheck, matchPrefix: "/admin/sourcing/our-numbers" },
-    { to: "/admin/sourcing/whatsapp", label: "WhatsApp", icon: Smartphone, matchPrefix: "/admin/sourcing/whatsapp" },
+    {
+      to: "/admin/sourcing/merchants",
+      label: "Merchants",
+      icon: Store,
+      matchPrefix: "/admin/sourcing/merchants",
+    },
+    {
+      to: "/admin/sourcing/allocations",
+      label: "Allocations",
+      icon: Network,
+      badge: badges?.allocationsPending || undefined,
+      matchPrefix: "/admin/sourcing/allocations",
+    },
+    {
+      to: "/admin/sourcing/review",
+      label: "Review Queue",
+      icon: ClipboardCheck,
+      badge: badges?.reviewQueue || undefined,
+      matchPrefix: "/admin/sourcing/review",
+    },
+    {
+      to: "/admin/sourcing/awaiting",
+      label: "Awaiting Providers",
+      icon: Clock,
+      badge: badges?.awaitingProviders || undefined,
+      matchPrefix: "/admin/sourcing/awaiting",
+    },
+    {
+      to: "/admin/sourcing/our-numbers",
+      label: "Our Numbers",
+      icon: ShieldCheck,
+      matchPrefix: "/admin/sourcing/our-numbers",
+    },
+    {
+      to: "/admin/sourcing/whatsapp",
+      label: "WhatsApp",
+      icon: Smartphone,
+      matchPrefix: "/admin/sourcing/whatsapp",
+    },
   ];
 }
 
@@ -65,23 +123,55 @@ function useGiftcardNav(): NavItem[] {
   const pending = usePendingCount();
   return [
     { to: "/admin/giftcards/dashboard", label: "Dashboard", icon: LayoutGrid },
-    { to: "/admin/giftcards/trades", label: "Trades", icon: ArrowLeftRight, badge: pending || undefined, matchPrefix: "/admin/giftcards/trades" },
-    { to: "/admin/giftcards/brands", label: "Cards", icon: Gift, matchPrefix: "/admin/giftcards/brands" },
-    { to: "/admin/giftcards/catalog", label: "Catalog", icon: BookOpen, matchPrefix: "/admin/giftcards/catalog", children: CATALOG_CHILDREN },
-    { to: "/admin/giftcards/users", label: "Users", icon: Users, matchPrefix: "/admin/giftcards/users" },
+    {
+      to: "/admin/giftcards/trades",
+      label: "Trades",
+      icon: ArrowLeftRight,
+      badge: pending || undefined,
+      matchPrefix: "/admin/giftcards/trades",
+    },
+    {
+      to: "/admin/giftcards/brands",
+      label: "Cards",
+      icon: Gift,
+      matchPrefix: "/admin/giftcards/brands",
+    },
+    {
+      to: "/admin/giftcards/catalog",
+      label: "Catalog",
+      icon: BookOpen,
+      matchPrefix: "/admin/giftcards/catalog",
+      children: CATALOG_CHILDREN,
+    },
+    {
+      to: "/admin/giftcards/users",
+      label: "Users",
+      icon: Users,
+      matchPrefix: "/admin/giftcards/users",
+    },
   ];
 }
 
 function useAiNav(): NavItem[] {
   return [
     { to: "/admin/ai/dashboard", label: "Dashboard", icon: LayoutGrid },
-    { to: "/admin/ai/conversations", label: "Conversations", icon: MessagesSquare, matchPrefix: "/admin/ai/conversations" },
+    {
+      to: "/admin/ai/conversations",
+      label: "Conversations",
+      icon: MessagesSquare,
+      matchPrefix: "/admin/ai/conversations",
+    },
   ];
 }
 
 function useNotificationsNav(): NavItem[] {
   return [
-    { to: "/admin/notifications/announcements", label: "Announcements", icon: Megaphone, matchPrefix: "/admin/notifications/announcements" },
+    {
+      to: "/admin/notifications/announcements",
+      label: "Announcements",
+      icon: Megaphone,
+      matchPrefix: "/admin/notifications/announcements",
+    },
   ];
 }
 
@@ -103,23 +193,83 @@ function useVasNav(): NavItem[] {
   const failedCount = useVasFailedCount();
   return [
     { to: "/admin/vas/dashboard", label: "Dashboard", icon: LayoutGrid },
-    { to: "/admin/vas/transactions", label: "Transactions", icon: ArrowLeftRight, badge: failedCount || undefined, matchPrefix: "/admin/vas/transactions" },
-    { to: "/admin/vas/providers", label: "Providers", icon: Radio, matchPrefix: "/admin/vas/providers" },
+    {
+      to: "/admin/vas/transactions",
+      label: "Transactions",
+      icon: ArrowLeftRight,
+      badge: failedCount || undefined,
+      matchPrefix: "/admin/vas/transactions",
+    },
+    {
+      to: "/admin/vas/providers",
+      label: "Providers",
+      icon: Radio,
+      matchPrefix: "/admin/vas/providers",
+    },
+    {
+      to: "/admin/vas/catalog",
+      label: "Catalog",
+      icon: BookOpen,
+      matchPrefix: "/admin/vas/catalog",
+    },
+    {
+      to: "/admin/vas/commissions",
+      label: "Commissions",
+      icon: Coins,
+      matchPrefix: "/admin/vas/commissions",
+    },
+    {
+      to: "/admin/vas/bulk-purchases",
+      label: "Bulk Purchases",
+      icon: ClipboardCheck,
+      matchPrefix: "/admin/vas/bulk-purchases",
+    },
+    {
+      to: "/admin/vas/employee-groups",
+      label: "Employee Groups",
+      icon: Users,
+      matchPrefix: "/admin/vas/employee-groups",
+    },
+    {
+      to: "/admin/vas/schedules",
+      label: "Schedules",
+      icon: Clock,
+      matchPrefix: "/admin/vas/schedules",
+    },
+    {
+      to: "/admin/vas/security",
+      label: "Fraud & Security",
+      icon: ShieldCheck,
+      matchPrefix: "/admin/vas/security",
+    },
   ];
 }
 
 const OBSERVABILITY_NAV: NavItem[] = [
-  { to: "/admin/observability/critical-errors", label: "Critical Errors", icon: AlertTriangle, matchPrefix: "/admin/observability/critical-errors" },
+  {
+    to: "/admin/observability/critical-errors",
+    label: "Critical Errors",
+    icon: AlertTriangle,
+    matchPrefix: "/admin/observability/critical-errors",
+  },
 ];
 
-type Product = { id: string; label: string; icon: typeof Coins; items?: NavItem[]; comingSoon?: boolean };
+type Product = {
+  id: string;
+  label: string;
+  icon: typeof Coins;
+  items?: NavItem[];
+  comingSoon?: boolean;
+};
 
 function Badge({ count, active }: { count: number; active?: boolean }) {
   return (
-    <span className={cn(
-      "inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold",
-      active ? "bg-primary text-primary-foreground" : "bg-red-500 text-white",
-    )}>
+    <span
+      className={cn(
+        "inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold",
+        active ? "bg-primary text-primary-foreground" : "bg-red-500 text-white",
+      )}
+    >
       {count > 99 ? "99+" : count}
     </span>
   );
@@ -128,16 +278,28 @@ function Badge({ count, active }: { count: number; active?: boolean }) {
 function Logo() {
   return (
     <Link to="/admin/giftcards/dashboard" className="flex items-center gap-2.5">
-      <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground font-display text-lg font-bold">P</div>
+      <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground font-display text-lg font-bold">
+        P
+      </div>
       <div className="flex flex-col leading-tight">
         <span className="font-display text-base font-bold tracking-tight">Plut</span>
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Admin Console</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Admin Console
+        </span>
       </div>
     </Link>
   );
 }
 
-function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: string; onNavigate?: () => void }) {
+function NavLink({
+  item,
+  pathname,
+  onNavigate,
+}: {
+  item: NavItem;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
   const active = item.matchPrefix ? pathname.startsWith(item.matchPrefix) : pathname === item.to;
   const [expanded, setExpanded] = useState(active);
 
@@ -150,10 +312,14 @@ function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: stri
           onClick={() => setExpanded((e) => !e)}
           className={cn(
             "relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-            active ? "bg-primary/12 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+            active
+              ? "bg-primary/12 text-primary"
+              : "text-muted-foreground hover:bg-secondary hover:text-foreground",
           )}
         >
-          {active && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-primary" />}
+          {active && (
+            <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-primary" />
+          )}
           <item.icon className="h-4 w-4" />
           <span className="flex-1 text-left">{item.label}</span>
           {item.badge != null && item.badge > 0 && <Badge count={item.badge} active={active} />}
@@ -173,7 +339,9 @@ function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: stri
                   onClick={onNavigate}
                   className={cn(
                     "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-                    cActive ? "bg-primary/12 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                    cActive
+                      ? "bg-primary/12 text-primary"
+                      : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                   )}
                 >
                   {c.label}
@@ -192,10 +360,14 @@ function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: stri
       onClick={onNavigate}
       className={cn(
         "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-        active ? "bg-primary/12 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+        active
+          ? "bg-primary/12 text-primary"
+          : "text-muted-foreground hover:bg-secondary hover:text-foreground",
       )}
     >
-      {active && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-primary" />}
+      {active && (
+        <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-primary" />
+      )}
       <item.icon className="h-4 w-4" />
       <span className="flex-1">{item.label}</span>
       {item.badge != null && item.badge > 0 && <Badge count={item.badge} active={active} />}
@@ -203,7 +375,15 @@ function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: stri
   );
 }
 
-function ProductSection({ product, pathname, onNavigate }: { product: Product; pathname: string; onNavigate?: () => void }) {
+function ProductSection({
+  product,
+  pathname,
+  onNavigate,
+}: {
+  product: Product;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
   const [open, setOpen] = useState(product.id === "giftcards");
   const totalBadge = (product.items ?? []).reduce((sum, it) => sum + (it.badge ?? 0), 0);
   return (
@@ -213,22 +393,30 @@ function ProductSection({ product, pathname, onNavigate }: { product: Product; p
         onClick={() => !product.comingSoon && setOpen((o) => !o)}
         className={cn(
           "flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-colors",
-          product.comingSoon ? "cursor-not-allowed text-muted-foreground/60" : "text-muted-foreground hover:text-foreground",
+          product.comingSoon
+            ? "cursor-not-allowed text-muted-foreground/60"
+            : "text-muted-foreground hover:text-foreground",
         )}
       >
         <span className="flex items-center gap-2">
           <product.icon className="h-3.5 w-3.5" />
           {product.label}
           {product.comingSoon && (
-            <span className="ml-1 rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-semibold normal-case text-muted-foreground">Soon</span>
+            <span className="ml-1 rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-semibold normal-case text-muted-foreground">
+              Soon
+            </span>
           )}
           {!product.comingSoon && totalBadge > 0 && !open && <Badge count={totalBadge} />}
         </span>
-        {!product.comingSoon && <ChevronDown className={cn("h-3 w-3 transition-transform", !open && "-rotate-90")} />}
+        {!product.comingSoon && (
+          <ChevronDown className={cn("h-3 w-3 transition-transform", !open && "-rotate-90")} />
+        )}
       </button>
       {open && product.items && (
         <div className="mt-1 flex flex-col gap-0.5">
-          {product.items.map((it) => <NavLink key={it.to} item={it} pathname={pathname} onNavigate={onNavigate} />)}
+          {product.items.map((it) => (
+            <NavLink key={it.to} item={it} pathname={pathname} onNavigate={onNavigate} />
+          ))}
         </div>
       )}
     </div>
@@ -238,16 +426,26 @@ function ProductSection({ product, pathname, onNavigate }: { product: Product; p
 function SidebarFooter() {
   const { session, signOut } = useAuth();
   const navigate = useNavigate();
-  const initials = (session?.name ?? "AD").split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+  const initials = (session?.name ?? "AD")
+    .split(" ")
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
   return (
     <div className="mt-auto flex items-center gap-3 border-t border-border p-4">
-      <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-sm font-semibold text-primary-foreground">{initials}</div>
+      <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-sm font-semibold text-primary-foreground">
+        {initials}
+      </div>
       <div className="flex-1 min-w-0">
         <p className="truncate text-sm font-semibold">{session?.name ?? "Admin"}</p>
         <p className="truncate text-xs text-muted-foreground">{session?.role ?? "Super Admin"}</p>
       </div>
       <button
-        onClick={() => { signOut(); navigate({ to: "/login" }); }}
+        onClick={() => {
+          signOut();
+          navigate({ to: "/login" });
+        }}
         title="Sign out"
         className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
       >
@@ -280,7 +478,9 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
         <Logo />
       </div>
       <div className="flex flex-1 flex-col gap-4 px-3 overflow-y-auto pb-2">
-        {products.map((p) => <ProductSection key={p.id} product={p} pathname={pathname} onNavigate={onNavigate} />)}
+        {products.map((p) => (
+          <ProductSection key={p.id} product={p} pathname={pathname} onNavigate={onNavigate} />
+        ))}
       </div>
       <SidebarFooter />
     </div>
@@ -302,6 +502,12 @@ function deriveTitle(pathname: string): string {
   if (pathname.startsWith("/admin/vas/dashboard")) return "VAS Overview";
   if (pathname.startsWith("/admin/vas/transactions")) return "VAS Transactions";
   if (pathname.startsWith("/admin/vas/providers")) return "VAS Providers";
+  if (pathname.startsWith("/admin/vas/catalog")) return "VAS Catalog";
+  if (pathname.startsWith("/admin/vas/commissions")) return "VAS Commissions";
+  if (pathname.startsWith("/admin/vas/bulk-purchases")) return "VAS Bulk Purchases";
+  if (pathname.startsWith("/admin/vas/employee-groups")) return "VAS Employee Groups";
+  if (pathname.startsWith("/admin/vas/schedules")) return "VAS Schedules";
+  if (pathname.startsWith("/admin/vas/security")) return "VAS Fraud & Security";
   return "Plut Admin";
 }
 
@@ -312,7 +518,12 @@ export function AppShell({ children }: { children?: ReactNode }) {
   const pendingCount = usePendingCount();
   const [mobileOpen, setMobileOpen] = useState(false);
   const title = deriveTitle(pathname);
-  const initials = (session?.name ?? "AD").split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+  const initials = (session?.name ?? "AD")
+    .split(" ")
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   return (
     <div className="min-h-screen bg-background">
@@ -329,14 +540,20 @@ export function AppShell({ children }: { children?: ReactNode }) {
               </button>
             </SheetTrigger>
             <SheetContent side="left" className="w-72 bg-sidebar p-0">
-              <SheetHeader className="sr-only"><SheetTitle>Navigation</SheetTitle></SheetHeader>
+              <SheetHeader className="sr-only">
+                <SheetTitle>Navigation</SheetTitle>
+              </SheetHeader>
               <SidebarBody pathname={pathname} onNavigate={() => setMobileOpen(false)} />
             </SheetContent>
           </Sheet>
           <h1 className="font-display text-xl font-bold">{title}</h1>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={toggle} aria-label="Toggle theme" className="grid h-9 w-9 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground">
+          <button
+            onClick={toggle}
+            aria-label="Toggle theme"
+            className="grid h-9 w-9 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+          >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
           <button className="relative grid h-9 w-9 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground">
@@ -347,14 +564,14 @@ export function AppShell({ children }: { children?: ReactNode }) {
               </span>
             )}
           </button>
-          <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-sm font-semibold text-primary-foreground">{initials}</div>
+          <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-sm font-semibold text-primary-foreground">
+            {initials}
+          </div>
         </div>
       </header>
 
       <main className="md:pl-60 pt-16">
-        <div className="px-4 py-6 md:px-8">
-          {children ?? <Outlet />}
-        </div>
+        <div className="px-4 py-6 md:px-8">{children ?? <Outlet />}</div>
       </main>
     </div>
   );
