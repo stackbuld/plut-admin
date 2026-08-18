@@ -1,8 +1,29 @@
+import { useState } from "react";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-export function FilterSelect({ value, onChange, placeholder, options }: {
+export function FilterSelect({
+  value,
+  onChange,
+  placeholder,
+  options,
+}: {
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
@@ -10,9 +31,15 @@ export function FilterSelect({ value, onChange, placeholder, options }: {
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="h-9 w-[160px]"><SelectValue placeholder={placeholder} /></SelectTrigger>
+      <SelectTrigger className="h-9 w-[160px]">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
       <SelectContent>
-        {options.map((o) => <SelectItem key={o.v} value={o.v}>{o.l}</SelectItem>)}
+        {options.map((o) => (
+          <SelectItem key={o.v} value={o.v}>
+            {o.l}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );
@@ -38,13 +65,69 @@ export function TabLoader() {
 export function EmptyRow({ cols }: { cols: number }) {
   return (
     <tr>
-      <td colSpan={cols} className="px-6 py-10 text-center text-sm text-muted-foreground">No data yet.</td>
+      <td colSpan={cols} className="px-6 py-10 text-center text-sm text-muted-foreground">
+        No data yet.
+      </td>
     </tr>
   );
 }
 
 export function Dash() {
   return <span className="text-muted-foreground">—</span>;
+}
+
+// ── Narrow amount-limits editor (VAS Catalog: categories & services) ───────────
+
+export function LimitsDialog({
+  open,
+  onOpenChange,
+  title,
+  currentMin,
+  currentMax,
+  onSave,
+  isPending,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  title: string;
+  currentMin: number | null;
+  currentMax: number | null;
+  onSave: (min?: number, max?: number) => void;
+  isPending: boolean;
+}) {
+  const [min, setMin] = useState(currentMin != null ? String(currentMin) : "");
+  const [max, setMax] = useState(currentMax != null ? String(currentMax) : "");
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !isPending && onOpenChange(o)}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Edit Amount Limits</DialogTitle>
+          <DialogDescription>{title}</DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Min amount">
+            <Input type="number" value={min} onChange={(e) => setMin(e.target.value)} />
+          </Field>
+          <Field label="Max amount">
+            <Input type="number" value={max} onChange={(e) => setMax(e.target.value)} />
+          </Field>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isPending}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => onSave(min ? Number(min) : undefined, max ? Number(max) : undefined)}
+            disabled={isPending}
+          >
+            {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 // ── Pagination ────────────────────────────────────────────────────────────────
@@ -79,19 +162,26 @@ export function TablePager({
             <span className="text-xs text-muted-foreground">Rows</span>
             <Select
               value={String(pageSize)}
-              onValueChange={(v) => { onPageSizeChange(Number(v)); onPageChange(1); }}
+              onValueChange={(v) => {
+                onPageSizeChange(Number(v));
+                onPageChange(1);
+              }}
             >
-              <SelectTrigger className="h-7 w-[70px] text-xs"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-7 w-[70px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {PAGE_SIZES.map((s) => <SelectItem key={s} value={String(s)}>{s}</SelectItem>)}
+                {PAGE_SIZES.map((s) => (
+                  <SelectItem key={s} value={String(s)}>
+                    {s}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
         )}
         <span className="text-xs text-muted-foreground">
-          {total === 0
-            ? `No ${noun}`
-            : `${from}–${to} of ${total.toLocaleString()} ${noun}`}
+          {total === 0 ? `No ${noun}` : `${from}–${to} of ${total.toLocaleString()} ${noun}`}
         </span>
       </div>
 
@@ -105,7 +195,12 @@ export function TablePager({
 
         {pages.map((p, i) =>
           p === "…" ? (
-            <span key={`el-${i}`} className="w-7 text-center text-xs text-muted-foreground select-none">…</span>
+            <span
+              key={`el-${i}`}
+              className="w-7 text-center text-xs text-muted-foreground select-none"
+            >
+              …
+            </span>
           ) : (
             <Button
               key={p}
@@ -116,13 +211,21 @@ export function TablePager({
             >
               {p}
             </Button>
-          )
+          ),
         )}
 
-        <PagerBtn onClick={() => onPageChange(page + 1)} disabled={page >= totalPages} title="Next page">
+        <PagerBtn
+          onClick={() => onPageChange(page + 1)}
+          disabled={page >= totalPages}
+          title="Next page"
+        >
           <ChevronRight className="h-3.5 w-3.5" />
         </PagerBtn>
-        <PagerBtn onClick={() => onPageChange(totalPages)} disabled={page >= totalPages} title="Last page">
+        <PagerBtn
+          onClick={() => onPageChange(totalPages)}
+          disabled={page >= totalPages}
+          title="Last page"
+        >
           <ChevronsRight className="h-3.5 w-3.5" />
         </PagerBtn>
       </div>
@@ -130,14 +233,26 @@ export function TablePager({
   );
 }
 
-function PagerBtn({ onClick, disabled, title, children }: {
+function PagerBtn({
+  onClick,
+  disabled,
+  title,
+  children,
+}: {
   onClick: () => void;
   disabled: boolean;
   title: string;
   children: React.ReactNode;
 }) {
   return (
-    <Button variant="ghost" size="icon" className="h-7 w-7" disabled={disabled} onClick={onClick} title={title}>
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-7 w-7"
+      disabled={disabled}
+      onClick={onClick}
+      title={title}
+    >
       {children}
     </Button>
   );
