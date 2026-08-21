@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { userQueries, walletQueries } from "@/api";
 import { formatDateTime, truncId, currencySymbol } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { DebitWalletDialog } from "./DebitWalletDialog";
 
 function money(amount: number, currency = "NGN") {
   return `${currencySymbol(currency) || ""}${amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
@@ -38,6 +39,7 @@ export function UserSummaryModal({
 }) {
   const navigate = useNavigate();
   const enabled = open && !!userId;
+  const [debitOpen, setDebitOpen] = useState(false);
 
   const { data: user, isLoading } = useQuery({ ...userQueries.detail(userId ?? ""), enabled });
   const { data: wallets } = useQuery({ ...walletQueries.byUser(userId ?? ""), enabled });
@@ -54,108 +56,129 @@ export function UserSummaryModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>User Summary</DialogTitle>
-          <DialogDescription>
-            Quick snapshot — open the full profile for trades, strikes and blocks.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>User Summary</DialogTitle>
+            <DialogDescription>
+              Quick snapshot — open the full profile for trades, strikes and blocks.
+            </DialogDescription>
+          </DialogHeader>
 
-        {isLoading || !user ? (
-          <div className="flex items-center justify-center py-10">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Identity */}
-            <div className="flex items-center gap-3">
-              {user.avatarUrl ? (
-                <img
-                  src={user.avatarUrl}
-                  alt={user.displayName}
-                  className="h-11 w-11 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-base font-semibold text-primary">
-                  {user.displayName?.[0]?.toUpperCase() ?? "?"}
+          {isLoading || !user ? (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Identity */}
+              <div className="flex items-center gap-3">
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.displayName}
+                    className="h-11 w-11 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-base font-semibold text-primary">
+                    {user.displayName?.[0]?.toUpperCase() ?? "?"}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="truncate font-semibold leading-tight">{user.displayName}</p>
+                  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                </div>
+                <Badge
+                  className="ml-auto"
+                  tone={
+                    user.status === "Active"
+                      ? "success"
+                      : user.status === "Suspended"
+                        ? "danger"
+                        : "warning"
+                  }
+                >
+                  {user.status}
+                </Badge>
+              </div>
+
+              {/* Balances — only when the user has a wallet */}
+              {walletId && (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <BalanceCard
+                      label="Current balance"
+                      loading={balanceLoading}
+                      value={balance ? money(balance.availableBalance, balance.currency) : null}
+                    />
+                    <BalanceCard
+                      label="Holding balance"
+                      loading={balanceLoading}
+                      value={balance ? money(balance.heldBalance, balance.currency) : null}
+                    />
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setDebitOpen(true)}
+                    disabled={balanceLoading || !balance}
+                  >
+                    Debit Wallet
+                  </Button>
                 </div>
               )}
-              <div className="min-w-0">
-                <p className="truncate font-semibold leading-tight">{user.displayName}</p>
-                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-              </div>
-              <Badge
-                className="ml-auto"
-                tone={
-                  user.status === "Active"
-                    ? "success"
-                    : user.status === "Suspended"
-                      ? "danger"
-                      : "warning"
-                }
-              >
-                {user.status}
-              </Badge>
-            </div>
 
-            {/* Balances — only when the user has a wallet */}
-            {walletId && (
-              <div className="grid grid-cols-2 gap-2">
-                <BalanceCard
-                  label="Current balance"
-                  loading={balanceLoading}
-                  value={balance ? money(balance.availableBalance, balance.currency) : null}
-                />
-                <BalanceCard
-                  label="Holding balance"
-                  loading={balanceLoading}
-                  value={balance ? money(balance.heldBalance, balance.currency) : null}
+              {/* Details */}
+              <div className="divide-y divide-border rounded-lg border bg-background">
+                <Row label="Phone" value={user.phoneNumber ?? "—"} />
+                <Row label="KYC Tier" value={user.kycTier} />
+                <Row label="Created" value={formatDateTime(user.createdAt)} />
+                {user.lastLoginAt && (
+                  <Row label="Last login" value={formatDateTime(user.lastLoginAt)} />
+                )}
+                <Row
+                  label="User ID"
+                  value={
+                    <span className="flex items-center gap-1.5">
+                      <span className="font-mono text-xs">{truncId(user.userId, 18)}</span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(user.userId);
+                          toast.success("Copied");
+                        }}
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                        title="Copy user ID"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </button>
+                    </span>
+                  }
                 />
               </div>
-            )}
-
-            {/* Details */}
-            <div className="divide-y divide-border rounded-lg border bg-background">
-              <Row label="Phone" value={user.phoneNumber ?? "—"} />
-              <Row label="KYC Tier" value={user.kycTier} />
-              <Row label="Created" value={formatDateTime(user.createdAt)} />
-              {user.lastLoginAt && (
-                <Row label="Last login" value={formatDateTime(user.lastLoginAt)} />
-              )}
-              <Row
-                label="User ID"
-                value={
-                  <span className="flex items-center gap-1.5">
-                    <span className="font-mono text-xs">{truncId(user.userId, 18)}</span>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(user.userId);
-                        toast.success("Copied");
-                      }}
-                      className="text-muted-foreground transition-colors hover:text-foreground"
-                      title="Copy user ID"
-                    >
-                      <Copy className="h-3 w-3" />
-                    </button>
-                  </span>
-                }
-              />
             </div>
-          </div>
-        )}
+          )}
 
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
-          <Button onClick={goToProfile} disabled={!userId}>
-            View more <ChevronRight className="h-4 w-4" />
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+            <Button onClick={goToProfile} disabled={!userId}>
+              View more <ChevronRight className="h-4 w-4" />
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <DebitWalletDialog
+        walletId={debitOpen ? (walletId ?? null) : null}
+        userName={user?.displayName}
+        currency={balance?.currency}
+        availableBalance={balance?.availableBalance}
+        open={debitOpen}
+        onOpenChange={setDebitOpen}
+      />
+    </>
   );
 }
 
