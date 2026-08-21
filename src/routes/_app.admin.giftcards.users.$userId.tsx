@@ -9,10 +9,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { userQueries, tradeQueries, blockUser, unblockUser, queryKeys } from "@/api";
-import { formatDateTime, truncId } from "@/lib/format";
+import { userQueries, tradeQueries, walletQueries, blockUser, unblockUser, queryKeys } from "@/api";
+import { formatDateTime, truncId, currencySymbol } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { DebitWalletDialog } from "@/components/plut/DebitWalletDialog";
+
+function money(amount: number, currency = "NGN") {
+  return `${currencySymbol(currency) || ""}${amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+}
 
 export const Route = createFileRoute("/_app/admin/giftcards/users/$userId")({
   head: () => ({ meta: [{ title: "User Detail — Plut Admin" }] }),
@@ -35,7 +40,14 @@ function UserDetail() {
   const { data: tradesData, isLoading: tradesLoading } = useQuery(tradeQueries.list({ CustomerId: userId, PageSize: 20 }));
   const { data: blocks, isLoading: blocksLoading } = useQuery(userQueries.blocks(userId));
   const { data: strikes, isLoading: strikesLoading } = useQuery(userQueries.strikes(userId));
+  const { data: wallets } = useQuery(walletQueries.byUser(userId));
+  const walletId = wallets?.[0]?.id;
+  const { data: balance, isLoading: balanceLoading } = useQuery({
+    ...walletQueries.balance(walletId ?? ""),
+    enabled: !!walletId,
+  });
 
+  const [debitOpen, setDebitOpen] = useState(false);
   const [blockOpen, setBlockOpen] = useState(false);
   const [blockType, setBlockType] = useState<"Temporary" | "Permanent">("Temporary");
   const [blockDuration, setBlockDuration] = useState("24");
@@ -152,6 +164,45 @@ function UserDetail() {
           {user.oldUserId && <Row k="Legacy ID"><span className="font-mono text-xs">{user.oldUserId}</span></Row>}
         </Panel>
       </div>
+
+      {/* Wallet */}
+      <Panel
+        title="Wallet"
+        action={
+          walletId && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setDebitOpen(true)}
+              disabled={balanceLoading || !balance}
+            >
+              Debit Wallet
+            </Button>
+          )
+        }
+      >
+        {!walletId ? (
+          <p className="text-sm text-muted-foreground">This user has no wallet yet.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <WalletStat
+              label="Current Balance"
+              loading={balanceLoading}
+              value={balance ? money(balance.availableBalance, balance.currency) : null}
+            />
+            <WalletStat
+              label="Holding Balance"
+              loading={balanceLoading}
+              value={balance ? money(balance.heldBalance, balance.currency) : null}
+            />
+            <WalletStat
+              label="Currency"
+              loading={balanceLoading}
+              value={balance?.currency ?? null}
+            />
+          </div>
+        )}
+      </Panel>
 
       {/* Strikes */}
       <Panel title="Strike History">
@@ -335,6 +386,15 @@ function UserDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DebitWalletDialog
+        walletId={debitOpen ? (walletId ?? null) : null}
+        userName={user.displayName}
+        currency={balance?.currency}
+        availableBalance={balance?.availableBalance}
+        open={debitOpen}
+        onOpenChange={setDebitOpen}
+      />
     </div>
   );
 }
@@ -364,6 +424,27 @@ function Row({ k, children }: { k: string; children: React.ReactNode }) {
     <div className="flex items-center justify-between gap-3 py-1.5 text-sm">
       <span className="text-muted-foreground">{k}</span>
       <span className="text-right">{children}</span>
+    </div>
+  );
+}
+
+function WalletStat({
+  label,
+  value,
+  loading,
+}: {
+  label: string;
+  value: string | null;
+  loading?: boolean;
+}) {
+  return (
+    <div className="rounded-lg border bg-secondary/30 px-3 py-2.5">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-1 font-mono text-sm font-semibold">
+        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : (value ?? "—")}
+      </p>
     </div>
   );
 }
