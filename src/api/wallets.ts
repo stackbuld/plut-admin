@@ -1,13 +1,14 @@
 import { queryOptions } from "@tanstack/react-query";
-import { apiGet, buildQs } from "./client";
+import { apiGet, apiPost, buildQs } from "./client";
 import type { PagedResult } from "./types";
 
 /**
  * Admin wallet endpoints. Verified live against `https://api-v2.plut.ng` (Administrator role):
  *
- *   GET /api/admin/Wallets?userId={userId}             -> AdminWallet[]   (resolve a user's wallets)
- *   GET /api/admin/Wallets/{walletId}/balance          -> AdminWalletBalance
- *   GET /api/admin/Wallets/{walletId}/transactions     -> PaginatedList<AdminWalletTransaction>
+ *   GET  /api/admin/Wallets?userId={userId}             -> AdminWallet[]   (resolve a user's wallets)
+ *   GET  /api/admin/Wallets/{walletId}/balance          -> AdminWalletBalance
+ *   GET  /api/admin/Wallets/{walletId}/transactions     -> PaginatedList<AdminWalletTransaction>
+ *   POST /api/admin/Wallets/{walletId}/debit            -> DebitWalletResult
  */
 
 // AdminWalletDto
@@ -50,6 +51,14 @@ export type AdminWalletTransaction = {
   completedAt: string | null;
 };
 
+// DebitWalletResult
+export type DebitWalletResult = {
+  ledgerTxId: string;
+  walletId: string;
+  balanceMinor: number;
+  transactionId: string;
+};
+
 export type ListWalletTxnsParams = {
   type?: string;
   status?: string;
@@ -79,6 +88,11 @@ export const listWalletTransactions = (walletId: string, p: ListWalletTxnsParams
     `/api/admin/Wallets/${walletId}/transactions${buildQs(params)}`,
   );
 };
+
+export const debitWallet = (
+  walletId: string,
+  body: { amount: number; currency: string; narration: string; idempotencyKey: string },
+) => apiPost<DebitWalletResult>(`/api/admin/Wallets/${walletId}/debit`, body);
 
 export const walletKeys = {
   all: () => ["admin", "wallets"] as const,
