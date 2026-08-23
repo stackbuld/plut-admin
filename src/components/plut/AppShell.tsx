@@ -27,6 +27,7 @@ import {
   Activity,
   Megaphone,
   Radio,
+  IdCard,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -34,7 +35,13 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
 import { useAuth } from "@/lib/auth";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { tradeQueries, withdrawalQueries, sourcingBadgeQueries, vasQueries } from "@/api";
+import {
+  tradeQueries,
+  withdrawalQueries,
+  sourcingBadgeQueries,
+  vasQueries,
+  kycQueries,
+} from "@/api";
 
 function usePendingCount() {
   const { data } = useQuery(tradeQueries.stats());
@@ -49,6 +56,11 @@ function usePendingWithdrawalsCount() {
 function useVasFailedCount() {
   const { data } = useQuery(vasQueries.dashboard());
   return data?.failedLast24h ?? 0;
+}
+
+function useKycUnsyncedCount() {
+  const { data } = useQuery(kycQueries.stats());
+  return data?.syncHealth.approvedCasesMissingPersonalInfo ?? 0;
 }
 
 type NavItem = {
@@ -241,6 +253,20 @@ function useVasNav(): NavItem[] {
       label: "Fraud & Security",
       icon: ShieldCheck,
       matchPrefix: "/admin/vas/security",
+    },
+  ];
+}
+
+function useKycNav(): NavItem[] {
+  const unsyncedCount = useKycUnsyncedCount();
+  return [
+    { to: "/admin/kyc/dashboard", label: "Dashboard", icon: LayoutGrid },
+    {
+      to: "/admin/kyc/cases",
+      label: "Cases",
+      icon: ArrowLeftRight,
+      badge: unsyncedCount || undefined,
+      matchPrefix: "/admin/kyc/cases",
     },
   ];
 }
@@ -462,11 +488,13 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
   const aiNav = useAiNav();
   const notificationsNav = useNotificationsNav();
   const vasNav = useVasNav();
+  const kycNav = useKycNav();
   const products: Product[] = [
     { id: "giftcards", label: "Giftcards", icon: Gift, items: giftcardNav },
     { id: "sourcing", label: "Sourcing", icon: Store, items: sourcingNav },
     { id: "wallets", label: "Wallets", icon: Wallet, items: walletsNav },
     { id: "vas", label: "VAS", icon: Smartphone, items: vasNav },
+    { id: "kyc", label: "KYC", icon: IdCard, items: kycNav },
     { id: "ai", label: "AI Assistant", icon: Sparkles, items: aiNav },
     { id: "observability", label: "Observability", icon: Activity, items: OBSERVABILITY_NAV },
     { id: "notifications", label: "Notifications", icon: Bell, items: notificationsNav },
@@ -508,6 +536,8 @@ function deriveTitle(pathname: string): string {
   if (pathname.startsWith("/admin/vas/employee-groups")) return "VAS Employee Groups";
   if (pathname.startsWith("/admin/vas/schedules")) return "VAS Schedules";
   if (pathname.startsWith("/admin/vas/security")) return "VAS Fraud & Security";
+  if (pathname.startsWith("/admin/kyc/dashboard")) return "KYC Overview";
+  if (pathname.startsWith("/admin/kyc/cases")) return "KYC Cases";
   return "Plut Admin";
 }
 

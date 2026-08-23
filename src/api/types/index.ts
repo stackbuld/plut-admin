@@ -8,3 +8,4 @@ export * from "./ai.types";
 export * from "./merchants.types";
 export * from "./sourcing.types";
 export * from "./vas.types";
+export * from "./kyc.types";
