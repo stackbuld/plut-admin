@@ -15,6 +15,7 @@ import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppAdminVasRouteImport } from './routes/_app.admin.vas'
 import { Route as AppAdminSourcingRouteImport } from './routes/_app.admin.sourcing'
+import { Route as AppAdminKycRouteImport } from './routes/_app.admin.kyc'
 import { Route as AppAdminSourcingIndexRouteImport } from './routes/_app.admin.sourcing.index'
 import { Route as AppAdminWalletsWithdrawalsRouteImport } from './routes/_app.admin.wallets.withdrawals'
 import { Route as AppAdminVasTransactionsRouteImport } from './routes/_app.admin.vas.transactions'
@@ -34,6 +35,8 @@ import { Route as AppAdminSourcingAwaitingRouteImport } from './routes/_app.admi
 import { Route as AppAdminSourcingAllocationsRouteImport } from './routes/_app.admin.sourcing.allocations'
 import { Route as AppAdminObservabilityCriticalErrorsRouteImport } from './routes/_app.admin.observability.critical-errors'
 import { Route as AppAdminNotificationsAnnouncementsRouteImport } from './routes/_app.admin.notifications.announcements'
+import { Route as AppAdminKycDashboardRouteImport } from './routes/_app.admin.kyc.dashboard'
+import { Route as AppAdminKycCasesRouteImport } from './routes/_app.admin.kyc.cases'
 import { Route as AppAdminGiftcardsUsersRouteImport } from './routes/_app.admin.giftcards.users'
 import { Route as AppAdminGiftcardsTradesRouteImport } from './routes/_app.admin.giftcards.trades'
 import { Route as AppAdminGiftcardsDashboardRouteImport } from './routes/_app.admin.giftcards.dashboard'
@@ -48,6 +51,7 @@ import { Route as AppAdminVasProvidersIndexRouteImport } from './routes/_app.adm
 import { Route as AppAdminVasEmployeeGroupsIndexRouteImport } from './routes/_app.admin.vas.employee-groups.index'
 import { Route as AppAdminVasCatalogIndexRouteImport } from './routes/_app.admin.vas.catalog.index'
 import { Route as AppAdminVasBulkPurchasesIndexRouteImport } from './routes/_app.admin.vas.bulk-purchases.index'
+import { Route as AppAdminKycCasesIndexRouteImport } from './routes/_app.admin.kyc.cases.index'
 import { Route as AppAdminGiftcardsCatalogIndexRouteImport } from './routes/_app.admin.giftcards.catalog.index'
 import { Route as AppAdminWalletsWithdrawalsAllRouteImport } from './routes/_app.admin.wallets.withdrawals.all'
 import { Route as AppAdminWalletsWithdrawalsWithdrawalIdRouteImport } from './routes/_app.admin.wallets.withdrawals.$withdrawalId'
@@ -57,6 +61,7 @@ import { Route as AppAdminVasProvidersProviderIdRouteImport } from './routes/_ap
 import { Route as AppAdminVasEmployeeGroupsGroupIdRouteImport } from './routes/_app.admin.vas.employee-groups.$groupId'
 import { Route as AppAdminVasCatalogCategoryIdRouteImport } from './routes/_app.admin.vas.catalog.$categoryId'
 import { Route as AppAdminVasBulkPurchasesBatchIdRouteImport } from './routes/_app.admin.vas.bulk-purchases.$batchId'
+import { Route as AppAdminKycCasesCaseIdRouteImport } from './routes/_app.admin.kyc.cases.$caseId'
 import { Route as AppAdminGiftcardsUsersUserIdRouteImport } from './routes/_app.admin.giftcards.users.$userId'
 import { Route as AppAdminGiftcardsTradesTradeIdRouteImport } from './routes/_app.admin.giftcards.trades.$tradeId'
 import { Route as AppAdminGiftcardsCatalogRatesRouteImport } from './routes/_app.admin.giftcards.catalog.rates'
@@ -96,6 +101,11 @@ const AppAdminVasRoute = AppAdminVasRouteImport.update({
 const AppAdminSourcingRoute = AppAdminSourcingRouteImport.update({
   id: '/admin/sourcing',
   path: '/admin/sourcing',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminKycRoute = AppAdminKycRouteImport.update({
+  id: '/admin/kyc',
+  path: '/admin/kyc',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAdminSourcingIndexRoute = AppAdminSourcingIndexRouteImport.update({
@@ -203,6 +213,16 @@ const AppAdminNotificationsAnnouncementsRoute =
     path: '/admin/notifications/announcements',
     getParentRoute: () => AppRoute,
   } as any)
+const AppAdminKycDashboardRoute = AppAdminKycDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppAdminKycRoute,
+} as any)
+const AppAdminKycCasesRoute = AppAdminKycCasesRouteImport.update({
+  id: '/cases',
+  path: '/cases',
+  getParentRoute: () => AppAdminKycRoute,
+} as any)
 const AppAdminGiftcardsUsersRoute = AppAdminGiftcardsUsersRouteImport.update({
   id: '/admin/giftcards/users',
   path: '/admin/giftcards/users',
@@ -281,6 +301,11 @@ const AppAdminVasBulkPurchasesIndexRoute =
     path: '/',
     getParentRoute: () => AppAdminVasBulkPurchasesRoute,
   } as any)
+const AppAdminKycCasesIndexRoute = AppAdminKycCasesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAdminKycCasesRoute,
+} as any)
 const AppAdminGiftcardsCatalogIndexRoute =
   AppAdminGiftcardsCatalogIndexRouteImport.update({
     id: '/',
@@ -335,6 +360,11 @@ const AppAdminVasBulkPurchasesBatchIdRoute =
     path: '/$batchId',
     getParentRoute: () => AppAdminVasBulkPurchasesRoute,
   } as any)
+const AppAdminKycCasesCaseIdRoute = AppAdminKycCasesCaseIdRouteImport.update({
+  id: '/$caseId',
+  path: '/$caseId',
+  getParentRoute: () => AppAdminKycCasesRoute,
+} as any)
 const AppAdminGiftcardsUsersUserIdRoute =
   AppAdminGiftcardsUsersUserIdRouteImport.update({
     id: '/$userId',
@@ -406,6 +436,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/admin/kyc': typeof AppAdminKycRouteWithChildren
   '/admin/sourcing': typeof AppAdminSourcingRouteWithChildren
   '/admin/vas': typeof AppAdminVasRouteWithChildren
   '/admin/ai/conversations': typeof AppAdminAiConversationsRouteWithChildren
@@ -415,6 +446,8 @@ export interface FileRoutesByFullPath {
   '/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
+  '/admin/kyc/cases': typeof AppAdminKycCasesRouteWithChildren
+  '/admin/kyc/dashboard': typeof AppAdminKycDashboardRoute
   '/admin/notifications/announcements': typeof AppAdminNotificationsAnnouncementsRoute
   '/admin/observability/critical-errors': typeof AppAdminObservabilityCriticalErrorsRoute
   '/admin/sourcing/allocations': typeof AppAdminSourcingAllocationsRoute
@@ -443,6 +476,7 @@ export interface FileRoutesByFullPath {
   '/admin/giftcards/catalog/rates': typeof AppAdminGiftcardsCatalogRatesRoute
   '/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
+  '/admin/kyc/cases/$caseId': typeof AppAdminKycCasesCaseIdRoute
   '/admin/vas/bulk-purchases/$batchId': typeof AppAdminVasBulkPurchasesBatchIdRoute
   '/admin/vas/catalog/$categoryId': typeof AppAdminVasCatalogCategoryIdRouteWithChildren
   '/admin/vas/employee-groups/$groupId': typeof AppAdminVasEmployeeGroupsGroupIdRoute
@@ -452,6 +486,7 @@ export interface FileRoutesByFullPath {
   '/admin/wallets/withdrawals/$withdrawalId': typeof AppAdminWalletsWithdrawalsWithdrawalIdRoute
   '/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
   '/admin/giftcards/catalog/': typeof AppAdminGiftcardsCatalogIndexRoute
+  '/admin/kyc/cases/': typeof AppAdminKycCasesIndexRoute
   '/admin/vas/bulk-purchases/': typeof AppAdminVasBulkPurchasesIndexRoute
   '/admin/vas/catalog/': typeof AppAdminVasCatalogIndexRoute
   '/admin/vas/employee-groups/': typeof AppAdminVasEmployeeGroupsIndexRoute
@@ -466,6 +501,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/': typeof AppIndexRoute
+  '/admin/kyc': typeof AppAdminKycRouteWithChildren
   '/admin/vas': typeof AppAdminVasRouteWithChildren
   '/admin/ai/conversations': typeof AppAdminAiConversationsRouteWithChildren
   '/admin/ai/dashboard': typeof AppAdminAiDashboardRoute
@@ -473,6 +509,7 @@ export interface FileRoutesByTo {
   '/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
+  '/admin/kyc/dashboard': typeof AppAdminKycDashboardRoute
   '/admin/notifications/announcements': typeof AppAdminNotificationsAnnouncementsRoute
   '/admin/observability/critical-errors': typeof AppAdminObservabilityCriticalErrorsRoute
   '/admin/sourcing/allocations': typeof AppAdminSourcingAllocationsRoute
@@ -494,6 +531,7 @@ export interface FileRoutesByTo {
   '/admin/giftcards/catalog/rates': typeof AppAdminGiftcardsCatalogRatesRoute
   '/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
+  '/admin/kyc/cases/$caseId': typeof AppAdminKycCasesCaseIdRoute
   '/admin/vas/bulk-purchases/$batchId': typeof AppAdminVasBulkPurchasesBatchIdRoute
   '/admin/vas/catalog/$categoryId': typeof AppAdminVasCatalogCategoryIdRouteWithChildren
   '/admin/vas/employee-groups/$groupId': typeof AppAdminVasEmployeeGroupsGroupIdRoute
@@ -503,6 +541,7 @@ export interface FileRoutesByTo {
   '/admin/wallets/withdrawals/$withdrawalId': typeof AppAdminWalletsWithdrawalsWithdrawalIdRoute
   '/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
   '/admin/giftcards/catalog': typeof AppAdminGiftcardsCatalogIndexRoute
+  '/admin/kyc/cases': typeof AppAdminKycCasesIndexRoute
   '/admin/vas/bulk-purchases': typeof AppAdminVasBulkPurchasesIndexRoute
   '/admin/vas/catalog': typeof AppAdminVasCatalogIndexRoute
   '/admin/vas/employee-groups': typeof AppAdminVasEmployeeGroupsIndexRoute
@@ -519,6 +558,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/admin/kyc': typeof AppAdminKycRouteWithChildren
   '/_app/admin/sourcing': typeof AppAdminSourcingRouteWithChildren
   '/_app/admin/vas': typeof AppAdminVasRouteWithChildren
   '/_app/admin/ai/conversations': typeof AppAdminAiConversationsRouteWithChildren
@@ -528,6 +568,8 @@ export interface FileRoutesById {
   '/_app/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/_app/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
   '/_app/admin/giftcards/users': typeof AppAdminGiftcardsUsersRouteWithChildren
+  '/_app/admin/kyc/cases': typeof AppAdminKycCasesRouteWithChildren
+  '/_app/admin/kyc/dashboard': typeof AppAdminKycDashboardRoute
   '/_app/admin/notifications/announcements': typeof AppAdminNotificationsAnnouncementsRoute
   '/_app/admin/observability/critical-errors': typeof AppAdminObservabilityCriticalErrorsRoute
   '/_app/admin/sourcing/allocations': typeof AppAdminSourcingAllocationsRoute
@@ -556,6 +598,7 @@ export interface FileRoutesById {
   '/_app/admin/giftcards/catalog/rates': typeof AppAdminGiftcardsCatalogRatesRoute
   '/_app/admin/giftcards/trades/$tradeId': typeof AppAdminGiftcardsTradesTradeIdRoute
   '/_app/admin/giftcards/users/$userId': typeof AppAdminGiftcardsUsersUserIdRoute
+  '/_app/admin/kyc/cases/$caseId': typeof AppAdminKycCasesCaseIdRoute
   '/_app/admin/vas/bulk-purchases/$batchId': typeof AppAdminVasBulkPurchasesBatchIdRoute
   '/_app/admin/vas/catalog/$categoryId': typeof AppAdminVasCatalogCategoryIdRouteWithChildren
   '/_app/admin/vas/employee-groups/$groupId': typeof AppAdminVasEmployeeGroupsGroupIdRoute
@@ -565,6 +608,7 @@ export interface FileRoutesById {
   '/_app/admin/wallets/withdrawals/$withdrawalId': typeof AppAdminWalletsWithdrawalsWithdrawalIdRoute
   '/_app/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
   '/_app/admin/giftcards/catalog/': typeof AppAdminGiftcardsCatalogIndexRoute
+  '/_app/admin/kyc/cases/': typeof AppAdminKycCasesIndexRoute
   '/_app/admin/vas/bulk-purchases/': typeof AppAdminVasBulkPurchasesIndexRoute
   '/_app/admin/vas/catalog/': typeof AppAdminVasCatalogIndexRoute
   '/_app/admin/vas/employee-groups/': typeof AppAdminVasEmployeeGroupsIndexRoute
@@ -581,6 +625,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/auth/callback'
+    | '/admin/kyc'
     | '/admin/sourcing'
     | '/admin/vas'
     | '/admin/ai/conversations'
@@ -590,6 +635,8 @@ export interface FileRouteTypes {
     | '/admin/giftcards/dashboard'
     | '/admin/giftcards/trades'
     | '/admin/giftcards/users'
+    | '/admin/kyc/cases'
+    | '/admin/kyc/dashboard'
     | '/admin/notifications/announcements'
     | '/admin/observability/critical-errors'
     | '/admin/sourcing/allocations'
@@ -618,6 +665,7 @@ export interface FileRouteTypes {
     | '/admin/giftcards/catalog/rates'
     | '/admin/giftcards/trades/$tradeId'
     | '/admin/giftcards/users/$userId'
+    | '/admin/kyc/cases/$caseId'
     | '/admin/vas/bulk-purchases/$batchId'
     | '/admin/vas/catalog/$categoryId'
     | '/admin/vas/employee-groups/$groupId'
@@ -627,6 +675,7 @@ export interface FileRouteTypes {
     | '/admin/wallets/withdrawals/$withdrawalId'
     | '/admin/wallets/withdrawals/all'
     | '/admin/giftcards/catalog/'
+    | '/admin/kyc/cases/'
     | '/admin/vas/bulk-purchases/'
     | '/admin/vas/catalog/'
     | '/admin/vas/employee-groups/'
@@ -641,6 +690,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/auth/callback'
     | '/'
+    | '/admin/kyc'
     | '/admin/vas'
     | '/admin/ai/conversations'
     | '/admin/ai/dashboard'
@@ -648,6 +698,7 @@ export interface FileRouteTypes {
     | '/admin/giftcards/dashboard'
     | '/admin/giftcards/trades'
     | '/admin/giftcards/users'
+    | '/admin/kyc/dashboard'
     | '/admin/notifications/announcements'
     | '/admin/observability/critical-errors'
     | '/admin/sourcing/allocations'
@@ -669,6 +720,7 @@ export interface FileRouteTypes {
     | '/admin/giftcards/catalog/rates'
     | '/admin/giftcards/trades/$tradeId'
     | '/admin/giftcards/users/$userId'
+    | '/admin/kyc/cases/$caseId'
     | '/admin/vas/bulk-purchases/$batchId'
     | '/admin/vas/catalog/$categoryId'
     | '/admin/vas/employee-groups/$groupId'
@@ -678,6 +730,7 @@ export interface FileRouteTypes {
     | '/admin/wallets/withdrawals/$withdrawalId'
     | '/admin/wallets/withdrawals/all'
     | '/admin/giftcards/catalog'
+    | '/admin/kyc/cases'
     | '/admin/vas/bulk-purchases'
     | '/admin/vas/catalog'
     | '/admin/vas/employee-groups'
@@ -693,6 +746,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/auth/callback'
     | '/_app/'
+    | '/_app/admin/kyc'
     | '/_app/admin/sourcing'
     | '/_app/admin/vas'
     | '/_app/admin/ai/conversations'
@@ -702,6 +756,8 @@ export interface FileRouteTypes {
     | '/_app/admin/giftcards/dashboard'
     | '/_app/admin/giftcards/trades'
     | '/_app/admin/giftcards/users'
+    | '/_app/admin/kyc/cases'
+    | '/_app/admin/kyc/dashboard'
     | '/_app/admin/notifications/announcements'
     | '/_app/admin/observability/critical-errors'
     | '/_app/admin/sourcing/allocations'
@@ -730,6 +786,7 @@ export interface FileRouteTypes {
     | '/_app/admin/giftcards/catalog/rates'
     | '/_app/admin/giftcards/trades/$tradeId'
     | '/_app/admin/giftcards/users/$userId'
+    | '/_app/admin/kyc/cases/$caseId'
     | '/_app/admin/vas/bulk-purchases/$batchId'
     | '/_app/admin/vas/catalog/$categoryId'
     | '/_app/admin/vas/employee-groups/$groupId'
@@ -739,6 +796,7 @@ export interface FileRouteTypes {
     | '/_app/admin/wallets/withdrawals/$withdrawalId'
     | '/_app/admin/wallets/withdrawals/all'
     | '/_app/admin/giftcards/catalog/'
+    | '/_app/admin/kyc/cases/'
     | '/_app/admin/vas/bulk-purchases/'
     | '/_app/admin/vas/catalog/'
     | '/_app/admin/vas/employee-groups/'
@@ -798,6 +856,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/sourcing'
       fullPath: '/admin/sourcing'
       preLoaderRoute: typeof AppAdminSourcingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/kyc': {
+      id: '/_app/admin/kyc'
+      path: '/admin/kyc'
+      fullPath: '/admin/kyc'
+      preLoaderRoute: typeof AppAdminKycRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/admin/sourcing/': {
@@ -933,6 +998,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminNotificationsAnnouncementsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/kyc/dashboard': {
+      id: '/_app/admin/kyc/dashboard'
+      path: '/dashboard'
+      fullPath: '/admin/kyc/dashboard'
+      preLoaderRoute: typeof AppAdminKycDashboardRouteImport
+      parentRoute: typeof AppAdminKycRoute
+    }
+    '/_app/admin/kyc/cases': {
+      id: '/_app/admin/kyc/cases'
+      path: '/cases'
+      fullPath: '/admin/kyc/cases'
+      preLoaderRoute: typeof AppAdminKycCasesRouteImport
+      parentRoute: typeof AppAdminKycRoute
+    }
     '/_app/admin/giftcards/users': {
       id: '/_app/admin/giftcards/users'
       path: '/admin/giftcards/users'
@@ -1031,6 +1110,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminVasBulkPurchasesIndexRouteImport
       parentRoute: typeof AppAdminVasBulkPurchasesRoute
     }
+    '/_app/admin/kyc/cases/': {
+      id: '/_app/admin/kyc/cases/'
+      path: '/'
+      fullPath: '/admin/kyc/cases/'
+      preLoaderRoute: typeof AppAdminKycCasesIndexRouteImport
+      parentRoute: typeof AppAdminKycCasesRoute
+    }
     '/_app/admin/giftcards/catalog/': {
       id: '/_app/admin/giftcards/catalog/'
       path: '/'
@@ -1093,6 +1179,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/vas/bulk-purchases/$batchId'
       preLoaderRoute: typeof AppAdminVasBulkPurchasesBatchIdRouteImport
       parentRoute: typeof AppAdminVasBulkPurchasesRoute
+    }
+    '/_app/admin/kyc/cases/$caseId': {
+      id: '/_app/admin/kyc/cases/$caseId'
+      path: '/$caseId'
+      fullPath: '/admin/kyc/cases/$caseId'
+      preLoaderRoute: typeof AppAdminKycCasesCaseIdRouteImport
+      parentRoute: typeof AppAdminKycCasesRoute
     }
     '/_app/admin/giftcards/users/$userId': {
       id: '/_app/admin/giftcards/users/$userId'
@@ -1173,6 +1266,33 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AppAdminKycCasesRouteChildren {
+  AppAdminKycCasesCaseIdRoute: typeof AppAdminKycCasesCaseIdRoute
+  AppAdminKycCasesIndexRoute: typeof AppAdminKycCasesIndexRoute
+}
+
+const AppAdminKycCasesRouteChildren: AppAdminKycCasesRouteChildren = {
+  AppAdminKycCasesCaseIdRoute: AppAdminKycCasesCaseIdRoute,
+  AppAdminKycCasesIndexRoute: AppAdminKycCasesIndexRoute,
+}
+
+const AppAdminKycCasesRouteWithChildren =
+  AppAdminKycCasesRoute._addFileChildren(AppAdminKycCasesRouteChildren)
+
+interface AppAdminKycRouteChildren {
+  AppAdminKycCasesRoute: typeof AppAdminKycCasesRouteWithChildren
+  AppAdminKycDashboardRoute: typeof AppAdminKycDashboardRoute
+}
+
+const AppAdminKycRouteChildren: AppAdminKycRouteChildren = {
+  AppAdminKycCasesRoute: AppAdminKycCasesRouteWithChildren,
+  AppAdminKycDashboardRoute: AppAdminKycDashboardRoute,
+}
+
+const AppAdminKycRouteWithChildren = AppAdminKycRoute._addFileChildren(
+  AppAdminKycRouteChildren,
+)
 
 interface AppAdminSourcingRouteChildren {
   AppAdminSourcingAllocationsRoute: typeof AppAdminSourcingAllocationsRoute
@@ -1437,6 +1557,7 @@ const AppAdminWalletsWithdrawalsRouteWithChildren =
 
 interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
+  AppAdminKycRoute: typeof AppAdminKycRouteWithChildren
   AppAdminSourcingRoute: typeof AppAdminSourcingRouteWithChildren
   AppAdminVasRoute: typeof AppAdminVasRouteWithChildren
   AppAdminAiConversationsRoute: typeof AppAdminAiConversationsRouteWithChildren
@@ -1453,6 +1574,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
+  AppAdminKycRoute: AppAdminKycRouteWithChildren,
   AppAdminSourcingRoute: AppAdminSourcingRouteWithChildren,
   AppAdminVasRoute: AppAdminVasRouteWithChildren,
   AppAdminAiConversationsRoute: AppAdminAiConversationsRouteWithChildren,

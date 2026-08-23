@@ -12,3 +12,4 @@ export * from "./notifications";
 export * from "./merchants";
 export * from "./sourcing";
 export * from "./vas";
+export * from "./kyc";
