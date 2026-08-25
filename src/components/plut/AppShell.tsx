@@ -43,6 +43,13 @@ import {
   kycQueries,
 } from "@/api";
 
+// No dedicated summary/count endpoint exists yet for crypto sub-accounts (unlike withdrawals'
+// /summary, VAS's /dashboard, or KYC's /stats) — every other nav badge in this file is backed by
+// one of those. Rather than invent a new badge-count mechanism (e.g. abusing the paged list
+// endpoint's totalCount with a pageSize=1 call, which also couldn't accurately reflect
+// "Failed operation status" since that isn't a filterable query param), the Crypto nav item ships
+// without a badge for now.
+
 function usePendingCount() {
   const { data } = useQuery(tradeQueries.stats());
   return data?.pendingReview ?? 0;
@@ -253,6 +260,17 @@ function useVasNav(): NavItem[] {
       label: "Fraud & Security",
       icon: ShieldCheck,
       matchPrefix: "/admin/vas/security",
+    },
+  ];
+}
+
+function useCryptoNav(): NavItem[] {
+  return [
+    {
+      to: "/admin/crypto/subaccounts",
+      label: "Sub-Accounts",
+      icon: Bitcoin,
+      matchPrefix: "/admin/crypto/subaccounts",
     },
   ];
 }
@@ -489,16 +507,17 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
   const notificationsNav = useNotificationsNav();
   const vasNav = useVasNav();
   const kycNav = useKycNav();
+  const cryptoNav = useCryptoNav();
   const products: Product[] = [
     { id: "giftcards", label: "Giftcards", icon: Gift, items: giftcardNav },
     { id: "sourcing", label: "Sourcing", icon: Store, items: sourcingNav },
     { id: "wallets", label: "Wallets", icon: Wallet, items: walletsNav },
     { id: "vas", label: "VAS", icon: Smartphone, items: vasNav },
     { id: "kyc", label: "KYC", icon: IdCard, items: kycNav },
+    { id: "crypto", label: "Crypto", icon: Bitcoin, items: cryptoNav },
     { id: "ai", label: "AI Assistant", icon: Sparkles, items: aiNav },
     { id: "observability", label: "Observability", icon: Activity, items: OBSERVABILITY_NAV },
     { id: "notifications", label: "Notifications", icon: Bell, items: notificationsNav },
-    { id: "crypto", label: "Crypto", icon: Bitcoin, comingSoon: true },
   ];
   return (
     <div className="flex h-full flex-col">
@@ -538,6 +557,7 @@ function deriveTitle(pathname: string): string {
   if (pathname.startsWith("/admin/vas/security")) return "VAS Fraud & Security";
   if (pathname.startsWith("/admin/kyc/dashboard")) return "KYC Overview";
   if (pathname.startsWith("/admin/kyc/cases")) return "KYC Cases";
+  if (pathname.startsWith("/admin/crypto/subaccounts")) return "Crypto Sub-Accounts";
   return "Plut Admin";
 }
 

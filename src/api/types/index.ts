@@ -9,3 +9,4 @@ export * from "./merchants.types";
 export * from "./sourcing.types";
 export * from "./vas.types";
 export * from "./kyc.types";
+export * from "./crypto.types";

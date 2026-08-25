@@ -13,3 +13,4 @@ export * from "./merchants";
 export * from "./sourcing";
 export * from "./vas";
 export * from "./kyc";
+export * from "./crypto";
