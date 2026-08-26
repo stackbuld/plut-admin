@@ -19,6 +19,10 @@ const STATUS_STYLES: Record<KycStatus, { label: string; className: string }> = {
     label: "Rejected",
     className: "bg-destructive/15 text-destructive ring-1 ring-destructive/30",
   },
+  Reset: {
+    label: "Reset",
+    className: "bg-purple-500/15 text-purple-600 dark:text-purple-400 ring-1 ring-purple-500/30",
+  },
 };
 
 export function KycCaseStatusBadge({

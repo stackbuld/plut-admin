@@ -2,7 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { format } from "date-fns";
-import { AlertCircle, CheckCircle2, Clock, Loader2, RefreshCw, UserX, XCircle } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  RefreshCw,
+  RotateCcw,
+  UserX,
+  XCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -46,8 +55,8 @@ function KycDashboard() {
       </div>
 
       {isLoading || !data ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="h-32 animate-pulse rounded-2xl border bg-card" />
           ))}
         </div>
@@ -57,7 +66,7 @@ function KycDashboard() {
             <h3 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               Status
             </h3>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
               <StatCard label="Not Started" value={String(data.byStatus.notStarted)} icon={UserX} />
               <StatCard
                 label="Pending"
@@ -71,6 +80,7 @@ function KycDashboard() {
                 icon={CheckCircle2}
               />
               <StatCard label="Rejected" value={String(data.byStatus.rejected)} icon={XCircle} />
+              <StatCard label="Reset" value={String(data.byStatus.reset)} icon={RotateCcw} />
             </div>
           </div>
 

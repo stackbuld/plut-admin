@@ -1,5 +1,9 @@
-const BASE_URL = "https://api-v2.plut.ng";
-// const BASE_URL = "http://localhost:9090";
+// VITE_API_BASE_URL is read at build time (see .env.example) — falls back to production so an
+// environment that doesn't set it (e.g. a deploy that hasn't been updated yet) keeps working.
+// Exported for the handful of call sites (login/auth-callback bootstrap) that fetch() directly
+// instead of going through apiGet/apiPost — they use an OAuth-flow bearer token, not the stored
+// session, so they can't reuse request()/requestRaw() themselves, but should still hit the same host.
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api-v2.plut.ng";
 
 const SESSION_KEY = "plut-session";
 

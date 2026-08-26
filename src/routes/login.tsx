@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { beginLogin, parseIdToken, isAdmin } from "@/lib/zitadel";
+import { BASE_URL } from "@/api/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -80,7 +81,7 @@ function LoginPage() {
       let backendEmail: string | null = null;
       let backendName: string | null = null;
       try {
-        const res = await fetch("https://api-v2.plut.ng/api/v1/users/bootstrap", {
+        const res = await fetch(`${BASE_URL}/api/v1/users/bootstrap`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${accessToken}`,
