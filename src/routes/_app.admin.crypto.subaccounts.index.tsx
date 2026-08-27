@@ -180,7 +180,8 @@ function Row({ a }: { a: AdminCryptoSubAccountSummary }) {
             {attention && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
           </div>
           <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-            {a.exchangeSubAccountId} · {a.status}
+            {a.exchangeSubAccountId} ·{" "}
+            {a.status === "PendingProvisioning" ? "Pending provisioning" : a.status}
           </p>
           {a.binanceKycRequestNo && (
             <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">

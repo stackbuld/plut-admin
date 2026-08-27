@@ -8,8 +8,10 @@
 // PascalCase field names (not upper-snake), and the summary/detail DTOs use `Status`/
 // `LatestOperationStatus` rather than the doc's guessed `operationStatus`/`failedStep`.
 
-/** The sub-account's own lifecycle status (crypto-service's, not Binance's). */
-export type CryptoSubAccountStatus = "Active" | "Frozen" | "Suspended";
+/** The sub-account's own lifecycle status (crypto-service's, not Binance's). "PendingProvisioning"
+ * is not a real persisted status — the backend synthesizes it when a Binance sub-account was
+ * created but provisioning failed on a later step, before a CryptoSubAccount row ever existed. */
+export type CryptoSubAccountStatus = "Active" | "Frozen" | "Suspended" | "PendingProvisioning";
 
 /** Where this user's KYC data stands with Binance. NotSubmitted/Submitted are normal, expected
  * "no outcome yet" states — not errors. */

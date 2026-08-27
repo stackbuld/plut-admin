@@ -15,11 +15,15 @@ import { UserRef } from "@/components/plut/UserSummaryModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDateTime, truncId } from "@/lib/format";
 
-// crypto-service returns 404 / CRYPTO_SUBACCOUNT_NOT_FOUND when a user has no sub-account row yet
-// (e.g. their provisioning attempt failed before a sub-account was ever created) — a NORMAL,
-// expected state, not a crash-worthy error. See src/api/client.ts: the fetcher throws
-// Error(envelope.message), and this codebase's convention (see ApproveWithdrawalDialog's
-// mapApproveError) is that `message` carries the backend's short error code, not prose.
+// crypto-service returns 404 / CRYPTO_SUBACCOUNT_NOT_FOUND only when this user's provisioning
+// operation never even got as far as creating a Binance sub-account (CreateSubAccountStep itself
+// hasn't succeeded) — a NORMAL, expected state, not a crash-worthy error. If CreateSubAccountStep
+// DID succeed but a later step failed, the backend instead returns a synthesized 200 with
+// status: "PendingProvisioning" (real exchangeSubAccountId, no CryptoSubAccount row persisted yet)
+// so that case renders through the normal success path below, not this 404 branch. See
+// src/api/client.ts: the fetcher throws Error(envelope.message), and this codebase's convention
+// (see ApproveWithdrawalDialog's mapApproveError) is that `message` carries the backend's short
+// error code, not prose.
 const NOT_FOUND_CODE = "CRYPTO_SUBACCOUNT_NOT_FOUND";
 
 export const Route = createFileRoute("/_app/admin/crypto/subaccounts/$userId")({
@@ -67,9 +71,8 @@ function CryptoSubAccountDetail() {
               <SearchX className="mx-auto h-8 w-8 text-muted-foreground" />
               <p className="mt-3 text-sm font-semibold">No sub-account yet</p>
               <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-                This user doesn't have a Binance sub-account row yet — their provisioning attempt
-                may have failed before one was ever created. Check the Operations admin view for
-                diagnostics, or retry provisioning below.
+                This user doesn't have a Binance sub-account — their provisioning attempt hasn't
+                gotten far enough to create one yet, or hasn't started. Retry provisioning below.
               </p>
               <div className="mt-4 flex justify-center">
                 <OperationActions userId={userId} />
@@ -102,7 +105,7 @@ function CryptoSubAccountDetail() {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-foreground">
-                {a.status}
+                {a.status === "PendingProvisioning" ? "Pending provisioning" : a.status}
               </span>
               <BinanceKycStatusBadge status={a.kycShareStatus} />
             </div>
