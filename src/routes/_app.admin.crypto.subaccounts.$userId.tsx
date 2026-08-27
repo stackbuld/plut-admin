@@ -6,6 +6,10 @@ import type { CryptoOperationStepDto } from "@/api/types/crypto.types";
 import { OperationStatusBadge } from "@/components/plut/crypto/OperationStatusBadge";
 import { BinanceKycStatusBadge } from "@/components/plut/crypto/BinanceKycStatusBadge";
 import { OperationActions, canRetryKycShare } from "@/components/plut/crypto/OperationActions";
+import {
+  RefreshBinanceKycStatusButton,
+  canRefreshBinanceKycStatus,
+} from "@/components/plut/crypto/RefreshBinanceKycStatusButton";
 import { KycAdequacyPanel } from "@/components/plut/crypto/KycAdequacyPanel";
 import { UserRef } from "@/components/plut/UserSummaryModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -159,9 +163,14 @@ function KycSharingPanel({ userId }: { userId: string }) {
   return (
     <div className="mt-2 space-y-4">
       <section className="rounded-2xl border bg-card p-5">
-        <h3 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          Binance Status
-        </h3>
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            Binance Status
+          </h3>
+          {canRefreshBinanceKycStatus(a.kycShareStatus) && (
+            <RefreshBinanceKycStatusButton userId={userId} />
+          )}
+        </div>
         {/* Every field below beyond the operation's own step data may be null/stale until the
             async Binance webhook (05-WEBHOOK_AND_ASYNC_STATUS.md) is wired up. */}
         <div className="divide-y divide-border rounded-lg border bg-background">

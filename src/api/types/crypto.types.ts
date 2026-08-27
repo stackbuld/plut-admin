@@ -104,3 +104,13 @@ export type CryptoSubAccountRetryResult = {
   exchangeSubAccountId: string;
   exchangeSubAccountRef: string;
 };
+
+// ── POST /api/crypto/admin/CryptoSubAccounts/{userId}/refetch-kyc-status ────
+
+/** kycStatus is null when Binance answered but has no status yet to report — the existing stored
+ * record is left untouched in that case, so refetch the detail query regardless either way. */
+export type RefetchBinanceKycStatusResult = {
+  kycStatus: string | null;
+  failReason: string | null;
+  updatedAt: string;
+};

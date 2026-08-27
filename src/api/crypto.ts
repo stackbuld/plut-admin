@@ -6,6 +6,7 @@ import type {
   CryptoKycAdequacyResult,
   CryptoSubAccountRetryResult,
   ListCryptoSubAccountsParams,
+  RefetchBinanceKycStatusResult,
 } from "./types/crypto.types";
 import type { PagedResult } from "./types";
 
@@ -38,6 +39,11 @@ export const getCryptoKycAdequacy = (userId: string) =>
  * the existing row unchanged in the latter case) — no need to distinguish those cases client-side. */
 export const retryCryptoKycShare = (userId: string) =>
   apiPost<CryptoSubAccountRetryResult>(`${BASE}/${userId}/retry-kyc-share`);
+
+/** Queries Binance directly rather than waiting for the async notifyUrl webhook — fails with
+ * CRYPTO_KYC_NOT_YET_SHARED if this user's KYC has never been submitted to Binance at all. */
+export const refetchBinanceKycStatus = (userId: string) =>
+  apiPost<RefetchBinanceKycStatusResult>(`${BASE}/${userId}/refetch-kyc-status`);
 
 // ── Query keys & options ─────────────────────────────────────────────────────
 
