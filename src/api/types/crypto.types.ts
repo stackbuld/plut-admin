@@ -116,3 +116,38 @@ export type RefetchBinanceKycStatusResult = {
   failReason: string | null;
   updatedAt: string;
 };
+
+// ── Operations Explorer — GET /api/crypto/admin/Operations/* ───────────────
+// Generic, cross-cutting view over every Multi-Step Operation in crypto-service (sub-account
+// provisioning, withdrawal submission, Buy/Sell/Swap settlement all run through the same
+// framework). See docs/wallet-service-docs/crypto-wallet/admin-console/09-OPERATIONS_EXPLORER.md.
+// `CryptoOperationDetailDto` above already matches this endpoint's detail shape exactly
+// (id/operationType/entityRef/status/createdAt/completedAt/steps) — reused as-is rather than
+// duplicated.
+
+/** Values confirmed against `CryptoOperationType` (crypto-service Domain/Enums/Enums.cs). */
+export type CryptoOperationType =
+  | "BinanceSubAccountProvisioning"
+  | "BinanceWithdrawalSubmission"
+  | "CryptoBuySettlement"
+  | "CryptoSellSettlement"
+  | "CryptoSwapTwoLegExecution";
+
+export type ListCryptoOperationsParams = {
+  type?: CryptoOperationType;
+  status?: CryptoOperationStatus;
+  page?: number;
+  pageSize?: number;
+};
+
+export type CryptoOperationSummaryDto = {
+  id: string;
+  operationType: string;
+  entityRef: string;
+  status: CryptoOperationStatus;
+  createdAt: string;
+  completedAt: string | null;
+  /** Only populated when status is "Failed" — the most recently updated failed step's name. */
+  failedStep: string | null;
+};
+

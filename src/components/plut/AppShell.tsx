@@ -41,14 +41,31 @@ import {
   sourcingBadgeQueries,
   vasQueries,
   kycQueries,
+  cryptoDepositQueries,
 } from "@/api";
+import { cryptoWithdrawalQueries } from "@/api/crypto-withdrawals";
+import { cryptoOperationQueries } from "@/api/crypto-operations";
 
-// No dedicated summary/count endpoint exists yet for crypto sub-accounts (unlike withdrawals'
-// /summary, VAS's /dashboard, or KYC's /stats) — every other nav badge in this file is backed by
-// one of those. Rather than invent a new badge-count mechanism (e.g. abusing the paged list
-// endpoint's totalCount with a pageSize=1 call, which also couldn't accurately reflect
-// "Failed operation status" since that isn't a filterable query param), the Crypto nav item ships
-// without a badge for now.
+// No dedicated summary/count endpoint exists for crypto sub-accounts specifically (unlike
+// withdrawals' /summary, VAS's /dashboard, or KYC's /stats) — that nav item ships without a badge.
+// The other crypto nav items below now have real badge sources: crypto withdrawals' own
+// pendingOnly=true list, Operations' failedCount() (a pageSize=1 call added specifically for this),
+// and Deposits' unresolved-only default list.
+
+function useCryptoPendingWithdrawalsCount() {
+  const { data } = useQuery(cryptoWithdrawalQueries.list({ pendingOnly: true }));
+  return data?.length ?? 0;
+}
+
+function useCryptoFailedOperationsCount() {
+  const { data } = useQuery(cryptoOperationQueries.failedCount());
+  return data?.totalCount ?? 0;
+}
+
+function useCryptoUnmatchedDepositsCount() {
+  const { data } = useQuery(cryptoDepositQueries.unmatchedList());
+  return data?.length ?? 0;
+}
 
 function usePendingCount() {
   const { data } = useQuery(tradeQueries.stats());
@@ -264,13 +281,86 @@ function useVasNav(): NavItem[] {
   ];
 }
 
+const CRYPTO_PRICING_CHILDREN: { to: string; label: string }[] = [
+  { to: "/admin/crypto/pricing/fees", label: "Fees & Spread" },
+  { to: "/admin/crypto/pricing/fx-rates", label: "FX Rates" },
+];
+
 function useCryptoNav(): NavItem[] {
+  const pendingWd = useCryptoPendingWithdrawalsCount();
+  const failedOps = useCryptoFailedOperationsCount();
+  const unmatchedDeposits = useCryptoUnmatchedDepositsCount();
   return [
+    { to: "/admin/crypto/dashboard", label: "Dashboard", icon: LayoutGrid },
     {
       to: "/admin/crypto/subaccounts",
       label: "Sub-Accounts",
       icon: Bitcoin,
       matchPrefix: "/admin/crypto/subaccounts",
+    },
+    {
+      to: "/admin/crypto/wallets",
+      label: "Wallets & Users",
+      icon: Users,
+      matchPrefix: "/admin/crypto/wallets",
+    },
+    {
+      to: "/admin/crypto/deposits",
+      label: "Deposits",
+      icon: Banknote,
+      badge: unmatchedDeposits || undefined,
+      matchPrefix: "/admin/crypto/deposits",
+    },
+    {
+      to: "/admin/crypto/withdrawals",
+      label: "Withdrawals",
+      icon: ArrowLeftRight,
+      badge: pendingWd || undefined,
+      matchPrefix: "/admin/crypto/withdrawals",
+    },
+    {
+      to: "/admin/crypto/transactions",
+      label: "Transactions",
+      icon: Clock,
+      matchPrefix: "/admin/crypto/transactions",
+    },
+    {
+      to: "/admin/crypto/pricing",
+      label: "Pricing",
+      icon: Coins,
+      matchPrefix: "/admin/crypto/pricing",
+      children: CRYPTO_PRICING_CHILDREN,
+    },
+    {
+      to: "/admin/crypto/assets",
+      label: "Assets & Networks",
+      icon: Network,
+      matchPrefix: "/admin/crypto/assets",
+    },
+    {
+      to: "/admin/crypto/operations",
+      label: "Operations",
+      icon: Activity,
+      badge: failedOps || undefined,
+      matchPrefix: "/admin/crypto/operations",
+    },
+    {
+      to: "/admin/crypto/treasury",
+      label: "Treasury",
+      icon: ShieldCheck,
+      matchPrefix: "/admin/crypto/treasury",
+    },
+    {
+      to: "/admin/crypto/revenue",
+      label: "Revenue",
+      icon: Sparkles,
+      matchPrefix: "/admin/crypto/revenue",
+    },
+    {
+      to: "/admin/crypto/system-health",
+      label: "System Health",
+      icon: Radio,
+      matchPrefix: "/admin/crypto/system-health",
     },
   ];
 }
@@ -557,7 +647,19 @@ function deriveTitle(pathname: string): string {
   if (pathname.startsWith("/admin/vas/security")) return "VAS Fraud & Security";
   if (pathname.startsWith("/admin/kyc/dashboard")) return "KYC Overview";
   if (pathname.startsWith("/admin/kyc/cases")) return "KYC Cases";
+  if (pathname.startsWith("/admin/crypto/dashboard")) return "Crypto Dashboard";
   if (pathname.startsWith("/admin/crypto/subaccounts")) return "Crypto Sub-Accounts";
+  if (pathname.startsWith("/admin/crypto/wallets")) return "Crypto Wallets & Users";
+  if (pathname.startsWith("/admin/crypto/deposits")) return "Crypto Deposits";
+  if (pathname.startsWith("/admin/crypto/withdrawals")) return "Crypto Withdrawals";
+  if (pathname.startsWith("/admin/crypto/transactions")) return "Crypto Transactions";
+  if (pathname.startsWith("/admin/crypto/pricing/fees")) return "Crypto Fees & Spread";
+  if (pathname.startsWith("/admin/crypto/pricing/fx-rates")) return "Crypto FX Rates";
+  if (pathname.startsWith("/admin/crypto/assets")) return "Crypto Assets & Networks";
+  if (pathname.startsWith("/admin/crypto/operations")) return "Crypto Operations";
+  if (pathname.startsWith("/admin/crypto/treasury")) return "Crypto Treasury";
+  if (pathname.startsWith("/admin/crypto/revenue")) return "Crypto Revenue";
+  if (pathname.startsWith("/admin/crypto/system-health")) return "Crypto System Health";
   return "Plut Admin";
 }
 

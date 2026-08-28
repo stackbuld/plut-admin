@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ArrowLeft, Loader2, SearchX } from "lucide-react";
 import { cryptoQueries } from "@/api/crypto";
-import type { CryptoOperationStepDto } from "@/api/types/crypto.types";
 import { OperationStatusBadge } from "@/components/plut/crypto/OperationStatusBadge";
 import { BinanceKycStatusBadge } from "@/components/plut/crypto/BinanceKycStatusBadge";
 import { OperationActions, canRetryKycShare } from "@/components/plut/crypto/OperationActions";
@@ -11,6 +10,7 @@ import {
   canRefreshBinanceKycStatus,
 } from "@/components/plut/crypto/RefreshBinanceKycStatusButton";
 import { KycAdequacyPanel } from "@/components/plut/crypto/KycAdequacyPanel";
+import { OperationStepTimeline } from "@/components/plut/crypto/OperationStepTimeline";
 import { UserRef } from "@/components/plut/UserSummaryModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDateTime, truncId } from "@/lib/format";
@@ -140,7 +140,11 @@ function CryptoSubAccountDetail() {
           <KycSharingPanel userId={userId} />
         </TabsContent>
         <TabsContent value="steps">
-          <StepTimelinePanel steps={a.latestOperation?.steps ?? []} />
+          <OperationStepTimeline
+            steps={a.latestOperation?.steps ?? []}
+            stepOrder={SUBACCOUNT_PROVISIONING_STEP_ORDER}
+            emptyMessage="No steps recorded yet — provisioning hasn't started, or no operation was found for this sub-account."
+          />
         </TabsContent>
       </Tabs>
 
@@ -200,71 +204,15 @@ function KycSharingPanel({ userId }: { userId: string }) {
   );
 }
 
-const STEP_ORDER = [
+// Steps run in this fixed order for BinanceSubAccountProvisioning specifically — see
+// OperationStepTimeline's `stepOrder` doc comment for why this isn't hardcoded into the shared
+// component itself (other operation types have different step sequences).
+const SUBACCOUNT_PROVISIONING_STEP_ORDER = [
   "CreateSubAccountStep",
   "ShareKycDataStep",
   "CreateApiKeyStep",
   "RestrictIpStep",
 ];
-
-function StepTimelinePanel({ steps }: { steps: CryptoOperationStepDto[] }) {
-  if (steps.length === 0) {
-    return (
-      <div className="mt-2 rounded-2xl border bg-card p-8 text-center text-sm text-muted-foreground">
-        No steps recorded yet — provisioning hasn't started, or no operation was found for this
-        sub-account.
-      </div>
-    );
-  }
-
-  const ordered = [...steps].sort(
-    (x, y) => STEP_ORDER.indexOf(x.stepName) - STEP_ORDER.indexOf(y.stepName),
-  );
-
-  return (
-    <ol className="mt-2 space-y-3">
-      {ordered.map((step, i) => (
-        <li key={step.stepName} className="rounded-2xl border bg-card p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-secondary text-[11px] font-bold text-muted-foreground">
-              {i + 1}
-            </span>
-            <span className="text-sm font-semibold">{step.stepName}</span>
-            <OperationStatusBadge status={step.status} />
-            <span className="ml-auto text-xs text-muted-foreground">
-              {step.attempts} attempt{step.attempts === 1 ? "" : "s"}
-            </span>
-          </div>
-
-          {step.error && (
-            <div className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-              {step.error}
-            </div>
-          )}
-
-          {step.output && (
-            <details className="mt-3">
-              <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">
-                Output
-              </summary>
-              <pre className="mt-2 max-h-80 overflow-auto rounded bg-secondary/60 p-2 text-[11px]">
-                {formatJson(step.output)}
-              </pre>
-            </details>
-          )}
-        </li>
-      ))}
-    </ol>
-  );
-}
-
-function formatJson(raw: string): string {
-  try {
-    return JSON.stringify(JSON.parse(raw), null, 2);
-  } catch {
-    return raw;
-  }
-}
 
 function Row({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (

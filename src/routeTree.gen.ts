@@ -42,7 +42,17 @@ import { Route as AppAdminGiftcardsTradesRouteImport } from './routes/_app.admin
 import { Route as AppAdminGiftcardsDashboardRouteImport } from './routes/_app.admin.giftcards.dashboard'
 import { Route as AppAdminGiftcardsCatalogRouteImport } from './routes/_app.admin.giftcards.catalog'
 import { Route as AppAdminGiftcardsBrandsRouteImport } from './routes/_app.admin.giftcards.brands'
+import { Route as AppAdminCryptoWithdrawalsRouteImport } from './routes/_app.admin.crypto.withdrawals'
+import { Route as AppAdminCryptoWalletsRouteImport } from './routes/_app.admin.crypto.wallets'
+import { Route as AppAdminCryptoTreasuryRouteImport } from './routes/_app.admin.crypto.treasury'
+import { Route as AppAdminCryptoTransactionsRouteImport } from './routes/_app.admin.crypto.transactions'
+import { Route as AppAdminCryptoSystemHealthRouteImport } from './routes/_app.admin.crypto.system-health'
 import { Route as AppAdminCryptoSubaccountsRouteImport } from './routes/_app.admin.crypto.subaccounts'
+import { Route as AppAdminCryptoRevenueRouteImport } from './routes/_app.admin.crypto.revenue'
+import { Route as AppAdminCryptoOperationsRouteImport } from './routes/_app.admin.crypto.operations'
+import { Route as AppAdminCryptoDepositsRouteImport } from './routes/_app.admin.crypto.deposits'
+import { Route as AppAdminCryptoDashboardRouteImport } from './routes/_app.admin.crypto.dashboard'
+import { Route as AppAdminCryptoAssetsRouteImport } from './routes/_app.admin.crypto.assets'
 import { Route as AppAdminAiDashboardRouteImport } from './routes/_app.admin.ai.dashboard'
 import { Route as AppAdminAiConversationsRouteImport } from './routes/_app.admin.ai.conversations'
 import { Route as AppAdminWalletsWithdrawalsIndexRouteImport } from './routes/_app.admin.wallets.withdrawals.index'
@@ -54,7 +64,13 @@ import { Route as AppAdminVasCatalogIndexRouteImport } from './routes/_app.admin
 import { Route as AppAdminVasBulkPurchasesIndexRouteImport } from './routes/_app.admin.vas.bulk-purchases.index'
 import { Route as AppAdminKycCasesIndexRouteImport } from './routes/_app.admin.kyc.cases.index'
 import { Route as AppAdminGiftcardsCatalogIndexRouteImport } from './routes/_app.admin.giftcards.catalog.index'
+import { Route as AppAdminCryptoWithdrawalsIndexRouteImport } from './routes/_app.admin.crypto.withdrawals.index'
+import { Route as AppAdminCryptoWalletsIndexRouteImport } from './routes/_app.admin.crypto.wallets.index'
+import { Route as AppAdminCryptoTransactionsIndexRouteImport } from './routes/_app.admin.crypto.transactions.index'
 import { Route as AppAdminCryptoSubaccountsIndexRouteImport } from './routes/_app.admin.crypto.subaccounts.index'
+import { Route as AppAdminCryptoOperationsIndexRouteImport } from './routes/_app.admin.crypto.operations.index'
+import { Route as AppAdminCryptoDepositsIndexRouteImport } from './routes/_app.admin.crypto.deposits.index'
+import { Route as AppAdminCryptoAssetsIndexRouteImport } from './routes/_app.admin.crypto.assets.index'
 import { Route as AppAdminWalletsWithdrawalsAllRouteImport } from './routes/_app.admin.wallets.withdrawals.all'
 import { Route as AppAdminWalletsWithdrawalsWithdrawalIdRouteImport } from './routes/_app.admin.wallets.withdrawals.$withdrawalId'
 import { Route as AppAdminVasTransactionsTransactionIdRouteImport } from './routes/_app.admin.vas.transactions.$transactionId'
@@ -72,7 +88,14 @@ import { Route as AppAdminGiftcardsCatalogFxRouteImport } from './routes/_app.ad
 import { Route as AppAdminGiftcardsCatalogDenominationsRouteImport } from './routes/_app.admin.giftcards.catalog.denominations'
 import { Route as AppAdminGiftcardsCatalogCountriesRouteImport } from './routes/_app.admin.giftcards.catalog.countries'
 import { Route as AppAdminGiftcardsBrandsBrandIdRouteImport } from './routes/_app.admin.giftcards.brands.$brandId'
+import { Route as AppAdminCryptoWithdrawalsWithdrawalIdRouteImport } from './routes/_app.admin.crypto.withdrawals.$withdrawalId'
+import { Route as AppAdminCryptoWalletsUserIdRouteImport } from './routes/_app.admin.crypto.wallets.$userId'
+import { Route as AppAdminCryptoTransactionsTransactionIdRouteImport } from './routes/_app.admin.crypto.transactions.$transactionId'
 import { Route as AppAdminCryptoSubaccountsUserIdRouteImport } from './routes/_app.admin.crypto.subaccounts.$userId'
+import { Route as AppAdminCryptoPricingFxRatesRouteImport } from './routes/_app.admin.crypto.pricing.fx-rates'
+import { Route as AppAdminCryptoPricingFeesRouteImport } from './routes/_app.admin.crypto.pricing.fees'
+import { Route as AppAdminCryptoOperationsOperationIdRouteImport } from './routes/_app.admin.crypto.operations.$operationId'
+import { Route as AppAdminCryptoAssetsAssetRouteImport } from './routes/_app.admin.crypto.assets.$asset'
 import { Route as AppAdminAiConversationsConversationIdRouteImport } from './routes/_app.admin.ai.conversations.$conversationId'
 import { Route as AppAdminVasCatalogCategoryIdServiceIdRouteImport } from './routes/_app.admin.vas.catalog.$categoryId.$serviceId'
 import { Route as AppAdminGiftcardsCatalogRateHistoryDenominationIdRouteImport } from './routes/_app.admin.giftcards.catalog.rate-history.$denominationId'
@@ -253,12 +276,66 @@ const AppAdminGiftcardsBrandsRoute = AppAdminGiftcardsBrandsRouteImport.update({
   path: '/admin/giftcards/brands',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminCryptoWithdrawalsRoute =
+  AppAdminCryptoWithdrawalsRouteImport.update({
+    id: '/admin/crypto/withdrawals',
+    path: '/admin/crypto/withdrawals',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppAdminCryptoWalletsRoute = AppAdminCryptoWalletsRouteImport.update({
+  id: '/admin/crypto/wallets',
+  path: '/admin/crypto/wallets',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminCryptoTreasuryRoute = AppAdminCryptoTreasuryRouteImport.update({
+  id: '/admin/crypto/treasury',
+  path: '/admin/crypto/treasury',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminCryptoTransactionsRoute =
+  AppAdminCryptoTransactionsRouteImport.update({
+    id: '/admin/crypto/transactions',
+    path: '/admin/crypto/transactions',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppAdminCryptoSystemHealthRoute =
+  AppAdminCryptoSystemHealthRouteImport.update({
+    id: '/admin/crypto/system-health',
+    path: '/admin/crypto/system-health',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppAdminCryptoSubaccountsRoute =
   AppAdminCryptoSubaccountsRouteImport.update({
     id: '/admin/crypto/subaccounts',
     path: '/admin/crypto/subaccounts',
     getParentRoute: () => AppRoute,
   } as any)
+const AppAdminCryptoRevenueRoute = AppAdminCryptoRevenueRouteImport.update({
+  id: '/admin/crypto/revenue',
+  path: '/admin/crypto/revenue',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminCryptoOperationsRoute =
+  AppAdminCryptoOperationsRouteImport.update({
+    id: '/admin/crypto/operations',
+    path: '/admin/crypto/operations',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppAdminCryptoDepositsRoute = AppAdminCryptoDepositsRouteImport.update({
+  id: '/admin/crypto/deposits',
+  path: '/admin/crypto/deposits',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminCryptoDashboardRoute = AppAdminCryptoDashboardRouteImport.update({
+  id: '/admin/crypto/dashboard',
+  path: '/admin/crypto/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminCryptoAssetsRoute = AppAdminCryptoAssetsRouteImport.update({
+  id: '/admin/crypto/assets',
+  path: '/admin/crypto/assets',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminAiDashboardRoute = AppAdminAiDashboardRouteImport.update({
   id: '/admin/ai/dashboard',
   path: '/admin/ai/dashboard',
@@ -321,11 +398,47 @@ const AppAdminGiftcardsCatalogIndexRoute =
     path: '/',
     getParentRoute: () => AppAdminGiftcardsCatalogRoute,
   } as any)
+const AppAdminCryptoWithdrawalsIndexRoute =
+  AppAdminCryptoWithdrawalsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppAdminCryptoWithdrawalsRoute,
+  } as any)
+const AppAdminCryptoWalletsIndexRoute =
+  AppAdminCryptoWalletsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppAdminCryptoWalletsRoute,
+  } as any)
+const AppAdminCryptoTransactionsIndexRoute =
+  AppAdminCryptoTransactionsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppAdminCryptoTransactionsRoute,
+  } as any)
 const AppAdminCryptoSubaccountsIndexRoute =
   AppAdminCryptoSubaccountsIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AppAdminCryptoSubaccountsRoute,
+  } as any)
+const AppAdminCryptoOperationsIndexRoute =
+  AppAdminCryptoOperationsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppAdminCryptoOperationsRoute,
+  } as any)
+const AppAdminCryptoDepositsIndexRoute =
+  AppAdminCryptoDepositsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppAdminCryptoDepositsRoute,
+  } as any)
+const AppAdminCryptoAssetsIndexRoute =
+  AppAdminCryptoAssetsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppAdminCryptoAssetsRoute,
   } as any)
 const AppAdminWalletsWithdrawalsAllRoute =
   AppAdminWalletsWithdrawalsAllRouteImport.update({
@@ -428,11 +541,53 @@ const AppAdminGiftcardsBrandsBrandIdRoute =
     path: '/$brandId',
     getParentRoute: () => AppAdminGiftcardsBrandsRoute,
   } as any)
+const AppAdminCryptoWithdrawalsWithdrawalIdRoute =
+  AppAdminCryptoWithdrawalsWithdrawalIdRouteImport.update({
+    id: '/$withdrawalId',
+    path: '/$withdrawalId',
+    getParentRoute: () => AppAdminCryptoWithdrawalsRoute,
+  } as any)
+const AppAdminCryptoWalletsUserIdRoute =
+  AppAdminCryptoWalletsUserIdRouteImport.update({
+    id: '/$userId',
+    path: '/$userId',
+    getParentRoute: () => AppAdminCryptoWalletsRoute,
+  } as any)
+const AppAdminCryptoTransactionsTransactionIdRoute =
+  AppAdminCryptoTransactionsTransactionIdRouteImport.update({
+    id: '/$transactionId',
+    path: '/$transactionId',
+    getParentRoute: () => AppAdminCryptoTransactionsRoute,
+  } as any)
 const AppAdminCryptoSubaccountsUserIdRoute =
   AppAdminCryptoSubaccountsUserIdRouteImport.update({
     id: '/$userId',
     path: '/$userId',
     getParentRoute: () => AppAdminCryptoSubaccountsRoute,
+  } as any)
+const AppAdminCryptoPricingFxRatesRoute =
+  AppAdminCryptoPricingFxRatesRouteImport.update({
+    id: '/admin/crypto/pricing/fx-rates',
+    path: '/admin/crypto/pricing/fx-rates',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppAdminCryptoPricingFeesRoute =
+  AppAdminCryptoPricingFeesRouteImport.update({
+    id: '/admin/crypto/pricing/fees',
+    path: '/admin/crypto/pricing/fees',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppAdminCryptoOperationsOperationIdRoute =
+  AppAdminCryptoOperationsOperationIdRouteImport.update({
+    id: '/$operationId',
+    path: '/$operationId',
+    getParentRoute: () => AppAdminCryptoOperationsRoute,
+  } as any)
+const AppAdminCryptoAssetsAssetRoute =
+  AppAdminCryptoAssetsAssetRouteImport.update({
+    id: '/$asset',
+    path: '/$asset',
+    getParentRoute: () => AppAdminCryptoAssetsRoute,
   } as any)
 const AppAdminAiConversationsConversationIdRoute =
   AppAdminAiConversationsConversationIdRouteImport.update({
@@ -462,7 +617,17 @@ export interface FileRoutesByFullPath {
   '/admin/vas': typeof AppAdminVasRouteWithChildren
   '/admin/ai/conversations': typeof AppAdminAiConversationsRouteWithChildren
   '/admin/ai/dashboard': typeof AppAdminAiDashboardRoute
+  '/admin/crypto/assets': typeof AppAdminCryptoAssetsRouteWithChildren
+  '/admin/crypto/dashboard': typeof AppAdminCryptoDashboardRoute
+  '/admin/crypto/deposits': typeof AppAdminCryptoDepositsRouteWithChildren
+  '/admin/crypto/operations': typeof AppAdminCryptoOperationsRouteWithChildren
+  '/admin/crypto/revenue': typeof AppAdminCryptoRevenueRoute
   '/admin/crypto/subaccounts': typeof AppAdminCryptoSubaccountsRouteWithChildren
+  '/admin/crypto/system-health': typeof AppAdminCryptoSystemHealthRoute
+  '/admin/crypto/transactions': typeof AppAdminCryptoTransactionsRouteWithChildren
+  '/admin/crypto/treasury': typeof AppAdminCryptoTreasuryRoute
+  '/admin/crypto/wallets': typeof AppAdminCryptoWalletsRouteWithChildren
+  '/admin/crypto/withdrawals': typeof AppAdminCryptoWithdrawalsRouteWithChildren
   '/admin/giftcards/brands': typeof AppAdminGiftcardsBrandsRouteWithChildren
   '/admin/giftcards/catalog': typeof AppAdminGiftcardsCatalogRouteWithChildren
   '/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
@@ -490,7 +655,14 @@ export interface FileRoutesByFullPath {
   '/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
   '/admin/sourcing/': typeof AppAdminSourcingIndexRoute
   '/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
+  '/admin/crypto/assets/$asset': typeof AppAdminCryptoAssetsAssetRoute
+  '/admin/crypto/operations/$operationId': typeof AppAdminCryptoOperationsOperationIdRoute
+  '/admin/crypto/pricing/fees': typeof AppAdminCryptoPricingFeesRoute
+  '/admin/crypto/pricing/fx-rates': typeof AppAdminCryptoPricingFxRatesRoute
   '/admin/crypto/subaccounts/$userId': typeof AppAdminCryptoSubaccountsUserIdRoute
+  '/admin/crypto/transactions/$transactionId': typeof AppAdminCryptoTransactionsTransactionIdRoute
+  '/admin/crypto/wallets/$userId': typeof AppAdminCryptoWalletsUserIdRoute
+  '/admin/crypto/withdrawals/$withdrawalId': typeof AppAdminCryptoWithdrawalsWithdrawalIdRoute
   '/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
   '/admin/giftcards/catalog/denominations': typeof AppAdminGiftcardsCatalogDenominationsRoute
@@ -508,7 +680,13 @@ export interface FileRoutesByFullPath {
   '/admin/vas/transactions/$transactionId': typeof AppAdminVasTransactionsTransactionIdRoute
   '/admin/wallets/withdrawals/$withdrawalId': typeof AppAdminWalletsWithdrawalsWithdrawalIdRoute
   '/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
+  '/admin/crypto/assets/': typeof AppAdminCryptoAssetsIndexRoute
+  '/admin/crypto/deposits/': typeof AppAdminCryptoDepositsIndexRoute
+  '/admin/crypto/operations/': typeof AppAdminCryptoOperationsIndexRoute
   '/admin/crypto/subaccounts/': typeof AppAdminCryptoSubaccountsIndexRoute
+  '/admin/crypto/transactions/': typeof AppAdminCryptoTransactionsIndexRoute
+  '/admin/crypto/wallets/': typeof AppAdminCryptoWalletsIndexRoute
+  '/admin/crypto/withdrawals/': typeof AppAdminCryptoWithdrawalsIndexRoute
   '/admin/giftcards/catalog/': typeof AppAdminGiftcardsCatalogIndexRoute
   '/admin/kyc/cases/': typeof AppAdminKycCasesIndexRoute
   '/admin/vas/bulk-purchases/': typeof AppAdminVasBulkPurchasesIndexRoute
@@ -529,6 +707,10 @@ export interface FileRoutesByTo {
   '/admin/vas': typeof AppAdminVasRouteWithChildren
   '/admin/ai/conversations': typeof AppAdminAiConversationsRouteWithChildren
   '/admin/ai/dashboard': typeof AppAdminAiDashboardRoute
+  '/admin/crypto/dashboard': typeof AppAdminCryptoDashboardRoute
+  '/admin/crypto/revenue': typeof AppAdminCryptoRevenueRoute
+  '/admin/crypto/system-health': typeof AppAdminCryptoSystemHealthRoute
+  '/admin/crypto/treasury': typeof AppAdminCryptoTreasuryRoute
   '/admin/giftcards/brands': typeof AppAdminGiftcardsBrandsRouteWithChildren
   '/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
   '/admin/giftcards/trades': typeof AppAdminGiftcardsTradesRouteWithChildren
@@ -547,7 +729,14 @@ export interface FileRoutesByTo {
   '/admin/vas/security': typeof AppAdminVasSecurityRoute
   '/admin/sourcing': typeof AppAdminSourcingIndexRoute
   '/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
+  '/admin/crypto/assets/$asset': typeof AppAdminCryptoAssetsAssetRoute
+  '/admin/crypto/operations/$operationId': typeof AppAdminCryptoOperationsOperationIdRoute
+  '/admin/crypto/pricing/fees': typeof AppAdminCryptoPricingFeesRoute
+  '/admin/crypto/pricing/fx-rates': typeof AppAdminCryptoPricingFxRatesRoute
   '/admin/crypto/subaccounts/$userId': typeof AppAdminCryptoSubaccountsUserIdRoute
+  '/admin/crypto/transactions/$transactionId': typeof AppAdminCryptoTransactionsTransactionIdRoute
+  '/admin/crypto/wallets/$userId': typeof AppAdminCryptoWalletsUserIdRoute
+  '/admin/crypto/withdrawals/$withdrawalId': typeof AppAdminCryptoWithdrawalsWithdrawalIdRoute
   '/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
   '/admin/giftcards/catalog/denominations': typeof AppAdminGiftcardsCatalogDenominationsRoute
@@ -565,7 +754,13 @@ export interface FileRoutesByTo {
   '/admin/vas/transactions/$transactionId': typeof AppAdminVasTransactionsTransactionIdRoute
   '/admin/wallets/withdrawals/$withdrawalId': typeof AppAdminWalletsWithdrawalsWithdrawalIdRoute
   '/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
+  '/admin/crypto/assets': typeof AppAdminCryptoAssetsIndexRoute
+  '/admin/crypto/deposits': typeof AppAdminCryptoDepositsIndexRoute
+  '/admin/crypto/operations': typeof AppAdminCryptoOperationsIndexRoute
   '/admin/crypto/subaccounts': typeof AppAdminCryptoSubaccountsIndexRoute
+  '/admin/crypto/transactions': typeof AppAdminCryptoTransactionsIndexRoute
+  '/admin/crypto/wallets': typeof AppAdminCryptoWalletsIndexRoute
+  '/admin/crypto/withdrawals': typeof AppAdminCryptoWithdrawalsIndexRoute
   '/admin/giftcards/catalog': typeof AppAdminGiftcardsCatalogIndexRoute
   '/admin/kyc/cases': typeof AppAdminKycCasesIndexRoute
   '/admin/vas/bulk-purchases': typeof AppAdminVasBulkPurchasesIndexRoute
@@ -589,7 +784,17 @@ export interface FileRoutesById {
   '/_app/admin/vas': typeof AppAdminVasRouteWithChildren
   '/_app/admin/ai/conversations': typeof AppAdminAiConversationsRouteWithChildren
   '/_app/admin/ai/dashboard': typeof AppAdminAiDashboardRoute
+  '/_app/admin/crypto/assets': typeof AppAdminCryptoAssetsRouteWithChildren
+  '/_app/admin/crypto/dashboard': typeof AppAdminCryptoDashboardRoute
+  '/_app/admin/crypto/deposits': typeof AppAdminCryptoDepositsRouteWithChildren
+  '/_app/admin/crypto/operations': typeof AppAdminCryptoOperationsRouteWithChildren
+  '/_app/admin/crypto/revenue': typeof AppAdminCryptoRevenueRoute
   '/_app/admin/crypto/subaccounts': typeof AppAdminCryptoSubaccountsRouteWithChildren
+  '/_app/admin/crypto/system-health': typeof AppAdminCryptoSystemHealthRoute
+  '/_app/admin/crypto/transactions': typeof AppAdminCryptoTransactionsRouteWithChildren
+  '/_app/admin/crypto/treasury': typeof AppAdminCryptoTreasuryRoute
+  '/_app/admin/crypto/wallets': typeof AppAdminCryptoWalletsRouteWithChildren
+  '/_app/admin/crypto/withdrawals': typeof AppAdminCryptoWithdrawalsRouteWithChildren
   '/_app/admin/giftcards/brands': typeof AppAdminGiftcardsBrandsRouteWithChildren
   '/_app/admin/giftcards/catalog': typeof AppAdminGiftcardsCatalogRouteWithChildren
   '/_app/admin/giftcards/dashboard': typeof AppAdminGiftcardsDashboardRoute
@@ -617,7 +822,14 @@ export interface FileRoutesById {
   '/_app/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
   '/_app/admin/sourcing/': typeof AppAdminSourcingIndexRoute
   '/_app/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
+  '/_app/admin/crypto/assets/$asset': typeof AppAdminCryptoAssetsAssetRoute
+  '/_app/admin/crypto/operations/$operationId': typeof AppAdminCryptoOperationsOperationIdRoute
+  '/_app/admin/crypto/pricing/fees': typeof AppAdminCryptoPricingFeesRoute
+  '/_app/admin/crypto/pricing/fx-rates': typeof AppAdminCryptoPricingFxRatesRoute
   '/_app/admin/crypto/subaccounts/$userId': typeof AppAdminCryptoSubaccountsUserIdRoute
+  '/_app/admin/crypto/transactions/$transactionId': typeof AppAdminCryptoTransactionsTransactionIdRoute
+  '/_app/admin/crypto/wallets/$userId': typeof AppAdminCryptoWalletsUserIdRoute
+  '/_app/admin/crypto/withdrawals/$withdrawalId': typeof AppAdminCryptoWithdrawalsWithdrawalIdRoute
   '/_app/admin/giftcards/brands/$brandId': typeof AppAdminGiftcardsBrandsBrandIdRoute
   '/_app/admin/giftcards/catalog/countries': typeof AppAdminGiftcardsCatalogCountriesRoute
   '/_app/admin/giftcards/catalog/denominations': typeof AppAdminGiftcardsCatalogDenominationsRoute
@@ -635,7 +847,13 @@ export interface FileRoutesById {
   '/_app/admin/vas/transactions/$transactionId': typeof AppAdminVasTransactionsTransactionIdRoute
   '/_app/admin/wallets/withdrawals/$withdrawalId': typeof AppAdminWalletsWithdrawalsWithdrawalIdRoute
   '/_app/admin/wallets/withdrawals/all': typeof AppAdminWalletsWithdrawalsAllRoute
+  '/_app/admin/crypto/assets/': typeof AppAdminCryptoAssetsIndexRoute
+  '/_app/admin/crypto/deposits/': typeof AppAdminCryptoDepositsIndexRoute
+  '/_app/admin/crypto/operations/': typeof AppAdminCryptoOperationsIndexRoute
   '/_app/admin/crypto/subaccounts/': typeof AppAdminCryptoSubaccountsIndexRoute
+  '/_app/admin/crypto/transactions/': typeof AppAdminCryptoTransactionsIndexRoute
+  '/_app/admin/crypto/wallets/': typeof AppAdminCryptoWalletsIndexRoute
+  '/_app/admin/crypto/withdrawals/': typeof AppAdminCryptoWithdrawalsIndexRoute
   '/_app/admin/giftcards/catalog/': typeof AppAdminGiftcardsCatalogIndexRoute
   '/_app/admin/kyc/cases/': typeof AppAdminKycCasesIndexRoute
   '/_app/admin/vas/bulk-purchases/': typeof AppAdminVasBulkPurchasesIndexRoute
@@ -659,7 +877,17 @@ export interface FileRouteTypes {
     | '/admin/vas'
     | '/admin/ai/conversations'
     | '/admin/ai/dashboard'
+    | '/admin/crypto/assets'
+    | '/admin/crypto/dashboard'
+    | '/admin/crypto/deposits'
+    | '/admin/crypto/operations'
+    | '/admin/crypto/revenue'
     | '/admin/crypto/subaccounts'
+    | '/admin/crypto/system-health'
+    | '/admin/crypto/transactions'
+    | '/admin/crypto/treasury'
+    | '/admin/crypto/wallets'
+    | '/admin/crypto/withdrawals'
     | '/admin/giftcards/brands'
     | '/admin/giftcards/catalog'
     | '/admin/giftcards/dashboard'
@@ -687,7 +915,14 @@ export interface FileRouteTypes {
     | '/admin/wallets/withdrawals'
     | '/admin/sourcing/'
     | '/admin/ai/conversations/$conversationId'
+    | '/admin/crypto/assets/$asset'
+    | '/admin/crypto/operations/$operationId'
+    | '/admin/crypto/pricing/fees'
+    | '/admin/crypto/pricing/fx-rates'
     | '/admin/crypto/subaccounts/$userId'
+    | '/admin/crypto/transactions/$transactionId'
+    | '/admin/crypto/wallets/$userId'
+    | '/admin/crypto/withdrawals/$withdrawalId'
     | '/admin/giftcards/brands/$brandId'
     | '/admin/giftcards/catalog/countries'
     | '/admin/giftcards/catalog/denominations'
@@ -705,7 +940,13 @@ export interface FileRouteTypes {
     | '/admin/vas/transactions/$transactionId'
     | '/admin/wallets/withdrawals/$withdrawalId'
     | '/admin/wallets/withdrawals/all'
+    | '/admin/crypto/assets/'
+    | '/admin/crypto/deposits/'
+    | '/admin/crypto/operations/'
     | '/admin/crypto/subaccounts/'
+    | '/admin/crypto/transactions/'
+    | '/admin/crypto/wallets/'
+    | '/admin/crypto/withdrawals/'
     | '/admin/giftcards/catalog/'
     | '/admin/kyc/cases/'
     | '/admin/vas/bulk-purchases/'
@@ -726,6 +967,10 @@ export interface FileRouteTypes {
     | '/admin/vas'
     | '/admin/ai/conversations'
     | '/admin/ai/dashboard'
+    | '/admin/crypto/dashboard'
+    | '/admin/crypto/revenue'
+    | '/admin/crypto/system-health'
+    | '/admin/crypto/treasury'
     | '/admin/giftcards/brands'
     | '/admin/giftcards/dashboard'
     | '/admin/giftcards/trades'
@@ -744,7 +989,14 @@ export interface FileRouteTypes {
     | '/admin/vas/security'
     | '/admin/sourcing'
     | '/admin/ai/conversations/$conversationId'
+    | '/admin/crypto/assets/$asset'
+    | '/admin/crypto/operations/$operationId'
+    | '/admin/crypto/pricing/fees'
+    | '/admin/crypto/pricing/fx-rates'
     | '/admin/crypto/subaccounts/$userId'
+    | '/admin/crypto/transactions/$transactionId'
+    | '/admin/crypto/wallets/$userId'
+    | '/admin/crypto/withdrawals/$withdrawalId'
     | '/admin/giftcards/brands/$brandId'
     | '/admin/giftcards/catalog/countries'
     | '/admin/giftcards/catalog/denominations'
@@ -762,7 +1014,13 @@ export interface FileRouteTypes {
     | '/admin/vas/transactions/$transactionId'
     | '/admin/wallets/withdrawals/$withdrawalId'
     | '/admin/wallets/withdrawals/all'
+    | '/admin/crypto/assets'
+    | '/admin/crypto/deposits'
+    | '/admin/crypto/operations'
     | '/admin/crypto/subaccounts'
+    | '/admin/crypto/transactions'
+    | '/admin/crypto/wallets'
+    | '/admin/crypto/withdrawals'
     | '/admin/giftcards/catalog'
     | '/admin/kyc/cases'
     | '/admin/vas/bulk-purchases'
@@ -785,7 +1043,17 @@ export interface FileRouteTypes {
     | '/_app/admin/vas'
     | '/_app/admin/ai/conversations'
     | '/_app/admin/ai/dashboard'
+    | '/_app/admin/crypto/assets'
+    | '/_app/admin/crypto/dashboard'
+    | '/_app/admin/crypto/deposits'
+    | '/_app/admin/crypto/operations'
+    | '/_app/admin/crypto/revenue'
     | '/_app/admin/crypto/subaccounts'
+    | '/_app/admin/crypto/system-health'
+    | '/_app/admin/crypto/transactions'
+    | '/_app/admin/crypto/treasury'
+    | '/_app/admin/crypto/wallets'
+    | '/_app/admin/crypto/withdrawals'
     | '/_app/admin/giftcards/brands'
     | '/_app/admin/giftcards/catalog'
     | '/_app/admin/giftcards/dashboard'
@@ -813,7 +1081,14 @@ export interface FileRouteTypes {
     | '/_app/admin/wallets/withdrawals'
     | '/_app/admin/sourcing/'
     | '/_app/admin/ai/conversations/$conversationId'
+    | '/_app/admin/crypto/assets/$asset'
+    | '/_app/admin/crypto/operations/$operationId'
+    | '/_app/admin/crypto/pricing/fees'
+    | '/_app/admin/crypto/pricing/fx-rates'
     | '/_app/admin/crypto/subaccounts/$userId'
+    | '/_app/admin/crypto/transactions/$transactionId'
+    | '/_app/admin/crypto/wallets/$userId'
+    | '/_app/admin/crypto/withdrawals/$withdrawalId'
     | '/_app/admin/giftcards/brands/$brandId'
     | '/_app/admin/giftcards/catalog/countries'
     | '/_app/admin/giftcards/catalog/denominations'
@@ -831,7 +1106,13 @@ export interface FileRouteTypes {
     | '/_app/admin/vas/transactions/$transactionId'
     | '/_app/admin/wallets/withdrawals/$withdrawalId'
     | '/_app/admin/wallets/withdrawals/all'
+    | '/_app/admin/crypto/assets/'
+    | '/_app/admin/crypto/deposits/'
+    | '/_app/admin/crypto/operations/'
     | '/_app/admin/crypto/subaccounts/'
+    | '/_app/admin/crypto/transactions/'
+    | '/_app/admin/crypto/wallets/'
+    | '/_app/admin/crypto/withdrawals/'
     | '/_app/admin/giftcards/catalog/'
     | '/_app/admin/kyc/cases/'
     | '/_app/admin/vas/bulk-purchases/'
@@ -1084,11 +1365,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminGiftcardsBrandsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/crypto/withdrawals': {
+      id: '/_app/admin/crypto/withdrawals'
+      path: '/admin/crypto/withdrawals'
+      fullPath: '/admin/crypto/withdrawals'
+      preLoaderRoute: typeof AppAdminCryptoWithdrawalsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/crypto/wallets': {
+      id: '/_app/admin/crypto/wallets'
+      path: '/admin/crypto/wallets'
+      fullPath: '/admin/crypto/wallets'
+      preLoaderRoute: typeof AppAdminCryptoWalletsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/crypto/treasury': {
+      id: '/_app/admin/crypto/treasury'
+      path: '/admin/crypto/treasury'
+      fullPath: '/admin/crypto/treasury'
+      preLoaderRoute: typeof AppAdminCryptoTreasuryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/crypto/transactions': {
+      id: '/_app/admin/crypto/transactions'
+      path: '/admin/crypto/transactions'
+      fullPath: '/admin/crypto/transactions'
+      preLoaderRoute: typeof AppAdminCryptoTransactionsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/crypto/system-health': {
+      id: '/_app/admin/crypto/system-health'
+      path: '/admin/crypto/system-health'
+      fullPath: '/admin/crypto/system-health'
+      preLoaderRoute: typeof AppAdminCryptoSystemHealthRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/crypto/subaccounts': {
       id: '/_app/admin/crypto/subaccounts'
       path: '/admin/crypto/subaccounts'
       fullPath: '/admin/crypto/subaccounts'
       preLoaderRoute: typeof AppAdminCryptoSubaccountsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/crypto/revenue': {
+      id: '/_app/admin/crypto/revenue'
+      path: '/admin/crypto/revenue'
+      fullPath: '/admin/crypto/revenue'
+      preLoaderRoute: typeof AppAdminCryptoRevenueRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/crypto/operations': {
+      id: '/_app/admin/crypto/operations'
+      path: '/admin/crypto/operations'
+      fullPath: '/admin/crypto/operations'
+      preLoaderRoute: typeof AppAdminCryptoOperationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/crypto/deposits': {
+      id: '/_app/admin/crypto/deposits'
+      path: '/admin/crypto/deposits'
+      fullPath: '/admin/crypto/deposits'
+      preLoaderRoute: typeof AppAdminCryptoDepositsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/crypto/dashboard': {
+      id: '/_app/admin/crypto/dashboard'
+      path: '/admin/crypto/dashboard'
+      fullPath: '/admin/crypto/dashboard'
+      preLoaderRoute: typeof AppAdminCryptoDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/crypto/assets': {
+      id: '/_app/admin/crypto/assets'
+      path: '/admin/crypto/assets'
+      fullPath: '/admin/crypto/assets'
+      preLoaderRoute: typeof AppAdminCryptoAssetsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/admin/ai/dashboard': {
@@ -1168,12 +1519,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminGiftcardsCatalogIndexRouteImport
       parentRoute: typeof AppAdminGiftcardsCatalogRoute
     }
+    '/_app/admin/crypto/withdrawals/': {
+      id: '/_app/admin/crypto/withdrawals/'
+      path: '/'
+      fullPath: '/admin/crypto/withdrawals/'
+      preLoaderRoute: typeof AppAdminCryptoWithdrawalsIndexRouteImport
+      parentRoute: typeof AppAdminCryptoWithdrawalsRoute
+    }
+    '/_app/admin/crypto/wallets/': {
+      id: '/_app/admin/crypto/wallets/'
+      path: '/'
+      fullPath: '/admin/crypto/wallets/'
+      preLoaderRoute: typeof AppAdminCryptoWalletsIndexRouteImport
+      parentRoute: typeof AppAdminCryptoWalletsRoute
+    }
+    '/_app/admin/crypto/transactions/': {
+      id: '/_app/admin/crypto/transactions/'
+      path: '/'
+      fullPath: '/admin/crypto/transactions/'
+      preLoaderRoute: typeof AppAdminCryptoTransactionsIndexRouteImport
+      parentRoute: typeof AppAdminCryptoTransactionsRoute
+    }
     '/_app/admin/crypto/subaccounts/': {
       id: '/_app/admin/crypto/subaccounts/'
       path: '/'
       fullPath: '/admin/crypto/subaccounts/'
       preLoaderRoute: typeof AppAdminCryptoSubaccountsIndexRouteImport
       parentRoute: typeof AppAdminCryptoSubaccountsRoute
+    }
+    '/_app/admin/crypto/operations/': {
+      id: '/_app/admin/crypto/operations/'
+      path: '/'
+      fullPath: '/admin/crypto/operations/'
+      preLoaderRoute: typeof AppAdminCryptoOperationsIndexRouteImport
+      parentRoute: typeof AppAdminCryptoOperationsRoute
+    }
+    '/_app/admin/crypto/deposits/': {
+      id: '/_app/admin/crypto/deposits/'
+      path: '/'
+      fullPath: '/admin/crypto/deposits/'
+      preLoaderRoute: typeof AppAdminCryptoDepositsIndexRouteImport
+      parentRoute: typeof AppAdminCryptoDepositsRoute
+    }
+    '/_app/admin/crypto/assets/': {
+      id: '/_app/admin/crypto/assets/'
+      path: '/'
+      fullPath: '/admin/crypto/assets/'
+      preLoaderRoute: typeof AppAdminCryptoAssetsIndexRouteImport
+      parentRoute: typeof AppAdminCryptoAssetsRoute
     }
     '/_app/admin/wallets/withdrawals/all': {
       id: '/_app/admin/wallets/withdrawals/all'
@@ -1294,12 +1687,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminGiftcardsBrandsBrandIdRouteImport
       parentRoute: typeof AppAdminGiftcardsBrandsRoute
     }
+    '/_app/admin/crypto/withdrawals/$withdrawalId': {
+      id: '/_app/admin/crypto/withdrawals/$withdrawalId'
+      path: '/$withdrawalId'
+      fullPath: '/admin/crypto/withdrawals/$withdrawalId'
+      preLoaderRoute: typeof AppAdminCryptoWithdrawalsWithdrawalIdRouteImport
+      parentRoute: typeof AppAdminCryptoWithdrawalsRoute
+    }
+    '/_app/admin/crypto/wallets/$userId': {
+      id: '/_app/admin/crypto/wallets/$userId'
+      path: '/$userId'
+      fullPath: '/admin/crypto/wallets/$userId'
+      preLoaderRoute: typeof AppAdminCryptoWalletsUserIdRouteImport
+      parentRoute: typeof AppAdminCryptoWalletsRoute
+    }
+    '/_app/admin/crypto/transactions/$transactionId': {
+      id: '/_app/admin/crypto/transactions/$transactionId'
+      path: '/$transactionId'
+      fullPath: '/admin/crypto/transactions/$transactionId'
+      preLoaderRoute: typeof AppAdminCryptoTransactionsTransactionIdRouteImport
+      parentRoute: typeof AppAdminCryptoTransactionsRoute
+    }
     '/_app/admin/crypto/subaccounts/$userId': {
       id: '/_app/admin/crypto/subaccounts/$userId'
       path: '/$userId'
       fullPath: '/admin/crypto/subaccounts/$userId'
       preLoaderRoute: typeof AppAdminCryptoSubaccountsUserIdRouteImport
       parentRoute: typeof AppAdminCryptoSubaccountsRoute
+    }
+    '/_app/admin/crypto/pricing/fx-rates': {
+      id: '/_app/admin/crypto/pricing/fx-rates'
+      path: '/admin/crypto/pricing/fx-rates'
+      fullPath: '/admin/crypto/pricing/fx-rates'
+      preLoaderRoute: typeof AppAdminCryptoPricingFxRatesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/crypto/pricing/fees': {
+      id: '/_app/admin/crypto/pricing/fees'
+      path: '/admin/crypto/pricing/fees'
+      fullPath: '/admin/crypto/pricing/fees'
+      preLoaderRoute: typeof AppAdminCryptoPricingFeesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/crypto/operations/$operationId': {
+      id: '/_app/admin/crypto/operations/$operationId'
+      path: '/$operationId'
+      fullPath: '/admin/crypto/operations/$operationId'
+      preLoaderRoute: typeof AppAdminCryptoOperationsOperationIdRouteImport
+      parentRoute: typeof AppAdminCryptoOperationsRoute
+    }
+    '/_app/admin/crypto/assets/$asset': {
+      id: '/_app/admin/crypto/assets/$asset'
+      path: '/$asset'
+      fullPath: '/admin/crypto/assets/$asset'
+      preLoaderRoute: typeof AppAdminCryptoAssetsAssetRouteImport
+      parentRoute: typeof AppAdminCryptoAssetsRoute
     }
     '/_app/admin/ai/conversations/$conversationId': {
       id: '/_app/admin/ai/conversations/$conversationId'
@@ -1523,6 +1965,50 @@ const AppAdminAiConversationsRouteWithChildren =
     AppAdminAiConversationsRouteChildren,
   )
 
+interface AppAdminCryptoAssetsRouteChildren {
+  AppAdminCryptoAssetsAssetRoute: typeof AppAdminCryptoAssetsAssetRoute
+  AppAdminCryptoAssetsIndexRoute: typeof AppAdminCryptoAssetsIndexRoute
+}
+
+const AppAdminCryptoAssetsRouteChildren: AppAdminCryptoAssetsRouteChildren = {
+  AppAdminCryptoAssetsAssetRoute: AppAdminCryptoAssetsAssetRoute,
+  AppAdminCryptoAssetsIndexRoute: AppAdminCryptoAssetsIndexRoute,
+}
+
+const AppAdminCryptoAssetsRouteWithChildren =
+  AppAdminCryptoAssetsRoute._addFileChildren(AppAdminCryptoAssetsRouteChildren)
+
+interface AppAdminCryptoDepositsRouteChildren {
+  AppAdminCryptoDepositsIndexRoute: typeof AppAdminCryptoDepositsIndexRoute
+}
+
+const AppAdminCryptoDepositsRouteChildren: AppAdminCryptoDepositsRouteChildren =
+  {
+    AppAdminCryptoDepositsIndexRoute: AppAdminCryptoDepositsIndexRoute,
+  }
+
+const AppAdminCryptoDepositsRouteWithChildren =
+  AppAdminCryptoDepositsRoute._addFileChildren(
+    AppAdminCryptoDepositsRouteChildren,
+  )
+
+interface AppAdminCryptoOperationsRouteChildren {
+  AppAdminCryptoOperationsOperationIdRoute: typeof AppAdminCryptoOperationsOperationIdRoute
+  AppAdminCryptoOperationsIndexRoute: typeof AppAdminCryptoOperationsIndexRoute
+}
+
+const AppAdminCryptoOperationsRouteChildren: AppAdminCryptoOperationsRouteChildren =
+  {
+    AppAdminCryptoOperationsOperationIdRoute:
+      AppAdminCryptoOperationsOperationIdRoute,
+    AppAdminCryptoOperationsIndexRoute: AppAdminCryptoOperationsIndexRoute,
+  }
+
+const AppAdminCryptoOperationsRouteWithChildren =
+  AppAdminCryptoOperationsRoute._addFileChildren(
+    AppAdminCryptoOperationsRouteChildren,
+  )
+
 interface AppAdminCryptoSubaccountsRouteChildren {
   AppAdminCryptoSubaccountsUserIdRoute: typeof AppAdminCryptoSubaccountsUserIdRoute
   AppAdminCryptoSubaccountsIndexRoute: typeof AppAdminCryptoSubaccountsIndexRoute
@@ -1537,6 +2023,55 @@ const AppAdminCryptoSubaccountsRouteChildren: AppAdminCryptoSubaccountsRouteChil
 const AppAdminCryptoSubaccountsRouteWithChildren =
   AppAdminCryptoSubaccountsRoute._addFileChildren(
     AppAdminCryptoSubaccountsRouteChildren,
+  )
+
+interface AppAdminCryptoTransactionsRouteChildren {
+  AppAdminCryptoTransactionsTransactionIdRoute: typeof AppAdminCryptoTransactionsTransactionIdRoute
+  AppAdminCryptoTransactionsIndexRoute: typeof AppAdminCryptoTransactionsIndexRoute
+}
+
+const AppAdminCryptoTransactionsRouteChildren: AppAdminCryptoTransactionsRouteChildren =
+  {
+    AppAdminCryptoTransactionsTransactionIdRoute:
+      AppAdminCryptoTransactionsTransactionIdRoute,
+    AppAdminCryptoTransactionsIndexRoute: AppAdminCryptoTransactionsIndexRoute,
+  }
+
+const AppAdminCryptoTransactionsRouteWithChildren =
+  AppAdminCryptoTransactionsRoute._addFileChildren(
+    AppAdminCryptoTransactionsRouteChildren,
+  )
+
+interface AppAdminCryptoWalletsRouteChildren {
+  AppAdminCryptoWalletsUserIdRoute: typeof AppAdminCryptoWalletsUserIdRoute
+  AppAdminCryptoWalletsIndexRoute: typeof AppAdminCryptoWalletsIndexRoute
+}
+
+const AppAdminCryptoWalletsRouteChildren: AppAdminCryptoWalletsRouteChildren = {
+  AppAdminCryptoWalletsUserIdRoute: AppAdminCryptoWalletsUserIdRoute,
+  AppAdminCryptoWalletsIndexRoute: AppAdminCryptoWalletsIndexRoute,
+}
+
+const AppAdminCryptoWalletsRouteWithChildren =
+  AppAdminCryptoWalletsRoute._addFileChildren(
+    AppAdminCryptoWalletsRouteChildren,
+  )
+
+interface AppAdminCryptoWithdrawalsRouteChildren {
+  AppAdminCryptoWithdrawalsWithdrawalIdRoute: typeof AppAdminCryptoWithdrawalsWithdrawalIdRoute
+  AppAdminCryptoWithdrawalsIndexRoute: typeof AppAdminCryptoWithdrawalsIndexRoute
+}
+
+const AppAdminCryptoWithdrawalsRouteChildren: AppAdminCryptoWithdrawalsRouteChildren =
+  {
+    AppAdminCryptoWithdrawalsWithdrawalIdRoute:
+      AppAdminCryptoWithdrawalsWithdrawalIdRoute,
+    AppAdminCryptoWithdrawalsIndexRoute: AppAdminCryptoWithdrawalsIndexRoute,
+  }
+
+const AppAdminCryptoWithdrawalsRouteWithChildren =
+  AppAdminCryptoWithdrawalsRoute._addFileChildren(
+    AppAdminCryptoWithdrawalsRouteChildren,
   )
 
 interface AppAdminGiftcardsBrandsRouteChildren {
@@ -1636,7 +2171,17 @@ interface AppRouteChildren {
   AppAdminVasRoute: typeof AppAdminVasRouteWithChildren
   AppAdminAiConversationsRoute: typeof AppAdminAiConversationsRouteWithChildren
   AppAdminAiDashboardRoute: typeof AppAdminAiDashboardRoute
+  AppAdminCryptoAssetsRoute: typeof AppAdminCryptoAssetsRouteWithChildren
+  AppAdminCryptoDashboardRoute: typeof AppAdminCryptoDashboardRoute
+  AppAdminCryptoDepositsRoute: typeof AppAdminCryptoDepositsRouteWithChildren
+  AppAdminCryptoOperationsRoute: typeof AppAdminCryptoOperationsRouteWithChildren
+  AppAdminCryptoRevenueRoute: typeof AppAdminCryptoRevenueRoute
   AppAdminCryptoSubaccountsRoute: typeof AppAdminCryptoSubaccountsRouteWithChildren
+  AppAdminCryptoSystemHealthRoute: typeof AppAdminCryptoSystemHealthRoute
+  AppAdminCryptoTransactionsRoute: typeof AppAdminCryptoTransactionsRouteWithChildren
+  AppAdminCryptoTreasuryRoute: typeof AppAdminCryptoTreasuryRoute
+  AppAdminCryptoWalletsRoute: typeof AppAdminCryptoWalletsRouteWithChildren
+  AppAdminCryptoWithdrawalsRoute: typeof AppAdminCryptoWithdrawalsRouteWithChildren
   AppAdminGiftcardsBrandsRoute: typeof AppAdminGiftcardsBrandsRouteWithChildren
   AppAdminGiftcardsCatalogRoute: typeof AppAdminGiftcardsCatalogRouteWithChildren
   AppAdminGiftcardsDashboardRoute: typeof AppAdminGiftcardsDashboardRoute
@@ -1645,6 +2190,8 @@ interface AppRouteChildren {
   AppAdminNotificationsAnnouncementsRoute: typeof AppAdminNotificationsAnnouncementsRoute
   AppAdminObservabilityCriticalErrorsRoute: typeof AppAdminObservabilityCriticalErrorsRoute
   AppAdminWalletsWithdrawalsRoute: typeof AppAdminWalletsWithdrawalsRouteWithChildren
+  AppAdminCryptoPricingFeesRoute: typeof AppAdminCryptoPricingFeesRoute
+  AppAdminCryptoPricingFxRatesRoute: typeof AppAdminCryptoPricingFxRatesRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -1654,7 +2201,17 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminVasRoute: AppAdminVasRouteWithChildren,
   AppAdminAiConversationsRoute: AppAdminAiConversationsRouteWithChildren,
   AppAdminAiDashboardRoute: AppAdminAiDashboardRoute,
+  AppAdminCryptoAssetsRoute: AppAdminCryptoAssetsRouteWithChildren,
+  AppAdminCryptoDashboardRoute: AppAdminCryptoDashboardRoute,
+  AppAdminCryptoDepositsRoute: AppAdminCryptoDepositsRouteWithChildren,
+  AppAdminCryptoOperationsRoute: AppAdminCryptoOperationsRouteWithChildren,
+  AppAdminCryptoRevenueRoute: AppAdminCryptoRevenueRoute,
   AppAdminCryptoSubaccountsRoute: AppAdminCryptoSubaccountsRouteWithChildren,
+  AppAdminCryptoSystemHealthRoute: AppAdminCryptoSystemHealthRoute,
+  AppAdminCryptoTransactionsRoute: AppAdminCryptoTransactionsRouteWithChildren,
+  AppAdminCryptoTreasuryRoute: AppAdminCryptoTreasuryRoute,
+  AppAdminCryptoWalletsRoute: AppAdminCryptoWalletsRouteWithChildren,
+  AppAdminCryptoWithdrawalsRoute: AppAdminCryptoWithdrawalsRouteWithChildren,
   AppAdminGiftcardsBrandsRoute: AppAdminGiftcardsBrandsRouteWithChildren,
   AppAdminGiftcardsCatalogRoute: AppAdminGiftcardsCatalogRouteWithChildren,
   AppAdminGiftcardsDashboardRoute: AppAdminGiftcardsDashboardRoute,
@@ -1665,6 +2222,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminObservabilityCriticalErrorsRoute:
     AppAdminObservabilityCriticalErrorsRoute,
   AppAdminWalletsWithdrawalsRoute: AppAdminWalletsWithdrawalsRouteWithChildren,
+  AppAdminCryptoPricingFeesRoute: AppAdminCryptoPricingFeesRoute,
+  AppAdminCryptoPricingFxRatesRoute: AppAdminCryptoPricingFxRatesRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
