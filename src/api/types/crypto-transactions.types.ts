@@ -106,4 +106,28 @@ export type CryptoTransactionDetailDto = CryptoTransactionListItemDto & {
   childOrderId: string | null;
   childSwapId: string | null;
   childWithdrawalId: string | null;
+  /** Non-null only for a Sell transaction whose CryptoOrder could be resolved — see
+   * admin-console/15-SELL_ORDERS_AND_LIQUIDATION.md §3 Part A. */
+  sellSettlement: SellSettlementDto | null;
+};
+
+/** The 2026-08-29 Sell redesign — no trade, the crypto is swept to master for later manual OTC
+ * sale. See docs/wallet-service-docs/crypto-wallet/features/08-SELL_CRYPTO.md. */
+export type SellSettlementDto = {
+  orderId: string;
+  requestedAmount: number;
+  tradableAmount: number;
+  spreadFee: number;
+  platformFee: number;
+  /** The un-marked-down reference market rate used to compute fiat proceeds — not the
+   * spread-adjusted quote price (see CryptoOrder.AveragePrice's own doc comment backend-side). */
+  referenceMarketPrice: number;
+  liquidationProvider: string;
+  /** Binance internal-transfer id for the sub-account -> master sweep, or null if the sweep
+   * hasn't succeeded yet (settlement still pending/failed). */
+  liquidationTransferId: string | null;
+  /** Id of the CryptoSellSettlement multi-step operation — links to the Operations Explorer's
+   * step-timeline detail page. Null only if the settlement operation row couldn't be found. */
+  operationId: string | null;
+  operationStatus: string | null;
 };

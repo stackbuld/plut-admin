@@ -6,8 +6,10 @@ import { cryptoTransactionQueries } from "@/api/crypto-transactions";
 import type { CryptoTransactionDetailDto } from "@/api/types/crypto-transactions.types";
 import { CryptoTransactionStatusBadge } from "@/components/plut/crypto/CryptoTransactionStatusBadge";
 import { formatCrypto } from "@/components/plut/crypto/CryptoWithdrawalStatusBadge";
+import { OperationStatusBadge } from "@/components/plut/crypto/OperationStatusBadge";
 import { UserRef } from "@/components/plut/UserSummaryModal";
 import { formatDateTime, formatUsd, truncId } from "@/lib/format";
+import type { CryptoOperationStatus } from "@/api/types/crypto.types";
 
 // This screen's own detail view only covers the fields common to every transaction type (the
 // CryptoTransaction row itself) — it is a routing hub to the richer per-type screens, not a
@@ -121,7 +123,7 @@ function CryptoTransactionDetail() {
           <Row label="Correlation Id" value={<CopyableId value={tx.correlationId} />} />
         </Section>
 
-        <ChildLink tx={tx} />
+        {tx.type === "Sell" ? <SellSettlementPanel tx={tx} /> : <ChildLink tx={tx} />}
 
         {tx.metadata != null && (
           <Section title="Metadata">
@@ -134,6 +136,62 @@ function CryptoTransactionDetail() {
         )}
       </div>
     </div>
+  );
+}
+
+// Sell no longer trades — the crypto is swept to master for later manual OTC sale (2026-08-29
+// redesign, see docs/wallet-service-docs/crypto-wallet/features/08-SELL_CRYPTO.md). This panel
+// replaces ChildLink's generic "no order detail page yet" text for Sell specifically — see
+// admin-console/15-SELL_ORDERS_AND_LIQUIDATION.md §2 Part A. Reuses the Operations Explorer's own
+// step-timeline page for drill-down rather than duplicating it.
+function SellSettlementPanel({ tx }: { tx: CryptoTransactionDetailDto }) {
+  const s = tx.sellSettlement;
+  if (!s) {
+    return (
+      <Section title="Sell Settlement">
+        <div className="px-3 py-2.5 text-sm text-muted-foreground">
+          No settlement order found for this transaction.
+        </div>
+      </Section>
+    );
+  }
+
+  return (
+    <Section title="Sell Settlement">
+      <Row label="Requested" value={formatCrypto(s.requestedAmount, tx.asset)} />
+      <Row label="Tradable" value={formatCrypto(s.tradableAmount, tx.asset)} hint="requested − spread − platform fee" />
+      <Row label="Spread Fee" value={formatCrypto(s.spreadFee, tx.asset)} />
+      <Row label="Platform Fee" value={formatCrypto(s.platformFee, tx.asset)} />
+      <Row
+        label="Reference Market Price"
+        value={formatUsd(s.referenceMarketPrice)}
+        hint="un-marked-down rate used for fiat proceeds"
+      />
+      <Row label="Liquidation Provider" value={s.liquidationProvider} />
+      <Row
+        label="Liquidation Transfer"
+        value={s.liquidationTransferId ? <CopyableId value={s.liquidationTransferId} /> : "— pending"}
+      />
+      <div className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
+        <span className="text-muted-foreground">Settlement</span>
+        <div className="flex items-center gap-3">
+          {s.operationStatus && (
+            <OperationStatusBadge status={s.operationStatus as CryptoOperationStatus} />
+          )}
+          {s.operationId ? (
+            <Link
+              to="/admin/crypto/operations/$operationId"
+              params={{ operationId: s.operationId }}
+              className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+            >
+              View settlement steps <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          ) : (
+            <span className="text-xs text-muted-foreground">no operation found</span>
+          )}
+        </div>
+      </div>
+    </Section>
   );
 }
 
