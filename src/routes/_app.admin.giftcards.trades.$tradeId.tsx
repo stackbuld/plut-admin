@@ -734,6 +734,7 @@ const USER_STATUS_STYLES: Record<UserStatus, string> = {
   Active: "border-success/40 bg-success/10 text-success",
   Pending: "border-warning/40 bg-warning/10 text-warning",
   Suspended: "border-destructive/40 bg-destructive/10 text-destructive",
+  Deactivated: "border-border bg-secondary text-muted-foreground",
 };
 
 function KycBadge({ tier }: { tier: KycTier }) {

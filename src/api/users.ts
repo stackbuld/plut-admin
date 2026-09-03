@@ -6,6 +6,7 @@ import type {
   UserListItem, UserDetail, ListUsersParams,
   UserBlock, UserStrike,
   ImageBlacklistEntry, ListImageBlacklistParams,
+  UserSignupStats, GetUserSignupStatsParams,
 } from "./types";
 
 // ── Users ─────────────────────────────────────────────────────────────────────
@@ -15,6 +16,9 @@ export const listAdminUsers = (params: ListUsersParams = {}) =>
 
 export const getAdminUser = (userId: string) =>
   apiGet<UserDetail>(`/api/v1/admin/users/${userId}`);
+
+export const getUserSignupStats = (params: GetUserSignupStatsParams = {}) =>
+  apiGet<UserSignupStats>(`/api/v1/admin/users/stats${buildQs(params)}`);
 
 // ── Blocks ────────────────────────────────────────────────────────────────────
 
@@ -58,6 +62,13 @@ export const userQueries = {
       queryKey: queryKeys.users.detail(userId),
       queryFn: () => getAdminUser(userId),
       staleTime: 5 * 60_000,
+    }),
+
+  stats: (params?: GetUserSignupStatsParams) =>
+    queryOptions({
+      queryKey: queryKeys.users.stats(params),
+      queryFn: () => getUserSignupStats(params),
+      staleTime: 2 * 60_000,
     }),
 
   blocks: (userId: string) =>

@@ -164,6 +164,13 @@ function useGiftcardNav(): NavItem[] {
   ];
 }
 
+function useAccountsNav(): NavItem[] {
+  return [
+    { to: "/admin/users/dashboard", label: "Dashboard", icon: LayoutGrid },
+    { to: "/admin/users", label: "Directory", icon: Users },
+  ];
+}
+
 function useAiNav(): NavItem[] {
   return [
     { to: "/admin/ai/dashboard", label: "Dashboard", icon: LayoutGrid },
@@ -489,8 +496,10 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
   const notificationsNav = useNotificationsNav();
   const vasNav = useVasNav();
   const kycNav = useKycNav();
+  const accountsNav = useAccountsNav();
   const products: Product[] = [
     { id: "giftcards", label: "Giftcards", icon: Gift, items: giftcardNav },
+    { id: "accounts", label: "Users", icon: Users, items: accountsNav },
     { id: "sourcing", label: "Sourcing", icon: Store, items: sourcingNav },
     { id: "wallets", label: "Wallets", icon: Wallet, items: walletsNav },
     { id: "vas", label: "VAS", icon: Smartphone, items: vasNav },
@@ -538,6 +547,8 @@ function deriveTitle(pathname: string): string {
   if (pathname.startsWith("/admin/vas/security")) return "VAS Fraud & Security";
   if (pathname.startsWith("/admin/kyc/dashboard")) return "KYC Overview";
   if (pathname.startsWith("/admin/kyc/cases")) return "KYC Cases";
+  if (pathname.startsWith("/admin/users/dashboard")) return "User Growth";
+  if (pathname.startsWith("/admin/users")) return "All Users";
   return "Plut Admin";
 }
 
