@@ -154,9 +154,20 @@ const PERSONAL_INFO_FIELDS: { key: keyof KycCasePersonalInfoDto; label: string }
   { key: "phoneNumber", label: "Phone" },
   { key: "email", label: "Email" },
   { key: "residentialAddress", label: "Address" },
+  { key: "city", label: "City" },
+  { key: "state", label: "State" },
+  { key: "postalCode", label: "Postal code" },
   { key: "maritalStatus", label: "Marital status" },
   { key: "documentType", label: "Document type" },
   { key: "documentNumber", label: "Document number" },
+];
+
+// Only populated once the user has done Tier2's address/utility-bill verification — rendered as a
+// separate block so it doesn't clutter the base identity fields for users who haven't done it yet.
+const ADDRESS_VERIFICATION_FIELDS: { key: keyof KycCasePersonalInfoDto; label: string }[] = [
+  { key: "addressFormatted", label: "Verified address" },
+  { key: "addressLatitude", label: "Latitude" },
+  { key: "addressLongitude", label: "Longitude" },
 ];
 
 function PersonalInfoPanel({ info }: { info: KycCasePersonalInfoDto | null }) {
@@ -169,12 +180,26 @@ function PersonalInfoPanel({ info }: { info: KycCasePersonalInfoDto | null }) {
       </Panel>
     );
   }
+  const hasAddressVerification = ADDRESS_VERIFICATION_FIELDS.some(({ key }) => info[key]);
+
   return (
-    <Panel title={`Synced from ${info.provider} · ${formatDateTime(info.fetchedAt)}`}>
-      {PERSONAL_INFO_FIELDS.map(({ key, label }) => (
-        <Row key={key} label={label} value={info[key]} />
-      ))}
-    </Panel>
+    <div className="space-y-4">
+      <Panel title={`Synced from ${info.provider} · ${formatDateTime(info.fetchedAt)}`}>
+        {PERSONAL_INFO_FIELDS.map(({ key, label }) => (
+          <Row key={key} label={label} value={info[key] as string | null} />
+        ))}
+      </Panel>
+      {hasAddressVerification && (
+        <Panel title="Address verification (Tier2)">
+          {ADDRESS_VERIFICATION_FIELDS.map(({ key, label }) => (
+            <Row key={key} label={label} value={info[key] as string | null} />
+          ))}
+          {info.isAddressRecent !== null && (
+            <Row label="Utility bill recent" value={info.isAddressRecent ? "Yes" : "No"} />
+          )}
+        </Panel>
+      )}
+    </div>
   );
 }
 

@@ -20,6 +20,7 @@ const STATUS_OPTIONS: (KycStatus | "All")[] = [
   "NeedsInfo",
   "Approved",
   "Rejected",
+  "Reset",
 ];
 
 const TIER_OPTIONS = [

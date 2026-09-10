@@ -22,12 +22,17 @@ import {
   Network,
   ClipboardCheck,
   ShieldCheck,
+  Landmark,
   Clock,
   AlertTriangle,
   Activity,
   Megaphone,
   Radio,
   IdCard,
+  Library,
+  Wrench,
+  TrendingUp,
+  CalendarCheck,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -41,7 +46,31 @@ import {
   sourcingBadgeQueries,
   vasQueries,
   kycQueries,
+  cryptoDepositQueries,
 } from "@/api";
+import { cryptoWithdrawalQueries } from "@/api/crypto-withdrawals";
+import { cryptoOperationQueries } from "@/api/crypto-operations";
+
+// No dedicated summary/count endpoint exists for crypto sub-accounts specifically (unlike
+// withdrawals' /summary, VAS's /dashboard, or KYC's /stats) — that nav item ships without a badge.
+// The other crypto nav items below now have real badge sources: crypto withdrawals' own
+// pendingOnly=true list, Operations' failedCount() (a pageSize=1 call added specifically for this),
+// and Deposits' unresolved-only default list.
+
+function useCryptoPendingWithdrawalsCount() {
+  const { data } = useQuery(cryptoWithdrawalQueries.list({ pendingOnly: true }));
+  return data?.length ?? 0;
+}
+
+function useCryptoFailedOperationsCount() {
+  const { data } = useQuery(cryptoOperationQueries.failedCount());
+  return data?.totalCount ?? 0;
+}
+
+function useCryptoUnmatchedDepositsCount() {
+  const { data } = useQuery(cryptoDepositQueries.unmatchedList());
+  return data?.length ?? 0;
+}
 
 function usePendingCount() {
   const { data } = useQuery(tradeQueries.stats());
@@ -260,6 +289,164 @@ function useVasNav(): NavItem[] {
       label: "Fraud & Security",
       icon: ShieldCheck,
       matchPrefix: "/admin/vas/security",
+    },
+  ];
+}
+
+const CRYPTO_PRICING_CHILDREN: { to: string; label: string }[] = [
+  { to: "/admin/crypto/pricing/fees", label: "Fees & Spread" },
+  { to: "/admin/crypto/pricing/fx-rates", label: "FX Rates" },
+];
+
+function useCryptoNav(): NavItem[] {
+  const pendingWd = useCryptoPendingWithdrawalsCount();
+  const failedOps = useCryptoFailedOperationsCount();
+  const unmatchedDeposits = useCryptoUnmatchedDepositsCount();
+  return [
+    { to: "/admin/crypto/dashboard", label: "Dashboard", icon: LayoutGrid },
+    {
+      to: "/admin/crypto/subaccounts",
+      label: "Sub-Accounts",
+      icon: Bitcoin,
+      matchPrefix: "/admin/crypto/subaccounts",
+    },
+    {
+      to: "/admin/crypto/wallets",
+      label: "Wallets & Users",
+      icon: Users,
+      matchPrefix: "/admin/crypto/wallets",
+    },
+    {
+      to: "/admin/crypto/deposits",
+      label: "Deposits",
+      icon: Banknote,
+      badge: unmatchedDeposits || undefined,
+      matchPrefix: "/admin/crypto/deposits",
+    },
+    {
+      to: "/admin/crypto/withdrawals",
+      label: "Withdrawals",
+      icon: ArrowLeftRight,
+      badge: pendingWd || undefined,
+      matchPrefix: "/admin/crypto/withdrawals",
+    },
+    {
+      to: "/admin/crypto/transactions",
+      label: "Transactions",
+      icon: Clock,
+      matchPrefix: "/admin/crypto/transactions",
+    },
+    {
+      to: "/admin/crypto/pricing",
+      label: "Pricing",
+      icon: Coins,
+      matchPrefix: "/admin/crypto/pricing",
+      children: CRYPTO_PRICING_CHILDREN,
+    },
+    {
+      to: "/admin/crypto/assets",
+      label: "Assets & Networks",
+      icon: Network,
+      matchPrefix: "/admin/crypto/assets",
+    },
+    {
+      to: "/admin/crypto/operations",
+      label: "Operations",
+      icon: Activity,
+      badge: failedOps || undefined,
+      matchPrefix: "/admin/crypto/operations",
+    },
+    {
+      to: "/admin/crypto/treasury",
+      label: "Treasury",
+      icon: ShieldCheck,
+      matchPrefix: "/admin/crypto/treasury",
+    },
+    {
+      to: "/admin/crypto/liquidation",
+      label: "Liquidation",
+      icon: Landmark,
+      matchPrefix: "/admin/crypto/liquidation",
+    },
+    {
+      to: "/admin/crypto/revenue",
+      label: "Revenue",
+      icon: Sparkles,
+      matchPrefix: "/admin/crypto/revenue",
+    },
+    {
+      to: "/admin/crypto/system-health",
+      label: "System Health",
+      icon: Radio,
+      matchPrefix: "/admin/crypto/system-health",
+    },
+  ];
+}
+
+// docs/ledger-service-docs/admin-console/00-OVERVIEW.md — ledger-service's first-ever admin
+// surface. Only "Ledgers & Accounts" exists so far (§4 build order builds this first since
+// everything else depends on it) — deliberately not pre-adding nav entries for unbuilt screens,
+// same principle the crypto console's own plan states for Risk & Compliance.
+function useLedgerNav(): NavItem[] {
+  return [
+    {
+      to: "/admin/ledger",
+      label: "Dashboard",
+      icon: LayoutGrid,
+    },
+    {
+      to: "/admin/ledger/accounts",
+      label: "Ledgers & Accounts",
+      icon: Library,
+      matchPrefix: "/admin/ledger/accounts",
+    },
+    {
+      to: "/admin/ledger/float",
+      label: "Float & Prefunding",
+      icon: AlertTriangle,
+      matchPrefix: "/admin/ledger/float",
+    },
+    {
+      to: "/admin/ledger/transactions",
+      label: "Transactions",
+      icon: Clock,
+      matchPrefix: "/admin/ledger/transactions",
+    },
+    {
+      to: "/admin/ledger/corrections",
+      label: "Corrections",
+      icon: Wrench,
+      matchPrefix: "/admin/ledger/corrections",
+    },
+    {
+      to: "/admin/ledger/revenue",
+      label: "Revenue & P&L",
+      icon: TrendingUp,
+      matchPrefix: "/admin/ledger/revenue",
+    },
+    {
+      to: "/admin/ledger/trial-balance",
+      label: "Trial Balance",
+      icon: ClipboardCheck,
+      matchPrefix: "/admin/ledger/trial-balance",
+    },
+    {
+      to: "/admin/ledger/reconciliation",
+      label: "Reconciliation",
+      icon: ShieldCheck,
+      matchPrefix: "/admin/ledger/reconciliation",
+    },
+    {
+      to: "/admin/ledger/health",
+      label: "System Health",
+      icon: Radio,
+      matchPrefix: "/admin/ledger/health",
+    },
+    {
+      to: "/admin/ledger/period-close",
+      label: "Period Close",
+      icon: CalendarCheck,
+      matchPrefix: "/admin/ledger/period-close",
     },
   ];
 }
@@ -497,6 +684,8 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
   const vasNav = useVasNav();
   const kycNav = useKycNav();
   const accountsNav = useAccountsNav();
+  const cryptoNav = useCryptoNav();
+  const ledgerNav = useLedgerNav();
   const products: Product[] = [
     { id: "giftcards", label: "Giftcards", icon: Gift, items: giftcardNav },
     { id: "accounts", label: "Users", icon: Users, items: accountsNav },
@@ -504,10 +693,11 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
     { id: "wallets", label: "Wallets", icon: Wallet, items: walletsNav },
     { id: "vas", label: "VAS", icon: Smartphone, items: vasNav },
     { id: "kyc", label: "KYC", icon: IdCard, items: kycNav },
+    { id: "crypto", label: "Crypto", icon: Bitcoin, items: cryptoNav },
+    { id: "ledger", label: "Ledger", icon: Library, items: ledgerNav },
     { id: "ai", label: "AI Assistant", icon: Sparkles, items: aiNav },
     { id: "observability", label: "Observability", icon: Activity, items: OBSERVABILITY_NAV },
     { id: "notifications", label: "Notifications", icon: Bell, items: notificationsNav },
-    { id: "crypto", label: "Crypto", icon: Bitcoin, comingSoon: true },
   ];
   return (
     <div className="flex h-full flex-col">
@@ -549,6 +739,30 @@ function deriveTitle(pathname: string): string {
   if (pathname.startsWith("/admin/kyc/cases")) return "KYC Cases";
   if (pathname.startsWith("/admin/users/dashboard")) return "User Growth";
   if (pathname.startsWith("/admin/users")) return "All Users";
+  if (pathname.startsWith("/admin/crypto/dashboard")) return "Crypto Dashboard";
+  if (pathname.startsWith("/admin/crypto/subaccounts")) return "Crypto Sub-Accounts";
+  if (pathname.startsWith("/admin/crypto/wallets")) return "Crypto Wallets & Users";
+  if (pathname.startsWith("/admin/crypto/deposits")) return "Crypto Deposits";
+  if (pathname.startsWith("/admin/crypto/withdrawals")) return "Crypto Withdrawals";
+  if (pathname.startsWith("/admin/crypto/transactions")) return "Crypto Transactions";
+  if (pathname.startsWith("/admin/crypto/pricing/fees")) return "Crypto Fees & Spread";
+  if (pathname.startsWith("/admin/crypto/pricing/fx-rates")) return "Crypto FX Rates";
+  if (pathname.startsWith("/admin/crypto/assets")) return "Crypto Assets & Networks";
+  if (pathname.startsWith("/admin/crypto/operations")) return "Crypto Operations";
+  if (pathname.startsWith("/admin/crypto/treasury")) return "Crypto Treasury";
+  if (pathname.startsWith("/admin/crypto/liquidation")) return "Crypto Liquidation";
+  if (pathname === "/admin/ledger") return "Ledger Admin";
+  if (pathname.startsWith("/admin/ledger/accounts")) return "Ledgers & Accounts";
+  if (pathname.startsWith("/admin/ledger/float")) return "Float & Prefunding";
+  if (pathname.startsWith("/admin/ledger/transactions")) return "Ledger Transactions";
+  if (pathname.startsWith("/admin/ledger/corrections")) return "Corrections & Manual Postings";
+  if (pathname.startsWith("/admin/ledger/revenue")) return "Ledger Revenue & P&L";
+  if (pathname.startsWith("/admin/ledger/trial-balance")) return "Trial Balance";
+  if (pathname.startsWith("/admin/ledger/reconciliation")) return "Manifest Reconciliation";
+  if (pathname.startsWith("/admin/ledger/health")) return "System Health & Ops";
+  if (pathname.startsWith("/admin/ledger/period-close")) return "Period Close";
+  if (pathname.startsWith("/admin/crypto/revenue")) return "Crypto Revenue";
+  if (pathname.startsWith("/admin/crypto/system-health")) return "Crypto System Health";
   return "Plut Admin";
 }
 
