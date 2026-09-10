@@ -5,6 +5,7 @@ import type {
   GetKycCaseDetailResult,
   GetKycStatsResult,
   ListKycAdminCasesParams,
+  ResetKycCaseResult,
   SyncKycPersonalInfoResult,
 } from "./types/kyc.types";
 
@@ -39,6 +40,14 @@ export const syncKycCase = (kycCaseId: string) =>
 /** Backfills every approved User-type case that has never been synced. Does NOT force-resync already-synced cases. */
 export const syncAllUnsyncedKyc = () =>
   apiPost<SyncKycPersonalInfoResult>(`${BASE}/sync-personal-info`, {});
+
+/**
+ * Resets an Approved User-type case: clears its documents, wipes the user's synced personal info,
+ * and downgrades them to Tier0 so they can redo verification from scratch. Only Approved cases are
+ * eligible — irreversible, requires a reason.
+ */
+export const resetKycCase = (caseId: string, reason: string) =>
+  apiPost<ResetKycCaseResult>(`${BASE}/${caseId}/reset`, { reason });
 
 // ── Query keys & options ─────────────────────────────────────────────────────
 

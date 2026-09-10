@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { exchangeCode, parseIdToken, isAdmin } from "@/lib/zitadel";
 import { useAuth } from "@/lib/auth";
+import { BASE_URL } from "@/api/client";
 
 type BootstrapUser = {
   userId: string;
@@ -54,7 +55,7 @@ function CallbackPage() {
         }
 
         // Bootstrap provisions the user and returns the backend user record
-        const bootstrapRes = await fetch("https://api-v2.plut.ng/api/v1/users/bootstrap", {
+        const bootstrapRes = await fetch(`${BASE_URL}/api/v1/users/bootstrap`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${tokens.access_token}`,

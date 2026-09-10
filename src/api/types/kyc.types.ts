@@ -6,7 +6,7 @@
 // already exports it, so no re-export is needed here.
 import type { KycTier } from "./users.types";
 
-export type KycStatus = "Pending" | "InReview" | "Approved" | "Rejected" | "NeedsInfo";
+export type KycStatus = "Pending" | "InReview" | "Approved" | "Rejected" | "NeedsInfo" | "Reset";
 export type KycCaseType = "User" | "Business";
 export type KycDocumentType =
   | "NationalIdFront"
@@ -81,9 +81,17 @@ export type KycCasePersonalInfoDto = {
   phoneNumber: string | null;
   email: string | null;
   residentialAddress: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
   maritalStatus: string | null;
   documentType: string | null;
   documentNumber: string | null;
+  // Tier2 address/utility-bill verification — null unless the user has done that check.
+  addressFormatted: string | null;
+  addressLatitude: string | null;
+  addressLongitude: string | null;
+  isAddressRecent: boolean | null;
   provider: string;
   fetchedAt: string;
 };
@@ -129,6 +137,7 @@ export type KycStatsByStatus = {
   needsInfo: number;
   approved: number;
   rejected: number;
+  reset: number;
 };
 
 export type KycStatsByTier = {
@@ -149,3 +158,6 @@ export type GetKycStatsResult = {
 
 // ── POST /api/v1/admin/kyc/sync-personal-info ───────────────────────────────
 export type SyncKycPersonalInfoResult = { synced: number; failed: number };
+
+// ── POST /api/v1/admin/kyc/{caseId}/reset ───────────────────────────────────
+export type ResetKycCaseResult = { caseId: string; status: KycStatus; newUserTier: KycTier };
