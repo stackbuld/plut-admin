@@ -9,6 +9,7 @@ import type { PagedResult } from "./types";
  *   GET  /api/admin/Wallets/{walletId}/balance          -> AdminWalletBalance
  *   GET  /api/admin/Wallets/{walletId}/transactions     -> PaginatedList<AdminWalletTransaction>
  *   POST /api/admin/Wallets/{walletId}/debit            -> DebitWalletResult
+ *   POST /api/admin/Wallets/{walletId}/credit           -> AdminCreditWalletResult
  */
 
 // AdminWalletDto
@@ -59,6 +60,14 @@ export type DebitWalletResult = {
   transactionId: string;
 };
 
+// AdminCreditWalletResult
+export type CreditWalletResult = {
+  ledgerTxId: string;
+  walletId: string;
+  balanceMinor: number;
+  transactionId: string;
+};
+
 export type ListWalletTxnsParams = {
   type?: string;
   status?: string;
@@ -93,6 +102,11 @@ export const debitWallet = (
   walletId: string,
   body: { amount: number; currency: string; narration: string; idempotencyKey: string },
 ) => apiPost<DebitWalletResult>(`/api/admin/Wallets/${walletId}/debit`, body);
+
+export const creditWallet = (
+  walletId: string,
+  body: { amount: number; currency: string; narration: string; idempotencyKey: string },
+) => apiPost<CreditWalletResult>(`/api/admin/Wallets/${walletId}/credit`, body);
 
 export const walletKeys = {
   all: () => ["admin", "wallets"] as const,

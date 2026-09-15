@@ -14,6 +14,7 @@ import { formatDateTime, truncId, currencySymbol } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { DebitWalletDialog } from "@/components/plut/DebitWalletDialog";
+import { CreditWalletDialog } from "@/components/plut/CreditWalletDialog";
 
 function money(amount: number, currency = "NGN") {
   return `${currencySymbol(currency) || ""}${amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
@@ -48,6 +49,7 @@ function UserDetail() {
   });
 
   const [debitOpen, setDebitOpen] = useState(false);
+  const [creditOpen, setCreditOpen] = useState(false);
   const [blockOpen, setBlockOpen] = useState(false);
   const [blockType, setBlockType] = useState<"Temporary" | "Permanent">("Temporary");
   const [blockDuration, setBlockDuration] = useState("24");
@@ -170,14 +172,24 @@ function UserDetail() {
         title="Wallet"
         action={
           walletId && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setDebitOpen(true)}
-              disabled={balanceLoading || !balance}
-            >
-              Debit Wallet
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setCreditOpen(true)}
+                disabled={balanceLoading || !balance}
+              >
+                Credit Wallet
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setDebitOpen(true)}
+                disabled={balanceLoading || !balance}
+              >
+                Debit Wallet
+              </Button>
+            </div>
           )
         }
       >
@@ -394,6 +406,14 @@ function UserDetail() {
         availableBalance={balance?.availableBalance}
         open={debitOpen}
         onOpenChange={setDebitOpen}
+      />
+      <CreditWalletDialog
+        walletId={creditOpen ? (walletId ?? null) : null}
+        userName={user.displayName}
+        currency={balance?.currency}
+        availableBalance={balance?.availableBalance}
+        open={creditOpen}
+        onOpenChange={setCreditOpen}
       />
     </div>
   );

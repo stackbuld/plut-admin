@@ -16,6 +16,7 @@ import { userQueries, walletQueries } from "@/api";
 import { formatDateTime, truncId, currencySymbol } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { DebitWalletDialog } from "./DebitWalletDialog";
+import { CreditWalletDialog } from "./CreditWalletDialog";
 
 function money(amount: number, currency = "NGN") {
   return `${currencySymbol(currency) || ""}${amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
@@ -40,6 +41,7 @@ export function UserSummaryModal({
   const navigate = useNavigate();
   const enabled = open && !!userId;
   const [debitOpen, setDebitOpen] = useState(false);
+  const [creditOpen, setCreditOpen] = useState(false);
 
   const { data: user, isLoading } = useQuery({ ...userQueries.detail(userId ?? ""), enabled });
   const { data: wallets } = useQuery({ ...walletQueries.byUser(userId ?? ""), enabled });
@@ -118,15 +120,24 @@ export function UserSummaryModal({
                       value={balance ? money(balance.heldBalance, balance.currency) : null}
                     />
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => setDebitOpen(true)}
-                    disabled={balanceLoading || !balance}
-                  >
-                    Debit Wallet
-                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCreditOpen(true)}
+                      disabled={balanceLoading || !balance}
+                    >
+                      Credit Wallet
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDebitOpen(true)}
+                      disabled={balanceLoading || !balance}
+                    >
+                      Debit Wallet
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -177,6 +188,14 @@ export function UserSummaryModal({
         availableBalance={balance?.availableBalance}
         open={debitOpen}
         onOpenChange={setDebitOpen}
+      />
+      <CreditWalletDialog
+        walletId={creditOpen ? (walletId ?? null) : null}
+        userName={user?.displayName}
+        currency={balance?.currency}
+        availableBalance={balance?.availableBalance}
+        open={creditOpen}
+        onOpenChange={setCreditOpen}
       />
     </>
   );
