@@ -38,7 +38,12 @@ function DashboardPage() {
   const { data: audit, isLoading: auditLoading } = useQuery(correctionsQueries.audit(ledger, 1));
   const { data: jobs, isLoading: jobsLoading } = useQuery(healthQueries.jobs());
 
-  const alerts = (floatAccounts ?? []).filter((a) => a.status !== "Healthy").slice(0, 5);
+  // "Unmonitorable" accounts hold several assets at once, so their threshold can't be evaluated —
+  // a config detail, not an alert. Counting them here (as "anything not Healthy" did) put a standing
+  // false alarm on the dashboard.
+  const alerts = (floatAccounts ?? [])
+    .filter((a) => a.status === "Critical" || a.status === "Low")
+    .slice(0, 5);
   const recentCorrections = (audit?.items ?? []).slice(0, 5);
 
   const volumeByAsset = new Map<string, number>();
@@ -89,7 +94,7 @@ function DashboardPage() {
                         : "font-semibold text-amber-600 dark:text-amber-400"
                     }
                   >
-                    {a.status}
+                    {a.status === "Critical" ? "Empty" : "Running low"}
                   </span>
                 </li>
               ))}

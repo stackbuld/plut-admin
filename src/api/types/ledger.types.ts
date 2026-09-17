@@ -44,3 +44,15 @@ export type ListAccountsParams = {
   cursor?: string;
   pageSize?: number;
 };
+
+// ── GET /api/ledger/admin/Assets ─────────────────────────────────────────────
+// The ledger's asset registry (assets.yaml). Read it instead of assuming a currency has 2 decimal
+// places: BTC has 8, ETH 18, USDT/USDC 6, XP 0 — and plut-crypto-global is a selectable ledger on
+// every screen with a ledger picker.
+
+export type AssetDto = {
+  code: string;
+  /** Decimal places. Minor units = major x 10^precision. */
+  precision: number;
+  class: "Fiat" | "Crypto" | "Points" | string;
+};

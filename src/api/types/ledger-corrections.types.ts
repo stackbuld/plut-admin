@@ -23,7 +23,13 @@ export type PostManualTransferRequest = {
   type: ManualPostingType;
   source: string;
   destination: string;
-  amountMinor: number;
+  /**
+   * Whole minor units as a STRING. The server types this as BigInteger because 1 ETH is 10^18 wei —
+   * past JavaScript's 2^53 exact-integer limit, so a JSON number would be silently rounded in the
+   * browser before it ever left. Build it with `toMinorString`, never with float maths. (Sending a
+   * number still parses server-side, but don't: the rounding happens on this side.)
+   */
+  amountMinor: string;
   asset: string;
   reason: string;
 };

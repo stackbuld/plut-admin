@@ -33,6 +33,7 @@ import {
   Wrench,
   TrendingUp,
   CalendarCheck,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -234,6 +235,12 @@ function useWalletsNav(): NavItem[] {
       matchPrefix: "/admin/wallets/withdrawals",
       children: WITHDRAWAL_CHILDREN,
     },
+    {
+      to: "/admin/wallets/adjustments",
+      label: "Adjustments",
+      icon: SlidersHorizontal,
+      matchPrefix: "/admin/wallets/adjustments",
+    },
   ];
 }
 
@@ -402,7 +409,7 @@ function useLedgerNav(): NavItem[] {
     },
     {
       to: "/admin/ledger/float",
-      label: "Float & Prefunding",
+      label: "Operational Accounts",
       icon: AlertTriangle,
       matchPrefix: "/admin/ledger/float",
     },
@@ -722,6 +729,7 @@ function deriveTitle(pathname: string): string {
   if (pathname.startsWith("/admin/giftcards/dashboard")) return "Dashboard";
   if (pathname.startsWith("/admin/sourcing")) return "Sourcing";
   if (pathname.startsWith("/admin/wallets/withdrawals")) return "Withdrawals";
+  if (pathname.startsWith("/admin/wallets/adjustments")) return "Wallet Adjustments";
   if (pathname.startsWith("/admin/ai/conversations")) return "AI Conversations";
   if (pathname.startsWith("/admin/ai/dashboard")) return "AI Overview";
   if (pathname.startsWith("/admin/observability/critical-errors")) return "Critical Errors";
@@ -753,7 +761,7 @@ function deriveTitle(pathname: string): string {
   if (pathname.startsWith("/admin/crypto/liquidation")) return "Crypto Liquidation";
   if (pathname === "/admin/ledger") return "Ledger Admin";
   if (pathname.startsWith("/admin/ledger/accounts")) return "Ledgers & Accounts";
-  if (pathname.startsWith("/admin/ledger/float")) return "Float & Prefunding";
+  if (pathname.startsWith("/admin/ledger/float")) return "Operational Accounts";
   if (pathname.startsWith("/admin/ledger/transactions")) return "Ledger Transactions";
   if (pathname.startsWith("/admin/ledger/corrections")) return "Corrections & Manual Postings";
   if (pathname.startsWith("/admin/ledger/revenue")) return "Ledger Revenue & P&L";
