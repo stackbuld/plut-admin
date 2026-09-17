@@ -19,6 +19,7 @@ import { Route as AppAdminKycRouteImport } from './routes/_app.admin.kyc'
 import { Route as AppAdminSourcingIndexRouteImport } from './routes/_app.admin.sourcing.index'
 import { Route as AppAdminLedgerIndexRouteImport } from './routes/_app.admin.ledger.index'
 import { Route as AppAdminWalletsWithdrawalsRouteImport } from './routes/_app.admin.wallets.withdrawals'
+import { Route as AppAdminWalletsAdjustmentsRouteImport } from './routes/_app.admin.wallets.adjustments'
 import { Route as AppAdminVasTransactionsRouteImport } from './routes/_app.admin.vas.transactions'
 import { Route as AppAdminVasSecurityRouteImport } from './routes/_app.admin.vas.security'
 import { Route as AppAdminVasSchedulesRouteImport } from './routes/_app.admin.vas.schedules'
@@ -165,6 +166,12 @@ const AppAdminWalletsWithdrawalsRoute =
   AppAdminWalletsWithdrawalsRouteImport.update({
     id: '/admin/wallets/withdrawals',
     path: '/admin/wallets/withdrawals',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppAdminWalletsAdjustmentsRoute =
+  AppAdminWalletsAdjustmentsRouteImport.update({
+    id: '/admin/wallets/adjustments',
+    path: '/admin/wallets/adjustments',
     getParentRoute: () => AppRoute,
   } as any)
 const AppAdminVasTransactionsRoute = AppAdminVasTransactionsRouteImport.update({
@@ -776,6 +783,7 @@ export interface FileRoutesByFullPath {
   '/admin/vas/schedules': typeof AppAdminVasSchedulesRouteWithChildren
   '/admin/vas/security': typeof AppAdminVasSecurityRoute
   '/admin/vas/transactions': typeof AppAdminVasTransactionsRouteWithChildren
+  '/admin/wallets/adjustments': typeof AppAdminWalletsAdjustmentsRoute
   '/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
   '/admin/ledger/': typeof AppAdminLedgerIndexRoute
   '/admin/sourcing/': typeof AppAdminSourcingIndexRoute
@@ -866,6 +874,7 @@ export interface FileRoutesByTo {
   '/admin/vas/commissions': typeof AppAdminVasCommissionsRoute
   '/admin/vas/dashboard': typeof AppAdminVasDashboardRoute
   '/admin/vas/security': typeof AppAdminVasSecurityRoute
+  '/admin/wallets/adjustments': typeof AppAdminWalletsAdjustmentsRoute
   '/admin/ledger': typeof AppAdminLedgerIndexRoute
   '/admin/sourcing': typeof AppAdminSourcingIndexRoute
   '/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
@@ -975,6 +984,7 @@ export interface FileRoutesById {
   '/_app/admin/vas/schedules': typeof AppAdminVasSchedulesRouteWithChildren
   '/_app/admin/vas/security': typeof AppAdminVasSecurityRoute
   '/_app/admin/vas/transactions': typeof AppAdminVasTransactionsRouteWithChildren
+  '/_app/admin/wallets/adjustments': typeof AppAdminWalletsAdjustmentsRoute
   '/_app/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
   '/_app/admin/ledger/': typeof AppAdminLedgerIndexRoute
   '/_app/admin/sourcing/': typeof AppAdminSourcingIndexRoute
@@ -1085,6 +1095,7 @@ export interface FileRouteTypes {
     | '/admin/vas/schedules'
     | '/admin/vas/security'
     | '/admin/vas/transactions'
+    | '/admin/wallets/adjustments'
     | '/admin/wallets/withdrawals'
     | '/admin/ledger/'
     | '/admin/sourcing/'
@@ -1175,6 +1186,7 @@ export interface FileRouteTypes {
     | '/admin/vas/commissions'
     | '/admin/vas/dashboard'
     | '/admin/vas/security'
+    | '/admin/wallets/adjustments'
     | '/admin/ledger'
     | '/admin/sourcing'
     | '/admin/ai/conversations/$conversationId'
@@ -1283,6 +1295,7 @@ export interface FileRouteTypes {
     | '/_app/admin/vas/schedules'
     | '/_app/admin/vas/security'
     | '/_app/admin/vas/transactions'
+    | '/_app/admin/wallets/adjustments'
     | '/_app/admin/wallets/withdrawals'
     | '/_app/admin/ledger/'
     | '/_app/admin/sourcing/'
@@ -1414,6 +1427,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/wallets/withdrawals'
       fullPath: '/admin/wallets/withdrawals'
       preLoaderRoute: typeof AppAdminWalletsWithdrawalsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/wallets/adjustments': {
+      id: '/_app/admin/wallets/adjustments'
+      path: '/admin/wallets/adjustments'
+      fullPath: '/admin/wallets/adjustments'
+      preLoaderRoute: typeof AppAdminWalletsAdjustmentsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/admin/vas/transactions': {
@@ -2567,6 +2587,7 @@ interface AppRouteChildren {
   AppAdminLedgerTrialBalanceRoute: typeof AppAdminLedgerTrialBalanceRoute
   AppAdminNotificationsAnnouncementsRoute: typeof AppAdminNotificationsAnnouncementsRoute
   AppAdminObservabilityCriticalErrorsRoute: typeof AppAdminObservabilityCriticalErrorsRoute
+  AppAdminWalletsAdjustmentsRoute: typeof AppAdminWalletsAdjustmentsRoute
   AppAdminWalletsWithdrawalsRoute: typeof AppAdminWalletsWithdrawalsRouteWithChildren
   AppAdminLedgerIndexRoute: typeof AppAdminLedgerIndexRoute
   AppAdminCryptoPricingFeesRoute: typeof AppAdminCryptoPricingFeesRoute
@@ -2610,6 +2631,7 @@ const AppRouteChildren: AppRouteChildren = {
     AppAdminNotificationsAnnouncementsRoute,
   AppAdminObservabilityCriticalErrorsRoute:
     AppAdminObservabilityCriticalErrorsRoute,
+  AppAdminWalletsAdjustmentsRoute: AppAdminWalletsAdjustmentsRoute,
   AppAdminWalletsWithdrawalsRoute: AppAdminWalletsWithdrawalsRouteWithChildren,
   AppAdminLedgerIndexRoute: AppAdminLedgerIndexRoute,
   AppAdminCryptoPricingFeesRoute: AppAdminCryptoPricingFeesRoute,

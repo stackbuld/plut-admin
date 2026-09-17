@@ -2,6 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { apiGet, buildQs } from "./client";
 import type {
   AccountPageDto,
+  AssetDto,
   LedgerSummaryDto,
   ListAccountsParams,
 } from "./types/ledger.types";
@@ -14,6 +15,8 @@ const BASE = "/api/ledger/admin";
 // ── Fetchers ──────────────────────────────────────────────────────────────────
 
 export const listLedgers = () => apiGet<LedgerSummaryDto[]>(`${BASE}/Ledgers`);
+
+export const listAssets = () => apiGet<AssetDto[]>(`${BASE}/Assets`);
 
 export const listAccounts = (p: ListAccountsParams) => {
   const params: Record<string, unknown> = { ledger: p.ledger };
@@ -28,6 +31,7 @@ export const listAccounts = (p: ListAccountsParams) => {
 export const ledgerKeys = {
   all: () => ["admin", "ledger"] as const,
   ledgers: () => [...ledgerKeys.all(), "ledgers"] as const,
+  assets: () => [...ledgerKeys.all(), "assets"] as const,
   accounts: () => [...ledgerKeys.all(), "accounts"] as const,
   accountsList: (p: ListAccountsParams) => [...ledgerKeys.accounts(), p] as const,
 };
@@ -38,6 +42,15 @@ export const ledgerQueries = {
       queryKey: ledgerKeys.ledgers(),
       queryFn: listLedgers,
       staleTime: 60_000,
+    }),
+
+  // Asset precision effectively never changes at runtime (it ships in assets.yaml), so this is
+  // cached hard — every money input on the console depends on it.
+  assets: () =>
+    queryOptions({
+      queryKey: ledgerKeys.assets(),
+      queryFn: listAssets,
+      staleTime: 60 * 60_000,
     }),
 
   accounts: (p: ListAccountsParams) =>

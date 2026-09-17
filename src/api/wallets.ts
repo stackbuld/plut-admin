@@ -10,6 +10,7 @@ import type { PagedResult } from "./types";
  *   GET  /api/admin/Wallets/{walletId}/transactions     -> PaginatedList<AdminWalletTransaction>
  *   POST /api/admin/Wallets/{walletId}/debit            -> DebitWalletResult
  *   POST /api/admin/Wallets/{walletId}/credit           -> AdminCreditWalletResult
+ *   GET  /api/admin/Wallets/adjustments/audit           -> PaginatedList<WalletAdjustmentAudit>
  */
 
 // AdminWalletDto
@@ -68,6 +69,26 @@ export type CreditWalletResult = {
   transactionId: string;
 };
 
+// WalletAdjustmentAuditDto — the append-only record of every admin credit/debit, successful or not.
+// Amounts are MAJOR units, already converted server-side with the row's own currency precision.
+export type WalletAdjustmentAudit = {
+  id: string;
+  adminUserId: string;
+  adminEmail: string;
+  action: "Credit" | "Debit";
+  walletId: string;
+  targetUserId: string;
+  targetUserName: string | null;
+  amount: number;
+  currency: string;
+  narration: string;
+  success: boolean;
+  ledgerTxId: string | null;
+  errorCode: string | null;
+  errorDescription: string | null;
+  createdAt: string;
+};
+
 export type ListWalletTxnsParams = {
   type?: string;
   status?: string;
@@ -108,12 +129,23 @@ export const creditWallet = (
   body: { amount: number; currency: string; narration: string; idempotencyKey: string },
 ) => apiPost<CreditWalletResult>(`/api/admin/Wallets/${walletId}/credit`, body);
 
+export const listWalletAdjustmentAudit = (
+  walletId: string | undefined,
+  page: number,
+  pageSize = 50,
+) =>
+  apiGet<PagedResult<WalletAdjustmentAudit>>(
+    `/api/admin/Wallets/adjustments/audit${buildQs({ walletId, page, pageSize })}`,
+  );
+
 export const walletKeys = {
   all: () => ["admin", "wallets"] as const,
   byUser: (userId: string) => [...walletKeys.all(), "by-user", userId] as const,
   balance: (walletId: string) => [...walletKeys.all(), walletId, "balance"] as const,
   txns: (walletId: string, params?: ListWalletTxnsParams) =>
     [...walletKeys.all(), walletId, "transactions", params] as const,
+  adjustmentAudit: (walletId: string | undefined, page: number) =>
+    [...walletKeys.all(), "adjustment-audit", walletId, page] as const,
 };
 
 export const walletQueries = {
@@ -136,5 +168,14 @@ export const walletQueries = {
       queryKey: walletKeys.txns(walletId, params),
       queryFn: () => listWalletTransactions(walletId, params),
       staleTime: 30_000,
+    }),
+};
+
+export const walletAuditQueries = {
+  adjustments: (walletId: string | undefined, page: number) =>
+    queryOptions({
+      queryKey: walletKeys.adjustmentAudit(walletId, page),
+      queryFn: () => listWalletAdjustmentAudit(walletId, page),
+      staleTime: 10_000,
     }),
 };
