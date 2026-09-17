@@ -16,6 +16,7 @@ import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppAdminVasRouteImport } from './routes/_app.admin.vas'
 import { Route as AppAdminSourcingRouteImport } from './routes/_app.admin.sourcing'
 import { Route as AppAdminKycRouteImport } from './routes/_app.admin.kyc'
+import { Route as AppAdminUsersIndexRouteImport } from './routes/_app.admin.users.index'
 import { Route as AppAdminSourcingIndexRouteImport } from './routes/_app.admin.sourcing.index'
 import { Route as AppAdminLedgerIndexRouteImport } from './routes/_app.admin.ledger.index'
 import { Route as AppAdminWalletsWithdrawalsRouteImport } from './routes/_app.admin.wallets.withdrawals'
@@ -29,6 +30,7 @@ import { Route as AppAdminVasDashboardRouteImport } from './routes/_app.admin.va
 import { Route as AppAdminVasCommissionsRouteImport } from './routes/_app.admin.vas.commissions'
 import { Route as AppAdminVasCatalogRouteImport } from './routes/_app.admin.vas.catalog'
 import { Route as AppAdminVasBulkPurchasesRouteImport } from './routes/_app.admin.vas.bulk-purchases'
+import { Route as AppAdminUsersDashboardRouteImport } from './routes/_app.admin.users.dashboard'
 import { Route as AppAdminSourcingWhatsappRouteImport } from './routes/_app.admin.sourcing.whatsapp'
 import { Route as AppAdminSourcingReviewRouteImport } from './routes/_app.admin.sourcing.review'
 import { Route as AppAdminSourcingOurNumbersRouteImport } from './routes/_app.admin.sourcing.our-numbers'
@@ -152,6 +154,11 @@ const AppAdminKycRoute = AppAdminKycRouteImport.update({
   path: '/admin/kyc',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminUsersIndexRoute = AppAdminUsersIndexRouteImport.update({
+  id: '/admin/users/',
+  path: '/admin/users/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminSourcingIndexRoute = AppAdminSourcingIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -221,6 +228,11 @@ const AppAdminVasBulkPurchasesRoute =
     path: '/bulk-purchases',
     getParentRoute: () => AppAdminVasRoute,
   } as any)
+const AppAdminUsersDashboardRoute = AppAdminUsersDashboardRouteImport.update({
+  id: '/admin/users/dashboard',
+  path: '/admin/users/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminSourcingWhatsappRoute =
   AppAdminSourcingWhatsappRouteImport.update({
     id: '/whatsapp',
@@ -774,6 +786,7 @@ export interface FileRoutesByFullPath {
   '/admin/sourcing/our-numbers': typeof AppAdminSourcingOurNumbersRoute
   '/admin/sourcing/review': typeof AppAdminSourcingReviewRoute
   '/admin/sourcing/whatsapp': typeof AppAdminSourcingWhatsappRoute
+  '/admin/users/dashboard': typeof AppAdminUsersDashboardRoute
   '/admin/vas/bulk-purchases': typeof AppAdminVasBulkPurchasesRouteWithChildren
   '/admin/vas/catalog': typeof AppAdminVasCatalogRouteWithChildren
   '/admin/vas/commissions': typeof AppAdminVasCommissionsRoute
@@ -787,6 +800,7 @@ export interface FileRoutesByFullPath {
   '/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
   '/admin/ledger/': typeof AppAdminLedgerIndexRoute
   '/admin/sourcing/': typeof AppAdminSourcingIndexRoute
+  '/admin/users/': typeof AppAdminUsersIndexRoute
   '/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
   '/admin/crypto/assets/$asset': typeof AppAdminCryptoAssetsAssetRoute
   '/admin/crypto/operations/$operationId': typeof AppAdminCryptoOperationsOperationIdRoute
@@ -871,12 +885,14 @@ export interface FileRoutesByTo {
   '/admin/sourcing/our-numbers': typeof AppAdminSourcingOurNumbersRoute
   '/admin/sourcing/review': typeof AppAdminSourcingReviewRoute
   '/admin/sourcing/whatsapp': typeof AppAdminSourcingWhatsappRoute
+  '/admin/users/dashboard': typeof AppAdminUsersDashboardRoute
   '/admin/vas/commissions': typeof AppAdminVasCommissionsRoute
   '/admin/vas/dashboard': typeof AppAdminVasDashboardRoute
   '/admin/vas/security': typeof AppAdminVasSecurityRoute
   '/admin/wallets/adjustments': typeof AppAdminWalletsAdjustmentsRoute
   '/admin/ledger': typeof AppAdminLedgerIndexRoute
   '/admin/sourcing': typeof AppAdminSourcingIndexRoute
+  '/admin/users': typeof AppAdminUsersIndexRoute
   '/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
   '/admin/crypto/assets/$asset': typeof AppAdminCryptoAssetsAssetRoute
   '/admin/crypto/operations/$operationId': typeof AppAdminCryptoOperationsOperationIdRoute
@@ -975,6 +991,7 @@ export interface FileRoutesById {
   '/_app/admin/sourcing/our-numbers': typeof AppAdminSourcingOurNumbersRoute
   '/_app/admin/sourcing/review': typeof AppAdminSourcingReviewRoute
   '/_app/admin/sourcing/whatsapp': typeof AppAdminSourcingWhatsappRoute
+  '/_app/admin/users/dashboard': typeof AppAdminUsersDashboardRoute
   '/_app/admin/vas/bulk-purchases': typeof AppAdminVasBulkPurchasesRouteWithChildren
   '/_app/admin/vas/catalog': typeof AppAdminVasCatalogRouteWithChildren
   '/_app/admin/vas/commissions': typeof AppAdminVasCommissionsRoute
@@ -988,6 +1005,7 @@ export interface FileRoutesById {
   '/_app/admin/wallets/withdrawals': typeof AppAdminWalletsWithdrawalsRouteWithChildren
   '/_app/admin/ledger/': typeof AppAdminLedgerIndexRoute
   '/_app/admin/sourcing/': typeof AppAdminSourcingIndexRoute
+  '/_app/admin/users/': typeof AppAdminUsersIndexRoute
   '/_app/admin/ai/conversations/$conversationId': typeof AppAdminAiConversationsConversationIdRoute
   '/_app/admin/crypto/assets/$asset': typeof AppAdminCryptoAssetsAssetRoute
   '/_app/admin/crypto/operations/$operationId': typeof AppAdminCryptoOperationsOperationIdRoute
@@ -1086,6 +1104,7 @@ export interface FileRouteTypes {
     | '/admin/sourcing/our-numbers'
     | '/admin/sourcing/review'
     | '/admin/sourcing/whatsapp'
+    | '/admin/users/dashboard'
     | '/admin/vas/bulk-purchases'
     | '/admin/vas/catalog'
     | '/admin/vas/commissions'
@@ -1099,6 +1118,7 @@ export interface FileRouteTypes {
     | '/admin/wallets/withdrawals'
     | '/admin/ledger/'
     | '/admin/sourcing/'
+    | '/admin/users/'
     | '/admin/ai/conversations/$conversationId'
     | '/admin/crypto/assets/$asset'
     | '/admin/crypto/operations/$operationId'
@@ -1183,12 +1203,14 @@ export interface FileRouteTypes {
     | '/admin/sourcing/our-numbers'
     | '/admin/sourcing/review'
     | '/admin/sourcing/whatsapp'
+    | '/admin/users/dashboard'
     | '/admin/vas/commissions'
     | '/admin/vas/dashboard'
     | '/admin/vas/security'
     | '/admin/wallets/adjustments'
     | '/admin/ledger'
     | '/admin/sourcing'
+    | '/admin/users'
     | '/admin/ai/conversations/$conversationId'
     | '/admin/crypto/assets/$asset'
     | '/admin/crypto/operations/$operationId'
@@ -1286,6 +1308,7 @@ export interface FileRouteTypes {
     | '/_app/admin/sourcing/our-numbers'
     | '/_app/admin/sourcing/review'
     | '/_app/admin/sourcing/whatsapp'
+    | '/_app/admin/users/dashboard'
     | '/_app/admin/vas/bulk-purchases'
     | '/_app/admin/vas/catalog'
     | '/_app/admin/vas/commissions'
@@ -1299,6 +1322,7 @@ export interface FileRouteTypes {
     | '/_app/admin/wallets/withdrawals'
     | '/_app/admin/ledger/'
     | '/_app/admin/sourcing/'
+    | '/_app/admin/users/'
     | '/_app/admin/ai/conversations/$conversationId'
     | '/_app/admin/crypto/assets/$asset'
     | '/_app/admin/crypto/operations/$operationId'
@@ -1408,6 +1432,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminKycRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/users/': {
+      id: '/_app/admin/users/'
+      path: '/admin/users'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof AppAdminUsersIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/sourcing/': {
       id: '/_app/admin/sourcing/'
       path: '/'
@@ -1498,6 +1529,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/vas/bulk-purchases'
       preLoaderRoute: typeof AppAdminVasBulkPurchasesRouteImport
       parentRoute: typeof AppAdminVasRoute
+    }
+    '/_app/admin/users/dashboard': {
+      id: '/_app/admin/users/dashboard'
+      path: '/admin/users/dashboard'
+      fullPath: '/admin/users/dashboard'
+      preLoaderRoute: typeof AppAdminUsersDashboardRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/admin/sourcing/whatsapp': {
       id: '/_app/admin/sourcing/whatsapp'
@@ -2588,8 +2626,10 @@ interface AppRouteChildren {
   AppAdminNotificationsAnnouncementsRoute: typeof AppAdminNotificationsAnnouncementsRoute
   AppAdminObservabilityCriticalErrorsRoute: typeof AppAdminObservabilityCriticalErrorsRoute
   AppAdminWalletsAdjustmentsRoute: typeof AppAdminWalletsAdjustmentsRoute
+  AppAdminUsersDashboardRoute: typeof AppAdminUsersDashboardRoute
   AppAdminWalletsWithdrawalsRoute: typeof AppAdminWalletsWithdrawalsRouteWithChildren
   AppAdminLedgerIndexRoute: typeof AppAdminLedgerIndexRoute
+  AppAdminUsersIndexRoute: typeof AppAdminUsersIndexRoute
   AppAdminCryptoPricingFeesRoute: typeof AppAdminCryptoPricingFeesRoute
   AppAdminCryptoPricingFxRatesRoute: typeof AppAdminCryptoPricingFxRatesRoute
 }
@@ -2632,8 +2672,10 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminObservabilityCriticalErrorsRoute:
     AppAdminObservabilityCriticalErrorsRoute,
   AppAdminWalletsAdjustmentsRoute: AppAdminWalletsAdjustmentsRoute,
+  AppAdminUsersDashboardRoute: AppAdminUsersDashboardRoute,
   AppAdminWalletsWithdrawalsRoute: AppAdminWalletsWithdrawalsRouteWithChildren,
   AppAdminLedgerIndexRoute: AppAdminLedgerIndexRoute,
+  AppAdminUsersIndexRoute: AppAdminUsersIndexRoute,
   AppAdminCryptoPricingFeesRoute: AppAdminCryptoPricingFeesRoute,
   AppAdminCryptoPricingFxRatesRoute: AppAdminCryptoPricingFxRatesRoute,
 }
