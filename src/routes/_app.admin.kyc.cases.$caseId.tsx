@@ -175,7 +175,7 @@ function PersonalInfoPanel({ info }: { info: KycCasePersonalInfoDto | null }) {
     return (
       <Panel>
         <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-          Not synced yet — use the Resync action above.
+          Not synced yet — use the sync action above.
         </p>
       </Panel>
     );

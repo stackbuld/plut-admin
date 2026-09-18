@@ -161,3 +161,6 @@ export type SyncKycPersonalInfoResult = { synced: number; failed: number };
 
 // ── POST /api/v1/admin/kyc/{caseId}/reset ───────────────────────────────────
 export type ResetKycCaseResult = { caseId: string; status: KycStatus; newUserTier: KycTier };
+
+// ── POST /api/v1/admin/kyc/{caseId}/review ──────────────────────────────────
+export type ReviewKycCaseResult = { caseId: string; type: KycCaseType; status: KycStatus };
