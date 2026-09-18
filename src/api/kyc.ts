@@ -6,6 +6,7 @@ import type {
   GetKycStatsResult,
   ListKycAdminCasesParams,
   ResetKycCaseResult,
+  ReviewKycCaseResult,
   SyncKycPersonalInfoResult,
 } from "./types/kyc.types";
 
@@ -48,6 +49,14 @@ export const syncAllUnsyncedKyc = () =>
  */
 export const resetKycCase = (caseId: string, reason: string) =>
   apiPost<ResetKycCaseResult>(`${BASE}/${caseId}/reset`, { reason });
+
+/** Approves an InReview case: advances the user's tier (or activates the organization for KYB). */
+export const approveKycCase = (caseId: string) =>
+  apiPost<ReviewKycCaseResult>(`${BASE}/${caseId}/review`, { decision: "approve" });
+
+/** Rejects an InReview case. Does not change the user's tier — they can submit a new case to retry. */
+export const rejectKycCase = (caseId: string, reason: string) =>
+  apiPost<ReviewKycCaseResult>(`${BASE}/${caseId}/review`, { decision: "reject", reason });
 
 // ── Query keys & options ─────────────────────────────────────────────────────
 
